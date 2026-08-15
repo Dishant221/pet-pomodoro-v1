@@ -44,6 +44,30 @@ export function newSyncCode(): string {
   return code;
 }
 
+/**
+ * The reason a request failed, in words the player can act on.
+ *
+ * The API answers a refusal with `{ error }` written for a human — "too many
+ * new sync codes from this address, try again later" tells someone what to do
+ * next, where "server said 429" tells them only that something broke. Rate
+ * limiting made that difference matter: a 429 is now a state a real player can
+ * reach, on a shared office or campus address, without having done anything
+ * wrong.
+ *
+ * The body is still untrusted, so it is used only after it proves to be a
+ * short string, and the status is kept as the fallback for a response that
+ * isn't ours to read — a proxy's error page, say.
+ */
+async function reason(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: unknown };
+    if (typeof body?.error === 'string' && body.error.length <= 200) return body.error;
+  } catch {
+    /* not JSON, or not ours */
+  }
+  return `server said ${res.status}`;
+}
+
 async function request(path: string, init?: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -64,7 +88,7 @@ export async function push(): Promise<SyncResult> {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ code, profile: $profile.get() }),
     });
-    if (!res.ok) return { ok: false, error: `server said ${res.status}` };
+    if (!res.ok) return { ok: false, error: await reason(res) };
     return { ok: true };
   } catch (e) {
     return { ok: false, error: describe(e) };
@@ -78,7 +102,7 @@ export async function pull(): Promise<SyncResult> {
   try {
     const res = await request(`/api/load?code=${encodeURIComponent(code)}`);
     if (res.status === 404) return { ok: false, error: 'nothing saved for that code yet' };
-    if (!res.ok) return { ok: false, error: `server said ${res.status}` };
+    if (!res.ok) return { ok: false, error: await reason(res) };
     const body = (await res.json()) as { profile?: Partial<Profile> };
     if (!body?.profile) return { ok: false, error: 'malformed response' };
     const next = hydrate(body.profile);

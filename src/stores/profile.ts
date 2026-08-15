@@ -1,7 +1,8 @@
 import { atom } from 'nanostores';
 import type { SceneId } from '../game/manifest';
+import { SCENE_IDS } from '../game/manifest';
 import type { PetSkinId, SnackId, ThemeId } from '../game/economy';
-import { PET_BY_ID } from '../game/economy';
+import { PET_BY_ID, PET_ITEMS, SNACK_ITEMS, THEME_ITEMS } from '../game/economy';
 import { SAVE_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persist';
 
 export type TimerMode = 'focus' | 'short' | 'long';
@@ -83,42 +84,112 @@ export function defaultProfile(): Profile {
 }
 
 /** Merges a loaded save over defaults so added fields never read as undefined. */
+// --- untrusted input --------------------------------------------------------
+//
+// `hydrate` is a trust boundary, and not only for this browser's own storage.
+// A save also arrives from `/api/load`, and a sync code can be shared or
+// guessed at by whoever holds it — so the JSON coming back is not necessarily
+// something this player wrote. An imported save file is worse: it is a file a
+// stranger can hand you.
+//
+// So nothing is merged on faith. Every identifier is checked against the set
+// of ids that actually exist, every number is coerced and clamped, and every
+// boolean is checked for being a boolean. An unrecognised value is dropped
+// rather than repaired, because a save claiming to own a scene called
+// `__proto__` is not a save with a typo in it.
+
+const VALID_SCENES = new Set<string>(SCENE_IDS);
+const VALID_THEMES = new Set<string>(THEME_ITEMS.map((t) => t.id));
+const VALID_PETS = new Set<string>(PET_ITEMS.map((p) => p.id));
+const VALID_SNACKS = new Set<string>(SNACK_ITEMS.map((s) => s.id));
+const VALID_MODES = new Set<string>(['focus', 'short', 'long']);
+
+/** Keep only recognised ids, plus the one that is always owned. */
+function ownedIds<T extends string>(raw: unknown, valid: Set<string>, always: T): T[] {
+  const list = Array.isArray(raw) ? raw : [];
+  const kept = list.filter((v): v is T => typeof v === 'string' && valid.has(v));
+  return Array.from(new Set<T>([always, ...kept]));
+}
+
+function pickId<T extends string>(raw: unknown, owned: T[], fallback: T): T {
+  return typeof raw === 'string' && (owned as string[]).includes(raw) ? (raw as T) : fallback;
+}
+
+function num(raw: unknown, fallback: number): number {
+  return typeof raw === 'number' && Number.isFinite(raw) ? raw : fallback;
+}
+
+function bool(raw: unknown, fallback: boolean): boolean {
+  return typeof raw === 'boolean' ? raw : fallback;
+}
+
 export function hydrate(raw: Partial<Profile> | null): Profile {
   const base = defaultProfile();
   if (!raw || typeof raw !== 'object') return base;
-  const owned = raw.owned ?? base.owned;
+
+  const rawOwned = (raw.owned ?? {}) as Record<string, unknown>;
+  const owned = {
+    scenes: ownedIds<SceneId>(rawOwned.scenes, VALID_SCENES, 'livingroom'),
+    themes: ownedIds<ThemeId>(rawOwned.themes, VALID_THEMES, 'playful'),
+    pets: ownedIds<PetSkinId>(rawOwned.pets, VALID_PETS, 'mochi'),
+    snacks: ownedIds<SnackId>(rawOwned.snacks, VALID_SNACKS, 'fish'),
+  };
+
+  const rawEquipped = (raw.equipped ?? {}) as Record<string, unknown>;
+  const rawSettings = (raw.settings ?? {}) as Record<string, unknown>;
+  const rawVitals = (raw.vitals ?? {}) as Record<string, unknown>;
+  const d = base.settings;
+
   const merged: Profile = {
     v: 1,
-    coins: Number.isFinite(raw.coins) ? Math.max(0, Math.floor(raw.coins as number)) : 0,
-    owned: {
-      scenes: uniq(['livingroom', ...(owned.scenes ?? [])]) as SceneId[],
-      themes: uniq(['playful', ...(owned.themes ?? [])]) as ThemeId[],
-      pets: uniq(['mochi', ...(owned.pets ?? [])]) as PetSkinId[],
-      snacks: uniq(['fish', ...(owned.snacks ?? [])]) as SnackId[],
+    coins: Math.max(0, Math.floor(num(raw.coins, 0))),
+    owned,
+    // Equipping is resolved against what is owned, so this cannot end up
+    // pointing at something that does not exist even if both halves lie.
+    equipped: {
+      scene: pickId(rawEquipped.scene, owned.scenes, 'livingroom'),
+      theme: pickId(rawEquipped.theme, owned.themes, 'playful'),
+      pet: pickId(rawEquipped.pet, owned.pets, 'mochi'),
+      snack: pickId(rawEquipped.snack, owned.snacks, 'fish'),
     },
-    equipped: { ...base.equipped, ...(raw.equipped ?? {}) },
-    settings: { ...base.settings, ...(raw.settings ?? {}) },
-    vitals: { ...base.vitals, ...(raw.vitals ?? {}) },
+    settings: {
+      focusMin: num(rawSettings.focusMin, d.focusMin),
+      shortMin: num(rawSettings.shortMin, d.shortMin),
+      longMin: num(rawSettings.longMin, d.longMin),
+      longEvery: num(rawSettings.longEvery, d.longEvery),
+      autoStartBreaks: bool(rawSettings.autoStartBreaks, d.autoStartBreaks),
+      volMaster: num(rawSettings.volMaster, d.volMaster),
+      volSfx: num(rawSettings.volSfx, d.volSfx),
+      muted: bool(rawSettings.muted, d.muted),
+      notifications: bool(rawSettings.notifications, d.notifications),
+      reducedMotion: bool(rawSettings.reducedMotion, d.reducedMotion),
+    },
+    vitals: {
+      hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
+      happiness: clamp(num(rawVitals.happiness, base.vitals.happiness), 0, 100),
+      ignoredBreaks: clamp(Math.floor(num(rawVitals.ignoredBreaks, 0)), 0, 999),
+      lastInteractAt: Math.max(0, Math.floor(num(rawVitals.lastInteractAt, 0))),
+    },
+    // Capped: a save is uploaded whole, and an unbounded history is both a
+    // storage cost and a way to make the stats page chew the main thread.
     sessions: Array.isArray(raw.sessions) ? raw.sessions.filter(isSession).slice(-1000) : [],
   };
-  // Never leave the player equipped with something they don't own.
-  if (!merged.owned.scenes.includes(merged.equipped.scene)) merged.equipped.scene = 'livingroom';
-  if (!merged.owned.themes.includes(merged.equipped.theme)) merged.equipped.theme = 'playful';
-  if (!merged.owned.pets.includes(merged.equipped.pet)) merged.equipped.pet = 'mochi';
-  if (!merged.owned.snacks.includes(merged.equipped.snack)) merged.equipped.snack = 'fish';
+
   merged.settings = clampSettings(merged.settings);
-  merged.vitals.hunger = clamp(merged.vitals.hunger, 0, 100);
-  merged.vitals.happiness = clamp(merged.vitals.happiness, 0, 100);
   return merged;
 }
 
 function isSession(s: unknown): s is SessionRecord {
-  const r = s as SessionRecord;
-  return !!r && typeof r.at === 'number' && typeof r.ms === 'number' && typeof r.mode === 'string';
-}
-
-function uniq<T>(a: T[]): T[] {
-  return Array.from(new Set(a));
+  if (!s || typeof s !== 'object') return false;
+  const r = s as Record<string, unknown>;
+  return (
+    typeof r.at === 'number' &&
+    Number.isFinite(r.at) &&
+    typeof r.ms === 'number' &&
+    Number.isFinite(r.ms) &&
+    typeof r.mode === 'string' &&
+    VALID_MODES.has(r.mode)
+  );
 }
 
 export function clamp(n: number, lo: number, hi: number): number {
@@ -231,7 +302,13 @@ export function resetAll(): void {
 export function applyAppearance(p: Profile): void {
   if (!isBrowser) return;
   const root = document.documentElement;
-  root.classList.remove('theme-playful', 'theme-ghibli', 'theme-anime', 'theme-vangogh');
+  // Remove every theme-* class rather than a hardcoded four. A fixed list
+  // leaves anything else behind — including junk from a save written before
+  // boot.js validated the theme it was given.
+  // Snapshot first: classList is live, and removing while iterating it skips.
+  for (const c of Array.from(root.classList)) {
+    if (c.startsWith('theme-')) root.classList.remove(c);
+  }
   root.classList.add(`theme-${p.equipped.theme}`);
   root.dataset.reducedMotion = String(p.settings.reducedMotion);
 

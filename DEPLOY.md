@@ -145,6 +145,42 @@ npx wrangler d1 execute petpomo-preview --remote --command "DELETE FROM saves"
 
 ---
 
+## Infrastructure hardening (dashboard, not code)
+
+None of these can be done from the repository. Do them once.
+
+**1. Rate-limit `/api/save` at the edge.** The Worker limits writes per IP
+using the edge cache, which is per-colo and not atomic — enough to stop casual
+abuse, not enough to stop someone who means it. The real control is a
+Cloudflare rate-limiting rule, which runs before the Worker is even invoked and
+therefore costs nothing when it fires:
+
+> **Security → WAF → Rate limiting rules → Create**
+> Expression: `http.request.uri.path eq "/api/save"`
+> Rate: 60 requests per 1 minute, per IP · Action: Block, 1 minute
+
+The attack this exists for is not reading saves — a sync code is 24 random
+characters and cannot be guessed. It is a script inventing a new code per
+request, each one a fresh D1 row of up to 256 KB, billed to you.
+
+The Worker's own limits are set well above what a player can reach on purpose
+(30 writes a minute, 60 new codes an hour, per IP) because they are shared: a
+mobile carrier can put hundreds of subscribers behind one address, and refusing
+a first-time player their own save is a worse outcome than the abuse a tighter
+number would have caught. Tightening belongs here, in the WAF rule, where it
+can be adjusted without a deploy.
+
+**2. Set a D1 spend alert.** Free tier is 5 GB and 5M reads/day, and normal
+play stays far inside it. An alert is how you find out that has stopped being
+true before the bill does.
+
+> **Manage Account → Billing → Notifications**
+
+**3. Scope the deploy token.** `CLOUDFLARE_API_TOKEN` in GitHub Actions needs
+exactly *Cloudflare Pages: Edit* on this one account. If it currently has more,
+replace it — that token is one leaked workflow log away from being someone
+else's.
+
 ## Security headers
 
 `public/_headers` carries HSTS, `nosniff`, `X-Frame-Options`, a

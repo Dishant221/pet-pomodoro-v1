@@ -30,12 +30,63 @@ const MAX_BODY = 256 * 1024;
 /** Minimum gap between writes for one code. Blunt, but enough to stop a loop. */
 const MIN_WRITE_INTERVAL_MS = 1000;
 
+/**
+ * Per-IP write limits.
+ *
+ * The per-code interval above stops a runaway client. It does nothing about
+ * the interesting attack, which is a script inventing a fresh code for every
+ * request: each one is a new D1 row of up to 256 KB, on our account, and the
+ * per-code limiter never fires because no code is ever reused. Creating rows
+ * is therefore limited far more tightly than updating them — a real player
+ * creates one code, ever, and then only writes to it.
+ *
+ * This is best-effort and deliberately so. The counters live in the edge
+ * cache, which is per-colo and not atomic, so a determined attacker spread
+ * across regions gets a higher effective limit than the numbers suggest. It
+ * raises the cost of casual abuse by orders of magnitude; the control for a
+ * serious attempt is a Cloudflare rate-limiting rule in front of the Worker,
+ * which is documented in DEPLOY.md.
+ *
+ * The numbers are deliberately loose. These are per-IP, and an office, a
+ * campus or a carrier-grade NAT puts many real players behind one address —
+ * locking those people out of their own saves to inconvenience an attacker
+ * who can rent a hundred addresses would be a bad trade. Mobile carriers are
+ * the case that sets the floor: CGNAT routinely puts hundreds of subscribers
+ * behind one IPv4 address, so a limit tuned for one household is a limit that
+ * refuses first-time players on a phone network for no reason they can see.
+ *
+ * Sixty new codes an hour is still three orders of magnitude short of what a
+ * harvester wants, and the failure it prevents — a player left holding a code
+ * that will not upload, with no way to tell why — is worse than the abuse it
+ * would have caught. The limiter cannot be the real defence at any of these
+ * numbers anyway; that is the WAF rule's job.
+ */
+const WRITES_PER_MINUTE = 30;
+const NEW_CODES_PER_HOUR = 60;
+
 const app = new Hono<{ Bindings: Bindings }>();
 
+/**
+ * CORS: an explicit allowlist, or nothing at all.
+ *
+ * This previously reflected whatever `Origin` it was sent, which is the same
+ * as having no policy. It did not expose saves — the sync code is the
+ * credential and no cookies are involved — but it did let any website on the
+ * internet drive this API from its visitors' browsers, spending our D1 writes
+ * from their IP addresses. There is no reason for a third-party origin to call
+ * this: the game is served from the same origin as the API.
+ *
+ * So an unset ALLOWED_ORIGINS now means no CORS headers, which browsers read
+ * as same-origin only. Splitting the API onto its own Worker is the case that
+ * needs the allowlist, and that is exactly when it should be set deliberately.
+ */
 app.use('/api/*', async (c, next) => {
-  const configured = c.env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
+  const configured = c.env.ALLOWED_ORIGINS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!configured?.length) return next();
   return cors({
-    origin: configured && configured.length ? configured : (o) => o,
+    origin: configured,
     allowMethods: ['GET', 'POST', 'OPTIONS'],
     allowHeaders: ['content-type'],
     maxAge: 86400,
@@ -43,6 +94,40 @@ app.use('/api/*', async (c, next) => {
 });
 
 app.get('/api/health', (c) => c.json({ ok: true }));
+
+/**
+ * Count one event against a bucket, and say whether it is over the limit.
+ *
+ * Read-then-write with no atomicity: two requests landing in the same
+ * millisecond can both read the same count and both be allowed. That is
+ * acceptable for abuse mitigation — being off by one on a limit of twelve
+ * changes nothing — and the alternative is a Durable Object per IP, which is
+ * a lot of machinery and cost to defend a free save file.
+ */
+async function overLimit(bucket: string, limit: number, ttlSeconds: number): Promise<boolean> {
+  if (!edgeCache) return false;
+  const key = new Request(`https://petpomo.internal/rl/${bucket}`);
+  try {
+    const hit = await edgeCache.match(key);
+    const count = hit ? Number(await hit.text()) || 0 : 0;
+    if (count >= limit) return true;
+    await edgeCache.put(
+      key,
+      new Response(String(count + 1), {
+        headers: { 'cache-control': `max-age=${ttlSeconds}`, 'content-type': 'text/plain' },
+      }),
+    );
+    return false;
+  } catch {
+    // A limiter that fails closed would take the feature down with it.
+    return false;
+  }
+}
+
+/** Caller identity for rate limiting only. Never stored, never logged. */
+function clientKey(c: { req: { header(name: string): string | undefined } }): string {
+  return c.req.header('cf-connecting-ip') ?? 'unknown';
+}
 
 /**
  * GET /api/load?code=...
@@ -77,6 +162,13 @@ app.post('/api/save', async (c) => {
   const declared = Number(c.req.header('content-length') ?? 0);
   if (declared > MAX_BODY) return c.json({ error: 'save too large' }, 413);
 
+  // Checked before the body is read, so a flood costs us as little as possible.
+  const who = clientKey(c);
+  const minute = Math.floor(Date.now() / 60_000);
+  if (await overLimit(`save/${who}/${minute}`, WRITES_PER_MINUTE, 120)) {
+    return c.json({ error: 'too many writes, try again shortly' }, 429, { 'retry-after': '60' });
+  }
+
   let body: { code?: unknown; profile?: unknown };
   try {
     body = await c.req.json();
@@ -98,6 +190,19 @@ app.post('/api/save', async (c) => {
 
   if (existing && now - existing.updated_at < MIN_WRITE_INTERVAL_MS) {
     return c.json({ error: 'too many writes' }, 429);
+  }
+
+  // Creating a row is the expensive, unbounded operation, so it is limited far
+  // harder than updating one. A real player mints a single code and then only
+  // ever updates it; a script harvesting free storage mints a new one per
+  // request, which is exactly what this stops.
+  if (!existing) {
+    const hour = Math.floor(now / 3_600_000);
+    if (await overLimit(`new/${who}/${hour}`, NEW_CODES_PER_HOUR, 3900)) {
+      return c.json({ error: 'too many new sync codes from this address, try again later' }, 429, {
+        'retry-after': '3600',
+      });
+    }
   }
 
   await c.env.DB.prepare(

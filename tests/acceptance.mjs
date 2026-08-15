@@ -394,6 +394,83 @@ await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 await stageReady(page);
 check('stage returns to full motion', (await page.getAttribute('.pp-stage', 'data-reduced')) === 'false');
 
+// ------------------------------------ 17b. a hostile save cannot break the app
+//
+// A save is not always something this player wrote. It arrives from /api/load
+// under a sync code that can be shared, and an imported file is one a stranger
+// can hand you. `hydrate` is the boundary, so this feeds it the shapes an
+// attacker would actually try — unknown ids, wrong types, prototype pollution,
+// values engineered to make later arithmetic produce NaN — and asserts the app
+// comes up normalised rather than broken.
+await page.goto(BASE + '/about', { waitUntil: 'domcontentloaded' });
+await page.evaluate(() => {
+  localStorage.setItem(
+    'petpomo.save.v1',
+    JSON.stringify({
+      coins: '999999999',
+      owned: {
+        scenes: ['livingroom', 'not-a-scene', { toString: 'nope' }, 42],
+        themes: 'vangogh',
+        pets: null,
+        snacks: ['__proto__', 'constructor'],
+      },
+      equipped: { scene: 'not-a-scene', theme: '"><img src=x>', pet: '__proto__', snack: 7 },
+      settings: { focusMin: 'abc', volMaster: 9e99, muted: 'yes', reducedMotion: 1 },
+      vitals: { hunger: NaN, happiness: -500, ignoredBreaks: 'lots', lastInteractAt: -1 },
+      sessions: [{ at: 'now', ms: {}, mode: 'evil' }, null, 5],
+      __proto__: { polluted: true },
+    }),
+  );
+});
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+
+const hostile = await page.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem('petpomo.save.v1'));
+  return {
+    scene: document.querySelector('.pp-stage')?.dataset.scene,
+    theme: document.documentElement.className,
+    equipped: s.equipped,
+    owned: s.owned,
+    coins: s.coins,
+    focusMin: s.settings.focusMin,
+    sessions: s.sessions.length,
+    polluted: {}.polluted === true,
+  };
+});
+
+check(
+  'hostile save falls back to valid ids',
+  hostile.equipped.scene === 'livingroom' &&
+    hostile.equipped.theme === 'playful' &&
+    hostile.equipped.pet === 'mochi' &&
+    hostile.equipped.snack === 'fish',
+  JSON.stringify(hostile.equipped),
+);
+check(
+  'hostile save cannot invent owned items',
+  hostile.owned.scenes.every((s) => ['livingroom', 'garden', 'jungle', 'treehouse'].includes(s)) &&
+    hostile.owned.snacks.every((s) => ['fish', 'cookie', 'milk', 'sushi'].includes(s)),
+  JSON.stringify(hostile.owned),
+);
+check(
+  'hostile save numbers are coerced, not trusted',
+  hostile.coins === 0 && hostile.focusMin === 25 && hostile.sessions === 0,
+  `coins=${hostile.coins} focusMin=${hostile.focusMin} sessions=${hostile.sessions}`,
+);
+check('hostile save does not pollute Object.prototype', hostile.polluted === false);
+// The root class matters on its own: boot.js runs before hydrate can sanitise
+// anything, so it has to validate the theme itself or a hostile save gets to
+// staple arbitrary classes onto <html>.
+check(
+  'stage renders with a hostile save, and the root class is clean',
+  hostile.scene === 'livingroom' && hostile.theme.trim() === 'theme-playful',
+  `scene=${hostile.scene} html="${hostile.theme}"`,
+);
+
+// Put a clean save back so the sections below are not reading wreckage.
+await seedSave(page, 's.coins = 5000;');
+
 // ------------------------------------------------- 18. export / import
 await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
 const dl = page.waitForEvent('download');

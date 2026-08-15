@@ -15,7 +15,22 @@
   try {
     var raw = localStorage.getItem('petpomo.save.v1');
     var save = raw ? JSON.parse(raw) : null;
-    var theme = (save && save.equipped && save.equipped.theme) || 'playful';
+
+    /**
+     * This runs before the app, which means it runs before `hydrate` has had
+     * a chance to sanitise anything — so it validates for itself.
+     *
+     * The save is not necessarily one this player wrote: it can arrive from a
+     * shared sync code or an imported file. Concatenating an unchecked value
+     * into `className` is not an injection (assigning className never parses
+     * HTML) but it does let a hostile save staple arbitrary classes onto the
+     * root element, and "not exploitable today" is a poor reason to trust
+     * input that has a known-good set to check against.
+     */
+    var THEMES = ['playful', 'ghibli', 'anime', 'vangogh'];
+    var theme = save && save.equipped && save.equipped.theme;
+    if (THEMES.indexOf(theme) === -1) theme = 'playful';
+
     var reduced = !!(save && save.settings && save.settings.reducedMotion);
     var root = document.documentElement;
     root.className = 'theme-' + theme;
