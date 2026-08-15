@@ -7,6 +7,7 @@ import { paletteFor } from '../three/palette';
 import type { PropSpec } from '../three/props';
 import { $world } from '../game/world';
 import { useStore } from '@nanostores/preact';
+import PaintedBackdrop from './PaintedBackdrop';
 
 /**
  * Preact shell around the WebGL engine.
@@ -65,6 +66,15 @@ export default function Stage3D(props: Stage3DProps) {
   // latest handler — rebuilding the engine on every render would be ruinous.
   const cbRef = useRef(props);
   cbRef.current = props;
+
+  /**
+   * How far the backdrop must slide to stay under the cat's feet.
+   *
+   * Handed to the backdrop as a stable function it can poll every frame,
+   * rather than as a prop: the camera pans continuously and pushing that
+   * through Preact would re-render five layers of inline SVG at 60 Hz.
+   */
+  const readShift = useRef(() => engineRef.current?.backdropShift() ?? 0).current;
 
   useLayoutEffect(() => {
     const ok = webglAvailable();
@@ -165,6 +175,9 @@ export default function Stage3D(props: Stage3DProps) {
   // The fallback brings its own stage chrome, so it is rendered bare.
   if (supported === false) return <>{props.fallback}</>;
 
+  const weatherNote =
+    world.weather.ok && world.weather.condition !== 'clear' ? `, and it is ${world.weather.condition} outside` : '';
+
   return (
     <div
       ref={hostRef}
@@ -175,14 +188,24 @@ export default function Stage3D(props: Stage3DProps) {
       data-pet-state={props.petState}
       data-reduced={String(props.reduced)}
       data-webgl={supported === true ? 'true' : 'pending'}
+      data-phase={world.phase}
+      data-weather={world.weather.condition}
     >
-      <canvas
-        ref={canvasRef}
-        class="block h-full w-full"
-        style={`touch-action: none; cursor: ${grabbing ? 'grab' : 'default'}`}
-        role="img"
-        aria-label={`${SCENES[props.scene].label} — the cat is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke the cat to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
-      />
+      <PaintedBackdrop
+        scene={props.scene}
+        phase={world.phase}
+        condition={world.weather.condition}
+        reduced={props.reduced}
+        shift={readShift}
+      >
+        <canvas
+          ref={canvasRef}
+          class="absolute inset-0 block h-full w-full"
+          style={`touch-action: none; cursor: ${grabbing ? 'grab' : 'default'}`}
+          role="img"
+          aria-label={`${SCENES[props.scene].label} at ${world.phase}${weatherNote} — the cat is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke the cat to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
+        />
+      </PaintedBackdrop>
       <p class="sr-only" role="status" aria-live="polite">
         {PET_STATES[props.petState].label}
       </p>

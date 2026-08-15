@@ -12,10 +12,10 @@
  * one is allowed its own opinion.
  */
 
-// Phase naming and the hour boundaries are production concerns now — the
-// prototype borrows them rather than keeping a second, divergent copy.
-export { phaseForHour, type PhaseId } from '../game/world';
-import type { PhaseId } from '../game/world';
+// Phase naming and the hour boundaries live with the world clock, so there is
+// one definition of when dusk starts rather than two that can drift.
+import { phaseForFraction, type Condition, type PhaseId } from '../game/world';
+export type { PhaseId };
 
 export interface TimeOfDay {
   id: PhaseId;
@@ -289,6 +289,11 @@ export const PHASES: Record<PhaseId, TimeOfDay> = {
 
 export const PHASE_IDS = Object.keys(PHASES) as PhaseId[];
 
+/** The palette for a point in the local day. */
+export function timeOfDayFor(fraction: number): TimeOfDay {
+  return PHASES[phaseForFraction(fraction)];
+}
+
 /** Where the sun sits in the painted frame, in viewBox units (1600×900). */
 export function sunScreenPos(t: TimeOfDay): { x: number; y: number } {
   return {
@@ -298,13 +303,54 @@ export function sunScreenPos(t: TimeOfDay): { x: number; y: number } {
   };
 }
 
+// --- weather -----------------------------------------------------------------
+
 /**
- * The key light's world position, derived from the same sun.
+ * Weather as a wash over the finished painting, not as new paintings.
  *
- * The camera looks down -Z from about z=3, so +X is screen-right and +Y is up.
- * Keeping z positive puts the sun on the camera's side of the pet, which is
- * what the paintings show — none of them backlight the animal.
+ * Six phases times four scenes is already twenty-four backgrounds to draw;
+ * multiplying that by seven weather conditions would be unshippable. A grey
+ * day is a clear day with the colour pulled out and a cold veil over it, which
+ * is close enough to how an illustrator would actually handle it — and it
+ * keeps working unchanged when real painted art replaces the generated stand-in.
  */
-export function keyLightPosition(t: TimeOfDay): [number, number, number] {
-  return [t.sunX * 7, 0.6 + t.sunY * 7, 2.2 + (1 - t.sunY) * 1.6];
+export interface WeatherWash {
+  /** CSS colour laid over the whole painted stack. */
+  veil: string;
+  veilAlpha: number;
+  /** CSS filter values applied to the painted layers. */
+  saturate: number;
+  brightness: number;
+  contrast: number;
+  /** What falls from the sky, if anything. */
+  precipitation: 'none' | 'rain' | 'snow';
+  /** 0..1 — drives how hard the precipitation falls and how it leans. */
+  intensity: number;
+  /** A low haze across the scene, for fog and heavy rain. */
+  haze: number;
+}
+
+const CLEAR_WASH: WeatherWash = {
+  veil: '#ffffff',
+  veilAlpha: 0,
+  saturate: 1,
+  brightness: 1,
+  contrast: 1,
+  precipitation: 'none',
+  intensity: 0,
+  haze: 0,
+};
+
+const WASHES: Record<Condition, WeatherWash> = {
+  clear: CLEAR_WASH,
+  cloudy: { ...CLEAR_WASH, veil: '#c9d8e8', veilAlpha: 0.1, saturate: 0.93, brightness: 0.98 },
+  overcast: { ...CLEAR_WASH, veil: '#aebccc', veilAlpha: 0.26, saturate: 0.72, brightness: 0.9, contrast: 0.95, haze: 0.18 },
+  fog: { ...CLEAR_WASH, veil: '#d6dde4', veilAlpha: 0.44, saturate: 0.55, brightness: 1.02, contrast: 0.82, haze: 0.62 },
+  rain: { ...CLEAR_WASH, veil: '#8fa8bf', veilAlpha: 0.3, saturate: 0.68, brightness: 0.84, contrast: 0.96, precipitation: 'rain', intensity: 0.7, haze: 0.3 },
+  snow: { ...CLEAR_WASH, veil: '#e6f0fb', veilAlpha: 0.32, saturate: 0.6, brightness: 1.05, contrast: 0.92, precipitation: 'snow', intensity: 0.6, haze: 0.34 },
+  storm: { ...CLEAR_WASH, veil: '#5f7089', veilAlpha: 0.44, saturate: 0.5, brightness: 0.7, contrast: 1.06, precipitation: 'rain', intensity: 1, haze: 0.42 },
+};
+
+export function washFor(condition: Condition): WeatherWash {
+  return WASHES[condition] ?? CLEAR_WASH;
 }

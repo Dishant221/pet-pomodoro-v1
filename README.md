@@ -33,8 +33,13 @@ src/game/
   economy.ts             shop catalog and coin rewards
   world.ts               the player's real local time + real weather
   sync.ts                optional cloud-sync client
+src/world/
+  palette.ts             six time-of-day palettes + the weather wash
+  paint.ts               the painted scenes, generated as layered SVG
 src/three/
-  daylight.ts            bends a world's lighting to that time and weather
+  daylight.ts            bends a scene's lighting to that time and weather
+  painted.ts             the gameplay objects that stay 3D on a painted stage
+  stage-types.ts         the World contract the engine renders against
 src/stores/              persist / profile / timer / pet  (nanostores)
 src/islands/             Game, Stage, ShopPanel, StatsPanel, SettingsPanel
 worker/                  Hono sync API + D1 schema
@@ -72,6 +77,20 @@ five inharmonic partials. Nothing is fetched, nothing 404s, and it works offline
 Swap in CC0 samples later by replacing the `play*` bodies — the mixer and call
 sites don't change.
 
+**The stage is a painting with a 3D pet standing in it.** The background is
+five parallax layers in the DOM; the WebGL canvas is slotted between `ground`
+and `front`, so painted grass is drawn *over* the cat's paws. That occlusion is
+the single most important detail — it is a far stronger depth cue than any
+amount of lighting work, and without it the pet reads as a sticker. Three other
+things back it up: a cast shadow plus a soft contact patch for when a low sun
+stretches the shadow to nothing, a key light sharing its direction and colour
+with the painter, and a camera whose pitch is derived from the painted horizon
+so both ground planes vanish to the same line at every window size.
+
+Only the objects the cat physically touches — the bowl and the cushion — stay
+as geometry. Everything else is paint. The art is generated in code for now;
+`paintScene` returning real paintings instead changes nothing downstream.
+
 **The world runs on the player's clock and the player's weather.** `world.ts`
 takes the time of day straight from the browser, so it is already in their
 timezone and stays right when they travel. Weather comes from `/api/weather`,
@@ -86,7 +105,7 @@ It is all optional. No network, a blocked request, or a static deploy with no
 Function at all lands on fair weather and a correct clock; a 404 is remembered
 so the client stops asking.
 
-**No Three.js.** The brief made it optional garnish, and GSAP + SVG already carry
+**Three.js earns its place now.** An earlier version of this note said it did not — that was true when the world was flat SVG. The pet is 3D so it can be lit by the same sun as the painting, cast a real shadow onto it, and turn to face you. The brief made it optional garnish, and GSAP + SVG already carry
 the particle bursts. Three.js core is ~170 KB gzip against a 200 KB budget the
 whole app currently meets in ~64 KB.
 

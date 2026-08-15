@@ -13,10 +13,12 @@ import type { SnackId } from '../game/economy';
 import { buildCat, DEFAULT_PALETTE, type CatPalette, type CatRig, copyPose, lerpPose, makePose } from './cat';
 import { ACTION_LENGTH, MEOW_PERIOD, blendTime, evaluate, type Action, type AnimCtx } from './animations';
 import { buildProp, TOY_IDS, TOYS, type PropId, type PropSpec } from './props';
-import { buildWorld, type LightRecipe, type World } from './worlds';
+import { buildPaintedWorld } from './painted';
+import type { LightRecipe, World } from './stage-types';
 import { createFx, type FxSystem } from './fx';
-import { disposeTree, sky, type SkyHandle } from './toon';
+import { disposeTree, softenInk } from './toon';
 import { modulate } from './daylight';
+import { HORIZON, OVERSCAN, VIEW_H, VIEW_W } from '../world/paint';
 import { dayFraction, FAIR_WEATHER, type Weather } from '../game/world';
 
 export interface EngineCallbacks {
@@ -48,6 +50,16 @@ type Behaviour = 'roam' | 'sleep' | 'beg' | 'eat' | 'play' | 'gift' | 'sad' | 'p
 
 const UP = new THREE.Vector3(0, 1, 0);
 const GROUND = new THREE.Plane(UP, 0);
+
+/** Camera framing for the painted stage. See the constructor for the why. */
+const FOV = 26;
+const CAM_DIST = 4.6;
+const CAM_HEIGHT = 0.62;
+/**
+ * The cat is small in frame on purpose. Every reference the art direction is
+ * built from is a landscape with an animal in it, not a portrait of an animal.
+ */
+const PET_SCALE = 0.62;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const damp = (a: number, b: number, lambda: number, dt: number) => THREE.MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
 
@@ -69,7 +81,6 @@ export class Engine {
   private key!: THREE.DirectionalLight;
   private fill!: THREE.HemisphereLight;
   private rim!: THREE.DirectionalLight;
-  private skyDome!: SkyHandle;
 
   private world!: World;
   private worldId: SceneId;
@@ -82,6 +93,8 @@ export class Engine {
   private weather: Weather = FAIR_WEATHER;
   /** Seconds since the lighting was last recomputed. */
   private lightAge = Infinity;
+  /** Camera pitch that lands the 3D horizon on the painted one, in radians. */
+  private horizonPitch = 0;
   private cat: CatRig;
   private fx: FxSystem;
 
@@ -160,21 +173,31 @@ export class Engine {
     this.renderer = new THREE.WebGLRenderer({
       canvas: opts.canvas,
       antialias: true,
-      alpha: false,
+      // Transparent: the painted layers sit behind this canvas in the DOM and
+      // have to show through everywhere the cat and its props are not.
+      alpha: true,
       powerPreference: 'high-performance',
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setClearAlpha(0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NoToneMapping; // flat, poster-like anime colour
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    // Soft shadows: a hard-edged shadow on a painted, brush-textured ground is
+    // the tell that gives the composite away.
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    this.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 200);
-    this.camera.position.set(0, 1.05, 3.1);
+    // A long lens, deliberately. Painted backgrounds are effectively
+    // orthographic — an illustrator does not draw wide-angle distortion — so a
+    // wide camera makes the pet diverge from the painting's perspective
+    // towards the edges of frame.
+    this.camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 200);
+    this.camera.position.set(0, CAM_HEIGHT, CAM_DIST);
 
     this.setupLights();
 
     this.cat = buildCat(opts.palette ?? DEFAULT_PALETTE);
+    this.cat.root.scale.setScalar(PET_SCALE);
     this.scene.add(this.cat.root);
 
     this.fx = createFx(this.reduced);
@@ -209,8 +232,8 @@ export class Engine {
     this.rim = new THREE.DirectionalLight(0xffffff, 0.8);
     this.scene.add(this.rim);
 
-    this.skyDome = sky({ top: '#bfe3f5', middle: '#dff0f8', bottom: '#fdf1dd' });
-    this.scene.add(this.skyDome.mesh);
+    // No sky dome. The sky is painted, in the DOM, behind this canvas — a
+    // modelled dome would simply cover it up.
   }
 
   private loadWorld(id: SceneId): void {
@@ -219,8 +242,14 @@ export class Engine {
       this.world.dispose();
     }
     this.worldId = id;
-    this.world = buildWorld(id);
+    this.world = buildPaintedWorld(id);
     this.scene.add(this.world.group);
+
+    // Match the ink to the scene's own darks. Re-applied per world because
+    // each scene's shadows are a different colour.
+    const ink = this.world.lights.fill.ground;
+    softenInk(this.cat.root, ink, 0.62);
+    softenInk(this.world.group, ink, 0.7);
 
     this.lightAge = Infinity;
     this.refreshLighting();
@@ -280,8 +309,25 @@ export class Engine {
       this.scene.fog = new THREE.Fog(L.fog.color, L.fog.near, L.fog.far);
     }
 
-    this.skyDome.set(L.sky);
     this.lightAge = 0;
+  }
+
+  /**
+   * How far the painted backdrop must slide to stay under the cat's feet,
+   * as a fraction of the canvas width.
+   *
+   * The camera pans laterally to follow the cat. On a modelled set that is
+   * free, because the set moves with it; against a painting it is not — leave
+   * the backdrop still and the ground visibly slides out from under the paws.
+   * The caller multiplies this by a per-layer depth so the sky barely moves
+   * and the near ground moves fully, which is the same parallax the camera is
+   * already producing for the 3D objects.
+   */
+  backdropShift(): number {
+    const halfV = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+    // Width of the world visible at the plane the cat stands on.
+    const visibleW = 2 * this.camera.position.z * halfV * this.camera.aspect;
+    return visibleW > 0 ? -this.camera.position.x / visibleW : 0;
   }
 
   /** Tell the stage what time it is and what the sky is doing. */
@@ -484,8 +530,25 @@ export class Engine {
     this.world.dispose();
     this.cat.dispose();
     this.fx.dispose();
-    disposeTree(this.skyDome.mesh);
     this.renderer.dispose();
+  }
+
+  /**
+   * Where the painted horizon actually lands on screen, 0..1 down the frame.
+   *
+   * The background layers are `preserveAspectRatio="slice"`, so a container
+   * that is not 16:9 crops them — and the horizon moves with the crop. Reading
+   * that back means the camera can follow it instead of assuming a fixed 62%,
+   * which is what keeps the two ground planes agreeing at every window size.
+   */
+  private horizonFraction(w: number, h: number): number {
+    // The layer element is overscanned on every edge, so it is larger than the
+    // stage and offset up and left. Both facts move the horizon.
+    const ew = w * (1 + 2 * OVERSCAN);
+    const eh = h * (1 + 2 * OVERSCAN);
+    const scale = Math.max(ew / VIEW_W, eh / VIEW_H);
+    const offsetY = (eh - VIEW_H * scale) / 2;
+    return (-OVERSCAN * h + offsetY + HORIZON * scale) / h;
   }
 
   resize(): void {
@@ -497,15 +560,18 @@ export class Engine {
 
     // Pull the camera back on narrow viewports so the stage always fits
     // horizontally — otherwise the cat walks straight out of frame on a phone.
-    // The half-width target is a touch under the roam bounds because the camera
-    // also pans with the cat, which covers the rest.
     const halfV = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
-    const needed = 1.55 / Math.max(0.35, aspect * halfV);
-    // Capped: past ~4 units the cat is too small to read on a phone, and the
-    // camera pans with it anyway, so a little overshoot at the edges is fine.
-    this.camera.position.z = clamp(needed, 2.2, 4.0);
+    const needed = 1.9 / Math.max(0.35, aspect * halfV);
+    this.camera.position.z = clamp(needed, CAM_DIST, CAM_DIST * 1.7);
     // Low, near cat-height framing — looking down on a pet reads as detachment.
-    this.camera.position.y = clamp(0.42 + needed * 0.1, 0.55, 1.05);
+    this.camera.position.y = clamp(0.42 + needed * 0.06, CAM_HEIGHT, 1.0);
+
+    // The pitch that puts the camera's horizon exactly on the painted one. A
+    // camera looking level puts the horizon at the vertical centre; tilting up
+    // pushes it down the frame.
+    const ndcY = (0.5 - this.horizonFraction(w, h)) * 2;
+    this.horizonPitch = Math.atan(-ndcY * halfV);
+
     this.camera.updateProjectionMatrix();
   }
 
@@ -1118,17 +1184,45 @@ export class Engine {
   }
 
   private tickCamera(dt: number): void {
-    // Follow the cat laterally, but only part-way, so the set still frames it.
-    const targetX = clamp(this.pos.x * 0.32, -0.55, 0.55);
-    const parallaxX = this.pointerActive && !this.reduced ? this.pointer.x * 0.14 : 0;
-    const parallaxY = this.pointerActive && !this.reduced ? this.pointer.y * 0.07 : 0;
+    /**
+     * Follow the cat laterally, but barely.
+     *
+     * Every unit the camera pans is a unit the painted backdrop has to slide
+     * to stay under the cat's feet, and the backdrop only has `OVERSCAN` of
+     * slack before its own edge shows. The roam bounds are set so the cat
+     * stays in frame without much help, which lets this stay small.
+     */
+    const targetX = clamp(this.pos.x * 0.12, -0.24, 0.24);
+    const parallaxX = this.pointerActive && !this.reduced ? this.pointer.x * 0.06 : 0;
+    const parallaxY = this.pointerActive && !this.reduced ? this.pointer.y * 0.05 : 0;
 
     this.camera.position.x = damp(this.camera.position.x, targetX + parallaxX, 2.4, dt);
-    this.camera.lookAt(
-      this.pos.x * 0.5,
-      0.3 + parallaxY + Math.sin(this.now * 0.35) * (this.reduced ? 0 : 0.01),
-      this.pos.z * 0.4 - 0.1,
-    );
+
+    /**
+     * Aim so the view direction sits at exactly `horizonPitch`.
+     *
+     * The obvious thing is to look at the cat, but that tilts the camera as the
+     * cat moves and drags the horizon up and down the frame with it — against
+     * a painted backdrop whose horizon cannot move, that is instantly wrong.
+     * So the target's height is *derived* from the required pitch rather than
+     * chosen, and only the lateral aim follows the cat.
+     */
+    const lookX = this.pos.x * 0.5;
+    const lookZ = this.pos.z * 0.4 - 0.1;
+    const dist = Math.hypot(lookX - this.camera.position.x, lookZ - this.camera.position.z) || 1;
+    const breathe = Math.sin(this.now * 0.35) * (this.reduced ? 0 : 0.008);
+    const lookY = this.camera.position.y + Math.tan(this.horizonPitch) * dist + parallaxY + breathe;
+
+    this.camera.lookAt(lookX, lookY, lookZ);
+
+    // Keep the soft contact patch under the cat. Painted floors have no
+    // modelled ground bouncing light back, so without this a low sun leaves
+    // the pet hovering.
+    const contact = this.world.contact;
+    if (contact) {
+      contact.position.x = this.pos.x;
+      contact.position.z = this.pos.z;
+    }
   }
 }
 

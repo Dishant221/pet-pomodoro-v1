@@ -271,6 +271,35 @@ export function dotTexture(color = '#ffffff', size = 64): THREE.Texture {
 // --- disposal ---------------------------------------------------------------
 
 /** Recursively frees geometries and materials under `root`. */
+/**
+ * Thin and warm every inverted-hull outline under `root`.
+ *
+ * The cat and its props are drawn with a hard ink line, which is right for a
+ * cel-shaded world made of the same material. Against a painting it is the
+ * loudest thing marking them as a different medium — the painted background
+ * has no linework anywhere, so a black contour reads as a sticker edge.
+ *
+ * Softening rather than removing: with no outline at all the toon shading has
+ * nothing to read against and the silhouette turns to mush. Tinting the line
+ * towards the scene's own darks turns it from "linework" into "shadow".
+ */
+export function softenInk(root: THREE.Object3D, tint: THREE.ColorRepresentation, strength = 0.6): void {
+  const target = new THREE.Color(tint);
+  root.traverse((o) => {
+    if (!o.userData.isOutline) return;
+    const mat = (o as THREE.Mesh).material as THREE.ShaderMaterial;
+    if (!mat?.uniforms?.thickness) return;
+    if (mat.userData.baseThickness === undefined) {
+      mat.userData.baseThickness = mat.uniforms.thickness.value;
+      mat.userData.baseColor = (mat.uniforms.lineColor.value as THREE.Color).clone();
+    }
+    mat.uniforms.thickness.value = mat.userData.baseThickness * (1 - strength * 0.45);
+    mat.uniforms.lineColor.value.copy(mat.userData.baseColor).lerp(target, strength);
+    mat.uniforms.lineOpacity.value = 1 - strength * 0.45;
+    mat.transparent = true;
+  });
+}
+
 export function disposeTree(root: THREE.Object3D): void {
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh;

@@ -58,21 +58,42 @@ export function phaseForHour(hour: number): PhaseId {
 }
 
 /**
- * Sun height, 0 at the horizon and 1 overhead, as a smooth curve.
+ * Nominal sunrise and sunset, in local hours.
  *
- * Used for lighting rather than the discrete phase, so dawn does not arrive as
- * a jump cut. Solar noon is pinned to 13:00 local, which is close enough for
- * every populated latitude without pulling in a solar-position library.
+ * A real solar-position calculation needs latitude, which would mean either a
+ * geolocation prompt or shipping an ephemeris library — a lot of machinery to
+ * decide what colour to paint the sky. These are a fair global average and are
+ * wrong by at most an hour or so away from the equator, which is invisible in
+ * a stylised world.
+ */
+const SUNRISE_H = 5.5;
+const SUNSET_H = 20;
+
+/**
+ * Sun height: 0 on the horizon, 1 overhead, as a smooth arc.
+ *
+ * Lighting reads this rather than the discrete phase, so dawn arrives as a
+ * sunrise instead of a jump cut.
  */
 export function sunElevation(f: number): number {
-  const fromNoon = Math.abs((((f - 13 / 24) % 1) + 1.5) % 1 - 0.5);
-  // 0 at noon, 0.5 at midnight -> cosine gives a natural rise and fall.
-  return Math.max(0, Math.cos(fromNoon * Math.PI * 2) * 0.5 + 0.5);
+  const h = (((f % 1) + 1) % 1) * 24;
+  const x = (h - SUNRISE_H) / (SUNSET_H - SUNRISE_H);
+  // Negative before sunrise and after sunset, which clamps to night.
+  return Math.max(0, Math.sin(Math.PI * x));
 }
 
-/** Sun's horizontal position, -1 in the east at sunrise to +1 in the west. */
+/**
+ * Sun's horizontal position: -1 in the east at sunrise, 0 at noon, +1 in the
+ * west at sunset.
+ *
+ * This has to agree with where the painter draws the sun disc. A cast shadow
+ * falling the opposite way to a visible sun is the single most obvious way to
+ * break the composite — the eye catches it instantly.
+ */
 export function sunAzimuth(f: number): number {
-  return Math.max(-1, Math.min(1, Math.sin((f - 0.25) * Math.PI * 2)));
+  const h = (((f % 1) + 1) % 1) * 24;
+  const x = (h - SUNRISE_H) / (SUNSET_H - SUNRISE_H);
+  return Math.max(-1, Math.min(1, -Math.cos(Math.PI * Math.max(0, Math.min(1, x)))));
 }
 
 // --- weather -----------------------------------------------------------------

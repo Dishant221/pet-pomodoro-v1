@@ -13,7 +13,7 @@
  * distinction is most of what makes a sky feel real.
  */
 import * as THREE from 'three';
-import type { LightRecipe } from './worlds';
+import type { LightRecipe } from './stage-types';
 import { sunAzimuth, sunElevation, type Condition, type Weather } from '../game/world';
 
 export interface DaylightInput {
