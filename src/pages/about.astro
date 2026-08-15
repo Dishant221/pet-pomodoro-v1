@@ -1,0 +1,54 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About — PetPomo">
+  <article class="grid gap-4">
+    <header>
+      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">About PetPomo</h1>
+      <p class="text-sm" style="color: var(--ink-soft)">
+        A pomodoro timer with a cat who naps while you work.
+      </p>
+    </header>
+
+    <section class="pp-card p-5">
+      <h2 class="mb-2 font-bold">How it works</h2>
+      <ul class="grid gap-1.5 text-sm" style="color: var(--ink-soft)">
+        <li>· Start a focus session and Mochi curls up to sleep.</li>
+        <li>· When the bell rings she stretches awake and celebrates — you earn coins.</li>
+        <li>· Every focus session makes her hungrier. During breaks, drag a snack onto her.</li>
+        <li>· Stroke her for a second to get purring and hearts. A quick poke starts a game.</li>
+        <li>· Ignore two breaks in a row and she gets sad. So does abandoning a session.</li>
+        <li>· Spend coins in the shop on scenes, themes, cats and better snacks.</li>
+      </ul>
+    </section>
+
+    <section class="pp-card p-5">
+      <h2 class="mb-2 font-bold">Your data</h2>
+      <p class="text-sm" style="color: var(--ink-soft)">
+        Everything lives in this browser's local storage — there is no account and nothing is uploaded. The timer
+        stores an absolute end time, so it stays accurate through refreshes, backgrounded tabs and laptop sleep.
+        Cloud sync is opt-in: turn it on in <a href="/settings" class="underline">Settings</a> and your save is
+        keyed by a random code that only you hold.
+      </p>
+    </section>
+
+    <section class="pp-card p-5">
+      <h2 class="mb-2 font-bold">Built with</h2>
+      <p class="text-sm" style="color: var(--ink-soft)">
+        Astro (static) · Preact · Tailwind CSS · GSAP · Web Audio · Cloudflare Pages. The cat and the four scenes
+        are hand-authored SVG, inlined into the bundle so the whole game works offline after the first load. Every
+        sound effect is synthesized in the browser — no audio files are shipped.
+      </p>
+    </section>
+
+    <section class="pp-card p-5">
+      <h2 class="mb-2 font-bold">Accessibility</h2>
+      <p class="text-sm" style="color: var(--ink-soft)">
+        Reduced motion is honoured automatically from your OS setting, and can be forced on in Settings — it
+        disables parallax, particles and every looping animation while keeping each pose readable. Audio starts
+        muted. All controls are keyboard reachable.
+      </p>
+    </section>
+  </article>
+</Layout>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" preserveAspectRatio="xMidYMax slice">
+  <!-- PetPomo scene: GARDEN. Layers: #layer-sky #layer-back #layer-mid #layer-front. Animate #clouds x-drift, #butterfly path, sway .flower -->
+  <g id="layer-sky">
+    <rect fill="#BEE3F2" width="800" height="450"/>
+    <circle fill="#F9E79B" cx="680" cy="80" r="34"/>
+    <g id="clouds" fill="#FFFFFF" opacity="0.9">
+      <g><ellipse cx="150" cy="70" rx="46" ry="18"/><ellipse cx="185" cy="62" rx="30" ry="14"/></g>
+      <g><ellipse cx="420" cy="110" rx="38" ry="15"/><ellipse cx="450" cy="103" rx="24" ry="11"/></g>
+    </g>
+  </g>
+  <g id="layer-back">
+    <path fill="#A8D8A0" d="M0 260 q200 -50 400 -20 q220 32 400 -10 v220 h-800 z"/>
+    <g id="tree">
+      <rect fill="#8C6A4A" x="90" y="180" width="22" height="90" rx="6"/>
+      <circle fill="#6FA867" cx="100" cy="150" r="52"/>
+      <circle fill="#8CC17F" cx="66" cy="170" r="34"/>
+      <circle fill="#8CC17F" cx="136" cy="168" r="32"/>
+      <circle fill="#E8A0B4" cx="84" cy="140" r="5"/>
+      <circle fill="#E8A0B4" cx="118" cy="158" r="5"/>
+      <circle fill="#E8A0B4" cx="100" cy="176" r="4"/>
+    </g>
+    <g id="fence" fill="#E8D3B8">
+      <rect x="520" y="230" width="12" height="56" rx="3"/>
+      <rect x="560" y="228" width="12" height="58" rx="3"/>
+      <rect x="600" y="230" width="12" height="56" rx="3"/>
+      <rect x="640" y="228" width="12" height="58" rx="3"/>
+      <rect x="505" y="240" width="160" height="9" rx="4"/>
+      <rect x="505" y="264" width="160" height="9" rx="4"/>
+    </g>
+  </g>
+  <g id="layer-mid">
+    <path fill="#8CC17F" d="M0 320 q260 -36 520 -6 q160 18 280 -8 v144 h-800 z"/>
+    <g class="flower" id="flower-1">
+      <rect fill="#5C8F55" x="238" y="292" width="6" height="46" rx="3"/>
+      <g transform="translate(241 286)">
+        <circle fill="#F27DA0" cx="0" cy="-10" r="9"/><circle fill="#F27DA0" cx="9" cy="-3" r="9"/><circle fill="#F27DA0" cx="6" cy="8" r="9"/><circle fill="#F27DA0" cx="-6" cy="8" r="9"/><circle fill="#F27DA0" cx="-9" cy="-3" r="9"/>
+        <circle fill="#F5C542" r="7"/>
+      </g>
+    </g>
+    <g class="flower" id="flower-2">
+      <rect fill="#5C8F55" x="318" y="300" width="6" height="40" rx="3"/>
+      <g transform="translate(321 294)">
+        <circle fill="#B58ED2" cx="0" cy="-9" r="8"/><circle fill="#B58ED2" cx="8" cy="-2" r="8"/><circle fill="#B58ED2" cx="5" cy="7" r="8"/><circle fill="#B58ED2" cx="-5" cy="7" r="8"/><circle fill="#B58ED2" cx="-8" cy="-2" r="8"/>
+        <circle fill="#F9E79B" r="6"/>
+      </g>
+    </g>
+    <g class="flower" id="flower-3">
+      <rect fill="#5C8F55" x="672" y="296" width="6" height="42" rx="3"/>
+      <g transform="translate(675 290)">
+        <circle fill="#F5A05C" cx="0" cy="-9" r="8"/><circle fill="#F5A05C" cx="8" cy="-2" r="8"/><circle fill="#F5A05C" cx="5" cy="7" r="8"/><circle fill="#F5A05C" cx="-5" cy="7" r="8"/><circle fill="#F5A05C" cx="-8" cy="-2" r="8"/>
+        <circle fill="#FBE8D3" r="6"/>
+      </g>
+    </g>
+    <g id="butterfly" transform="translate(430 210)">
+      <ellipse fill="#4A3728" cx="0" cy="0" rx="2.4" ry="7"/>
+      <path fill="#7FA6C9" d="M-2 -3 q-16 -12 -18 2 q-1 10 16 6 z"/>
+      <path fill="#A8C6E8" d="M2 -3 q16 -12 18 2 q1 10 -16 6 z"/>
+    </g>
+  </g>
+  <g id="layer-front">
+    <path fill="#6FA867" d="M0 384 q200 -20 400 -4 q220 16 400 -6 v76 h-800 z"/>
+    <g fill="#5C8F55">
+      <path d="M60 400 q4 -18 8 0 z"/><path d="M74 402 q4 -16 8 0 z"/>
+      <path d="M700 396 q4 -18 8 0 z"/><path d="M716 398 q4 -16 8 0 z"/>
+      <path d="M380 408 q4 -16 8 0 z"/>
+    </g>
+    <g id="snack-slot">
+      <ellipse fill="#C97F5C" cx="70" cy="416" rx="30" ry="10"/>
+      <path fill="#E8894A" d="M56 404 q10 -14 24 0 q6 8 -2 12 h-20 q-8 -4 -2 -12 z"/>
+    </g>
+  </g>
+</svg>

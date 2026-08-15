@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: SLEEPING (curled loaf, closed eyes; scale #breath for breathing) -->
+  <g id="cat">
+    <g id="breath">
+      <g id="tail">
+        <path class="fur" fill="#F2A65A" d="M40 150 q-14 -18 4 -30 q12 -8 22 0 l-8 10 q-6 -5 -12 0 q-9 8 2 16 z"/>
+        <path class="fur-dark" fill="#E8894A" d="M46 118 q8 -4 14 0 l-5 7 q-5 -3 -9 -1 z"/>
+      </g>
+      <ellipse class="fur" fill="#F2A65A" cx="102" cy="140" rx="62" ry="36"/>
+      <path class="fur-dark" fill="#E8894A" d="M70 118 q10 -8 24 -6 l-3 10 q-11 -2 -18 3 z"/>
+      <path class="fur-dark" fill="#E8894A" d="M108 112 q12 -3 22 3 l-5 9 q-8 -5 -15 -3 z"/>
+    </g>
+    <g id="head">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M108 96 L106 72 L128 86 z"/>
+        <path class="fur" fill="#F2A65A" d="M168 100 L178 78 L150 84 z"/>
+        <path fill="#F7C6A3" d="M111 92 L110 80 L122 87 z"/>
+        <path fill="#F7C6A3" d="M164 95 L170 83 L154 87 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="138" cy="118" r="34"/>
+      <g id="eyes" class="line" stroke="#4A3728" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <path d="M120 118 q6 5 12 0"/>
+        <path d="M146 118 q6 5 12 0"/>
+      </g>
+      <path fill="#F7A8B8" d="M134 128 q4 -3 8 0 q-1 4 -4 4 q-3 0 -4 -4 z"/>
+      <circle fill="#F5B8C4" opacity="0.5" cx="114" cy="130" r="5"/>
+      <circle fill="#F5B8C4" opacity="0.5" cx="162" cy="130" r="5"/>
+    </g>
+    <g id="zzz" class="line" fill="#8FA6C9" font-family="sans-serif" font-weight="bold">
+      <text x="160" y="66" font-size="18">z</text>
+      <text x="172" y="50" font-size="13" opacity="0.75">z</text>
+      <text x="181" y="38" font-size="9" opacity="0.5">z</text>
+    </g>
+  </g>
+</svg>

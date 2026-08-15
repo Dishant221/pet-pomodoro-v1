@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SettingsPanel from '../islands/SettingsPanel';
+---
+
+<Layout title="Settings — PetPomo">
+  <SettingsPanel client:only="preact" />
+</Layout>

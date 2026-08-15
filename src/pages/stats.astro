@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatsPanel from '../islands/StatsPanel';
+---
+
+<Layout title="Stats — PetPomo">
+  <StatsPanel client:only="preact" />
+</Layout>

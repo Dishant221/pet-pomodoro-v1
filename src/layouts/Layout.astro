@@ -1,0 +1,125 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  /** The focus page runs its own full-bleed stage and hides the page chrome. */
+  wide?: boolean;
+}
+
+const { title, wide = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+const NAV = [
+  { href: '/', label: 'Focus', icon: '🐱' },
+  { href: '/stats', label: 'Stats', icon: '📊' },
+  { href: '/shop', label: 'Shop', icon: '🛍️' },
+  { href: '/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/about', label: 'About', icon: '💡' },
+];
+
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<!doctype html>
+<html lang="en" class="theme-playful">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="PetPomo — a pomodoro timer with a cat who sleeps while you focus." />
+    <meta name="theme-color" content="#fff7ed" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <script is:inline>
+      // Apply the saved theme + pet skin before first paint so there is no flash.
+      (function () {
+        try {
+          var raw = localStorage.getItem('petpomo.save.v1');
+          var save = raw ? JSON.parse(raw) : null;
+          var theme = (save && save.equipped && save.equipped.theme) || 'playful';
+          var reduced = !!(save && save.settings && save.settings.reducedMotion);
+          var root = document.documentElement;
+          root.className = 'theme-' + theme;
+          root.dataset.reducedMotion = String(reduced);
+
+          var pet = (save && save.equipped && save.equipped.pet) || 'mochi';
+          var SKINS = {
+            shadow: { fur: '#5c5f6e', furDark: '#43465a', belly: '#c9cddb', line: '#23252f' },
+            cloud: { fur: '#f0f1f5', furDark: '#d3d7e2', belly: '#ffffff', line: '#5b5f70' },
+            inky: { fur: '#3f8a86', furDark: '#2d6a67', belly: '#d6f0ec', line: '#1d3b3a' },
+          };
+          var s = SKINS[pet];
+          if (s) {
+            root.style.setProperty('--fur', s.fur);
+            root.style.setProperty('--fur-dark', s.furDark);
+            root.style.setProperty('--belly', s.belly);
+            root.style.setProperty('--line', s.line);
+          }
+        } catch (e) {
+          /* first run, or storage blocked — defaults are already on <html> */
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-dvh flex flex-col">
+    <header
+      class="sticky top-0 z-30 backdrop-blur-md"
+      style="background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--border);"
+    >
+      <nav class="mx-auto flex max-w-5xl items-center gap-1 px-3 py-2 sm:gap-2 sm:px-5" aria-label="Main">
+        <a
+          href="/"
+          class="pp-focus-ring mr-auto flex items-center gap-2 rounded-lg font-extrabold tracking-tight"
+          style="color: var(--ink)"
+        >
+          <span aria-hidden="true" class="text-xl">🐾</span>
+          <span class="text-lg">PetPomo</span>
+        </a>
+        {
+          NAV.map((item) => (
+            <a
+              href={item.href}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+              class="pp-focus-ring rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors sm:px-3"
+              style={
+                isActive(item.href)
+                  ? 'background: var(--accent); color: var(--accent-ink);'
+                  : 'color: var(--ink-soft);'
+              }
+            >
+              <span aria-hidden="true" class="sm:hidden">
+                {item.icon}
+              </span>
+              <span class="hidden sm:inline">{item.label}</span>
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+
+    <main class={wide ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}>
+      <slot />
+    </main>
+
+    {
+      !wide && (
+        <footer class="mx-auto w-full max-w-5xl px-4 pb-8 text-xs sm:px-5" style="color: var(--ink-soft)">
+          Everything is stored on this device. Nothing leaves your browser unless you turn on sync.
+        </footer>
+      )
+    }
+
+    <script is:inline>
+      // Offline support. Registered late so it never competes with first paint.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>

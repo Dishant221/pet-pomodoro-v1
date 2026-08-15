@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" preserveAspectRatio="xMidYMax slice">
+  <!-- PetPomo scene: JUNGLE. Layers: #layer-sky #layer-back #layer-mid #layer-front. Pulse #fireflies opacity at night -->
+  <g id="layer-sky">
+    <rect fill="#CBE8D8" width="800" height="450"/>
+    <circle fill="#F9F3D9" opacity="0.8" cx="640" cy="90" r="40"/>
+  </g>
+  <g id="layer-back" fill="#7FB89A">
+    <path d="M-20 220 q60 -120 130 -30 q30 40 10 260 h-140 z"/>
+    <path d="M690 200 q70 -110 130 -20 v270 h-160 q10 -160 30 -250 z"/>
+    <ellipse cx="300" cy="180" rx="90" ry="60" opacity="0.7"/>
+    <ellipse cx="480" cy="150" rx="110" ry="70" opacity="0.7"/>
+  </g>
+  <g id="layer-mid">
+    <g id="vine" stroke="#4F8A6B" stroke-width="7" fill="none" stroke-linecap="round">
+      <path d="M240 0 q-12 90 14 150"/>
+      <path d="M560 0 q14 70 -8 130"/>
+    </g>
+    <g fill="#4F8A6B">
+      <path d="M244 60 q-26 -6 -30 14 q22 8 30 -14 z"/>
+      <path d="M252 110 q26 -6 30 14 q-22 8 -30 -14 z"/>
+      <path d="M556 50 q-26 -6 -30 14 q22 8 30 -14 z"/>
+      <path d="M552 100 q26 -6 30 14 q-22 8 -30 -14 z"/>
+    </g>
+    <g id="big-leaves" fill="#5EA37F">
+      <path d="M120 340 q-60 -90 20 -130 q30 70 -8 132 z"/>
+      <path d="M690 340 q60 -90 -20 -128 q-30 70 8 130 z"/>
+      <path d="M180 356 q-30 -70 30 -96 q20 52 -18 98 z" fill="#6FB58E"/>
+      <path d="M636 352 q30 -70 -30 -94 q-20 52 18 96 z" fill="#6FB58E"/>
+    </g>
+    <g id="flower" transform="translate(662 300)">
+      <circle fill="#F26D85" cx="0" cy="-10" r="9"/><circle fill="#F26D85" cx="9" cy="-2" r="9"/><circle fill="#F26D85" cx="5" cy="8" r="9"/><circle fill="#F26D85" cx="-5" cy="8" r="9"/><circle fill="#F26D85" cx="-9" cy="-2" r="9"/>
+      <circle fill="#F9E79B" r="6"/>
+    </g>
+  </g>
+  <g id="layer-front">
+    <path fill="#3F7A5C" d="M0 372 q200 -26 400 -6 q220 20 400 -10 v94 h-800 z"/>
+    <g fill="#356A4F">
+      <path d="M90 396 q6 -26 12 0 z"/><path d="M110 400 q6 -22 12 0 z"/>
+      <path d="M600 392 q6 -26 12 0 z"/><path d="M622 396 q6 -22 12 0 z"/>
+      <path d="M360 404 q6 -22 12 0 z"/>
+    </g>
+    <g id="fireflies" fill="#F9E79B">
+      <circle cx="210" cy="300" r="3"/>
+      <circle cx="330" cy="260" r="2.4" opacity="0.8"/>
+      <circle cx="500" cy="290" r="3" opacity="0.9"/>
+      <circle cx="580" cy="240" r="2" opacity="0.7"/>
+      <circle cx="420" cy="330" r="2.4" opacity="0.8"/>
+    </g>
+    <g id="snack-slot">
+      <ellipse fill="#8C6A4A" cx="76" cy="416" rx="32" ry="10"/>
+      <path fill="#E8894A" d="M62 404 q10 -14 24 0 q6 8 -2 12 h-20 q-8 -4 -2 -12 z"/>
+    </g>
+  </g>
+</svg>

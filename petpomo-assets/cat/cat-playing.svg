@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: PLAYING (pounce at yarn ball; bob #cat, roll #yarn, wiggle #yarn-tail) -->
+  <g id="cat">
+    <g id="tail">
+      <path class="fur" fill="#F2A65A" d="M136 118 q36 -16 26 -48 q-4 -13 -16 -12 l0 12 q7 0 8 7 q6 22 -22 30 z"/>
+    </g>
+    <g id="body">
+      <path class="fur" fill="#F2A65A" d="M64 150 q-4 -34 34 -44 q42 -10 56 14 q10 20 -8 28 q-40 16 -82 2 z"/>
+      <ellipse class="fur" fill="#F2A65A" cx="132" cy="156" rx="14" ry="9"/>
+      <path class="fur-dark" fill="#E8894A" d="M104 108 q12 -5 24 0 l-4 10 q-9 -4 -17 -1 z"/>
+    </g>
+    <g id="paw-front">
+      <ellipse class="fur" fill="#F2A65A" cx="58" cy="158" rx="11" ry="14" transform="rotate(-32 58 158)"/>
+      <ellipse fill="#F7C6A3" cx="53" cy="164" rx="5" ry="6" transform="rotate(-32 53 164)"/>
+    </g>
+    <g id="head" transform="rotate(10 72 118)">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M44 96 L34 66 L66 80 z"/>
+        <path class="fur" fill="#F2A65A" d="M96 92 L104 62 L74 78 z"/>
+        <path fill="#F7C6A3" d="M47 90 L42 74 L60 82 z"/>
+        <path fill="#F7C6A3" d="M93 87 L97 71 L81 80 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="70" cy="114" r="38"/>
+      <g id="eyes">
+        <circle class="line" fill="#4A3728" cx="56" cy="112" r="7.5"/>
+        <circle class="line" fill="#4A3728" cx="86" cy="112" r="7.5"/>
+        <circle fill="#FFFFFF" cx="58.5" cy="109" r="2.8"/>
+        <circle fill="#FFFFFF" cx="88.5" cy="109" r="2.8"/>
+      </g>
+      <path fill="#F7A8B8" d="M66 126 q4 -3 8 0 q-1 4 -4 4 q-3 0 -4 -4 z"/>
+      <path fill="#C96A6A" stroke="#4A3728" stroke-width="1.8" d="M60 132 q10 9 20 0 q-3 9 -10 9 q-7 0 -10 -9 z"/>
+      <circle fill="#F5B8C4" opacity="0.6" cx="44" cy="124" r="5"/>
+      <circle fill="#F5B8C4" opacity="0.6" cx="96" cy="124" r="5"/>
+    </g>
+    <g id="yarn">
+      <circle fill="#B58ED2" cx="34" cy="180" r="14"/>
+      <g stroke="#9A6FC2" stroke-width="2" fill="none" opacity="0.9">
+        <path d="M22 176 q12 -8 24 2"/>
+        <path d="M23 184 q11 8 23 -2"/>
+        <path d="M30 167 q8 12 2 26"/>
+      </g>
+      <path id="yarn-tail" stroke="#B58ED2" stroke-width="3" fill="none" stroke-linecap="round" d="M46 188 q18 6 34 -2"/>
+    </g>
+    <g id="motion-lines" class="line" stroke="#4A3728" stroke-width="2" stroke-linecap="round" opacity="0.4">
+      <path d="M150 140 h14 M154 150 h12"/>
+    </g>
+  </g>
+</svg>

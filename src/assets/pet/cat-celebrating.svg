@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: CELEBRATING (mid-jump, paws out, coin + sparkles; bounce #cat) -->
+  <g id="cat" transform="translate(0 -8)">
+    <g id="tail">
+      <path class="fur" fill="#F2A65A" d="M140 132 q34 -14 26 -46 q-3 -13 -15 -13 l-1 12 q7 1 8 8 q4 20 -22 28 z"/>
+    </g>
+    <g id="body">
+      <ellipse class="fur" fill="#F2A65A" cx="100" cy="124" rx="40" ry="36" transform="rotate(-6 100 124)"/>
+      <ellipse class="belly" fill="#FBE8D3" cx="100" cy="132" rx="22" ry="21" transform="rotate(-6 100 132)"/>
+    </g>
+    <g id="paws">
+      <ellipse class="fur" fill="#F2A65A" cx="58" cy="104" rx="10" ry="14" transform="rotate(-42 58 104)"/>
+      <ellipse class="fur" fill="#F2A65A" cx="142" cy="104" rx="10" ry="14" transform="rotate(42 142 104)"/>
+      <ellipse class="fur" fill="#F2A65A" cx="80" cy="158" rx="11" ry="13" transform="rotate(18 80 158)"/>
+      <ellipse class="fur" fill="#F2A65A" cx="122" cy="158" rx="11" ry="13" transform="rotate(-18 122 158)"/>
+    </g>
+    <g id="head" transform="rotate(6 100 62)">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M60 48 L54 14 L84 32 z"/>
+        <path class="fur" fill="#F2A65A" d="M140 48 L146 14 L116 32 z"/>
+        <path fill="#F7C6A3" d="M64 41 L61 23 L78 33 z"/>
+        <path fill="#F7C6A3" d="M136 41 L139 23 L122 33 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="100" cy="64" r="42"/>
+      <g id="eyes" class="line" stroke="#4A3728" stroke-width="3" stroke-linecap="round" fill="none">
+        <path d="M76 62 q8 -9 16 0"/>
+        <path d="M108 62 q8 -9 16 0"/>
+      </g>
+      <path fill="#F7A8B8" d="M96 76 q4 -3 8 0 q-1 5 -4 5 q-3 0 -4 -5 z"/>
+      <path fill="#C96A6A" stroke="#4A3728" stroke-width="2" d="M88 86 q12 12 24 0 q-4 12 -12 12 q-8 0 -12 -12 z"/>
+      <circle fill="#F5B8C4" opacity="0.7" cx="68" cy="78" r="7"/>
+      <circle fill="#F5B8C4" opacity="0.7" cx="132" cy="78" r="7"/>
+    </g>
+    <g id="coin">
+      <circle fill="#F5C542" stroke="#D9A32E" stroke-width="3" cx="164" cy="40" r="14"/>
+      <text x="164" y="46" font-family="sans-serif" font-weight="bold" font-size="16" fill="#B07E1A" text-anchor="middle">★</text>
+    </g>
+    <g id="sparkles" fill="#F5C542">
+      <path d="M34 44 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 z"/>
+      <path d="M52 100 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" opacity="0.8"/>
+      <path d="M170 84 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" opacity="0.8"/>
+    </g>
+  </g>
+</svg>
