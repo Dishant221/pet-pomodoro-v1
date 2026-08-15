@@ -72,10 +72,29 @@ at it.
 Two, both on the one `petpomo` Pages project. Which one a deploy lands in is
 decided solely by `--branch`:
 
-| | Branch | URL | Database |
+| | Git branch | URL | Database |
 |---|---|---|---|
 | **Production** | `main` | `petpomo.pages.dev` | `petpomo` |
-| **Testing** | `preview` | `preview.petpomo.pages.dev` | `petpomo-preview` |
+| **Testing** | `testing` | `preview.petpomo.pages.dev` | `petpomo-preview` |
+
+**Pushing deploys.** `.github/workflows/deploy.yml` typechecks, builds and
+deploys on every push to those two branches, so the normal workflow is just:
+
+```bash
+git push origin testing    # -> preview.petpomo.pages.dev
+git push origin main       # -> petpomo.pages.dev
+```
+
+It needs two repository secrets, both under **Settings → Secrets and variables
+→ Actions**: `CLOUDFLARE_API_TOKEN` (a token with the *Cloudflare Pages: Edit*
+permission) and `CLOUDFLARE_ACCOUNT_ID`.
+
+Cloudflare's built-in Git integration is deliberately not used. This project was
+created as a Direct Upload project and Cloudflare does not allow one to be
+connected to a repository afterwards — taking that route would mean deleting and
+recreating the project, losing both URLs and the deployment history.
+
+The manual path still works and is the fallback if Actions is ever down:
 
 ```bash
 npm run deploy            # -> production
