@@ -8,7 +8,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "petpomo"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API onto
