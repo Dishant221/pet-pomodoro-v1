@@ -5,9 +5,11 @@ interface Props {
   title: string;
   /** The focus page runs its own full-bleed stage and hides the page chrome. */
   wide?: boolean;
+  /** Keep a page out of search results — internal previews and experiments. */
+  noindex?: boolean;
 }
 
-const { title, wide = false } = Astro.props;
+const { title, wide = false, noindex = false } = Astro.props;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 const NAV = [
@@ -28,6 +30,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="PetPomo — a pomodoro timer with a cat who sleeps while you focus." />
     <meta name="theme-color" content="#fff7ed" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="generator" content={Astro.generator} />
