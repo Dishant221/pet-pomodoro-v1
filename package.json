@@ -17,8 +17,9 @@
     "dev:full": "astro build && wrangler pages dev dist",
     "test:e2e": "node tests/acceptance.mjs",
     "test:sync": "node tests/sync.mjs",
-    "deploy": "astro build && wrangler pages deploy dist --project-name petpomo --branch main",
-    "deploy:preview": "astro build && wrangler pages deploy dist --project-name petpomo --branch preview"
+    "og": "node scripts/make-og.mjs",
+    "deploy": "cross-env PUBLIC_SITE_URL=https://petpomo.pages.dev astro build && wrangler pages deploy dist --project-name petpomo --branch main",
+    "deploy:preview": "cross-env PUBLIC_SITE_URL=https://preview.petpomo.pages.dev astro build && wrangler pages deploy dist --project-name petpomo --branch preview"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.2",
@@ -39,6 +40,7 @@
     "@astrojs/check": "^0.9.10",
     "@cloudflare/workers-types": "^5.20260804.1",
     "@types/three": "^0.185.4",
+    "cross-env": "10.1.0",
     "playwright": "^1.62.1",
     "typescript": "^6.0.3",
     "wrangler": "^4.119.0"

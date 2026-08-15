@@ -12,7 +12,9 @@ import tailwindcss from '@tailwindcss/vite';
  * Preview deploys override it, otherwise every preview would advertise itself
  * as the production site and invite duplicate-content penalties.
  */
-const site = process.env.PUBLIC_SITE_URL ?? 'https://petpomo.pages.dev';
+const PRODUCTION_ORIGIN = 'https://petpomo.pages.dev';
+const site = process.env.PUBLIC_SITE_URL ?? PRODUCTION_ORIGIN;
+const isProduction = site === PRODUCTION_ORIGIN;
 
 export default defineConfig({
   site,
@@ -80,7 +82,9 @@ export default defineConfig({
     sitemap({
       // The game itself and the compliance pages belong in the index; the
       // app's stateful panels do not — they render nothing without a save.
-      filter: (page) => !/\/(settings|stats|shop)\/?$/.test(page),
+      // On a preview build nothing does: submitting a sitemap for a deploy
+      // that is entirely noindex would only waste crawl budget.
+      filter: (page) => isProduction && !/\/(settings|stats|shop)\/?$/.test(page),
       changefreq: 'weekly',
       lastmod: new Date(),
     }),

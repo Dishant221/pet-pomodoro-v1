@@ -165,16 +165,20 @@ check('cat still asleep after refresh', (await petState(page)) === 'sleeping', `
 
 // ------------------------------- 5. completion -> waking -> celebrating
 const coinsBefore = await coins(page);
+// Far enough ahead that the bell rings *after* the page has finished loading.
+// At 800ms the deadline could pass while the reload was still settling, so
+// `waking` — which lasts only 1.6s — was already over by the time anything
+// could observe it. How long a reload takes is not what this check is about.
 await page.evaluate(() => {
   const t = JSON.parse(localStorage.getItem('petpomo.timer.v1'));
-  t.endsAt = Date.now() + 800;
+  t.endsAt = Date.now() + 4000;
   localStorage.setItem('petpomo.timer.v1', JSON.stringify(t));
 });
 await page.reload({ waitUntil: 'networkidle' });
 await stageReady(page);
 // `waking` only lasts 1.6s before handing off to `celebrating`, so catch it by
 // polling rather than by sleeping and hoping the page loaded fast enough.
-const wokeState = await waitForPetState(page, 'waking', 6000);
+const wokeState = await waitForPetState(page, 'waking', 12000);
 check('focus bell -> waking', wokeState === 'waking', `state=${wokeState}`);
 // The toast auto-dismisses after 3.2s, so read it before the celebrate wait.
 const bellToast = await page.locator('.pp-toast').innerText().catch(() => '');

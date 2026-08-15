@@ -7,11 +7,22 @@
  * addresses, two of which bounce.
  */
 
+/**
+ * The one origin that is allowed to be indexed.
+ *
+ * Every other deploy — preview, a branch build, someone's fork — is marked
+ * noindex and serves a disallow-all robots.txt. Preview is publicly reachable
+ * on a *.pages.dev subdomain, and an indexed preview does not just leak: it
+ * competes with production for production's own keywords, which is worse than
+ * not ranking at all.
+ */
+export const PRODUCTION_ORIGIN = 'https://petpomo.pages.dev';
+
 export const SITE = {
   name: 'PetPomo',
   tagline: 'A pomodoro timer with a virtual pet',
   /** Production origin. Overridden per-deploy by PUBLIC_SITE_URL. */
-  url: 'https://petpomo.pages.dev',
+  url: PRODUCTION_ORIGIN,
 
   /**
    * Public contact address.
@@ -37,3 +48,13 @@ export const SITE = {
 export const hasContact = SITE.contactEmail.length > 0;
 
 export const legalName = SITE.legalEntity || SITE.name;
+
+/**
+ * Whether this build is the one that should appear in search results.
+ *
+ * Compared against the origin Astro was configured with, so it is decided at
+ * build time by PUBLIC_SITE_URL and cannot be got wrong at runtime.
+ */
+export function isProductionBuild(site: URL | undefined): boolean {
+  return site?.origin === new URL(PRODUCTION_ORIGIN).origin;
+}

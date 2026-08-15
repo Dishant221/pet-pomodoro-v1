@@ -139,6 +139,8 @@ export class Engine {
   private droppedFood: { mesh: THREE.Group; at: THREE.Vector3 } | null = null;
   private groundToys: THREE.Group[] = [];
   private dragProp: THREE.Group | null = null;
+  /** Was the pointer over the stage at the last drag move? Decides the drop. */
+  private dragOverStage = false;
 
   // --- input ---
   private pointer = new THREE.Vector2(0, 0);
@@ -430,6 +432,17 @@ export class Engine {
   /** Moves the dragged snack to wherever the pointer projects onto the floor. */
   moveDrag(clientX: number, clientY: number): void {
     if (!this.dragProp) return;
+
+    // Whether the drop counts is a *screen-space* question — is the pointer
+    // over the stage? — so it is answered in screen space. It used to be
+    // inferred from where the pointer projected onto the ground, which worked
+    // only because the camera was wide. On the painted stage's long lens, a
+    // point aimed at the cat's body projects a long way behind it, and drops
+    // aimed squarely at the cat were being rejected as off-stage.
+    const r = this.canvas.getBoundingClientRect();
+    this.dragOverStage =
+      clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+
     const p = this.projectToGround(clientX, clientY);
     if (!p) return;
     this.dragProp.position.set(p.x, 0.16 + Math.sin(this.now * 6) * 0.02, p.z);
@@ -446,24 +459,20 @@ export class Engine {
     this.dragProp = null;
     if (!prop) return false;
 
-    // Accept a drop anywhere near the play area and pull it inside, rather
-    // than rejecting it. The pointer projects onto the floor *behind* whatever
-    // it looks like it is over, so an aim at the cat itself often lands just
-    // past the back edge — refusing that would feel broken.
-    const b = this.world.bounds;
-    const M = 0.9;
-    const near =
-      commit &&
-      prop.position.x > b.minX - M &&
-      prop.position.x < b.maxX + M &&
-      prop.position.z > b.minZ - M &&
-      prop.position.z < b.maxZ + M;
+    // Dropped on the stage at all? Then it lands, pulled inside the play area
+    // if it has to be. The player aimed at the cat; refusing because the ray
+    // happened to hit the floor two metres behind it would feel broken, and
+    // with a long lens that is exactly where an aim at the cat's body lands.
+    const onStage = commit && this.dragOverStage;
+    this.dragOverStage = false;
 
-    if (!near) {
+    if (!onStage) {
       this.scene.remove(prop);
       disposeTree(prop);
       return false;
     }
+
+    const b = this.world.bounds;
     prop.position.x = clamp(prop.position.x, b.minX, b.maxX);
     prop.position.z = clamp(prop.position.z, b.minZ, b.maxZ);
 

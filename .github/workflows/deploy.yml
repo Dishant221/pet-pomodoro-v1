@@ -46,7 +46,14 @@ jobs:
       # production is far more expensive than a failed workflow run.
       - run: npm run check
 
+      # PUBLIC_SITE_URL decides two things that must not be wrong: the absolute
+      # canonical / Open Graph URLs, and whether the build marks itself
+      # noindex. Preview is publicly reachable, so a preview that thinks it is
+      # production would compete with the real site for its own keywords.
       - run: npm run build
+        env:
+          PUBLIC_SITE_URL: >-
+            ${{ github.ref_name == 'main' && 'https://petpomo.pages.dev' || 'https://preview.petpomo.pages.dev' }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

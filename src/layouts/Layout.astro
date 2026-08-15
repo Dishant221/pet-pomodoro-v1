@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { isProductionBuild } from '../site';
 
 /**
  * The one place every page's `<head>` is assembled.
@@ -35,6 +36,13 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const canonical = new URL(path === '/' ? '/' : `${path}/`, Astro.site).href;
 const ogImage = new URL('/og.png', Astro.site).href;
 
+/**
+ * Anything that is not the production origin is kept out of search entirely,
+ * whatever the page asked for. Preview is publicly reachable, and an indexed
+ * preview competes with production for its own keywords.
+ */
+const hideFromSearch = noindex || !isProductionBuild(Astro.site);
+
 const NAV = [
   { href: '/', label: 'Focus', icon: '🐱' },
   { href: '/stats', label: 'Stats', icon: '📊' },
@@ -67,9 +75,10 @@ const year = new Date().getFullYear();
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
     {
-      !noindex && (
+      hideFromSearch ? (
+        <meta name="robots" content="noindex, nofollow" />
+      ) : (
         <meta
           name="robots"
           content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
