@@ -13,10 +13,12 @@
     "astro": "astro",
     "db:local": "wrangler d1 execute petpomo --local --file=worker/schema.sql",
     "db:remote": "wrangler d1 execute petpomo --remote --file=worker/schema.sql",
+    "db:preview": "wrangler d1 execute petpomo-preview --remote --file=worker/schema.sql",
     "dev:full": "astro build && wrangler pages dev dist",
     "test:e2e": "node tests/acceptance.mjs",
     "test:sync": "node tests/sync.mjs",
-    "deploy": "astro build && wrangler pages deploy dist --project-name petpomo"
+    "deploy": "astro build && wrangler pages deploy dist --project-name petpomo --branch main",
+    "deploy:preview": "astro build && wrangler pages deploy dist --project-name petpomo --branch preview"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.2",

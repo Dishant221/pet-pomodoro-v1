@@ -1,11 +1,17 @@
 # Deploying PetPomo
 
-The game is a static Astro site. Cloud sync is an optional Pages Function backed
-by D1. **You can deploy step 1 alone and have a fully working game** — sync just
-reports "API not reachable" until step 2 is done.
+The game is a static Astro site. Cloud sync is a Pages Function backed by D1.
 
-Everything below has been verified locally against `wrangler pages dev` with a
-real local D1; only the `wrangler login` step could not be run here.
+**The D1 database is not optional.** An earlier version of this file said the
+site could ship without it; that is wrong. `wrangler pages deploy` bundles the
+Function on every deploy and the API rejects a placeholder id outright —
+
+```
+Error 8000022: Invalid database UUID (REPLACE_WITH_YOUR_DATABASE_ID)
+```
+
+— which fails the whole deploy, static assets included. Create the database
+first.
 
 ---
 
@@ -58,6 +64,44 @@ If you'd rather run it as its own Worker, the same Hono app in
 set `ALLOWED_ORIGINS` to your Pages origin in `wrangler.toml`, then rebuild the
 site with `PUBLIC_API_BASE=https://your-worker.workers.dev` so the client points
 at it.
+
+---
+
+## Environments
+
+Two, both on the one `petpomo` Pages project. Which one a deploy lands in is
+decided solely by `--branch`:
+
+| | Branch | URL | Database |
+|---|---|---|---|
+| **Production** | `main` | `petpomo.pages.dev` | `petpomo` |
+| **Testing** | `preview` | `preview.petpomo.pages.dev` | `petpomo-preview` |
+
+```bash
+npm run deploy            # -> production
+npm run deploy:preview    # -> testing
+```
+
+Any *other* branch also deploys as a preview, at `<branch>.petpomo.pages.dev`
+with the same preview database. `preview` is just the fixed branch name the
+script uses so the testing URL never moves.
+
+Both scripts pass `--branch` explicitly. Do not drop it: with no `--branch`,
+wrangler infers the environment from whatever git branch is checked out, so a
+deploy from a feature branch would quietly go somewhere you did not intend.
+
+The split is enforced by `[env.preview]` in `wrangler.toml`, which points the
+same `DB` binding at a different database. Verified by writing a save through
+the preview URL and confirming production returned 404 for that same code.
+
+A custom domain, if one is ever added, attaches to production only — preview
+deploys stay on `*.pages.dev` and are never served from the real domain.
+
+To reset the test data at any point, without touching production:
+
+```bash
+npx wrangler d1 execute petpomo-preview --remote --command "DELETE FROM saves"
+```
 
 ---
 

@@ -3,8 +3,12 @@ name = "petpomo"
 compatibility_date = "2026-05-01"
 pages_build_output_dir = "dist"
 
+# ---------------------------------------------------------------------------
+# Production. Top-level config is what the production branch (main) deploys
+# with, and it is also what `wrangler pages dev` uses locally.
+#
 # D1 holds nothing but opaque save blobs keyed by a client-generated secret.
-# Run `npx wrangler d1 create petpomo` and paste the returned id below.
+# ---------------------------------------------------------------------------
 [[d1_databases]]
 binding = "DB"
 database_name = "petpomo"
@@ -13,4 +17,21 @@ database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API onto
 # its own Worker/domain, e.g. "https://petpomo.pages.dev".
+ALLOWED_ORIGINS = ""
+
+# ---------------------------------------------------------------------------
+# Preview. Every deploy on a branch other than main lands here, on a
+# *.petpomo.pages.dev preview URL that no custom domain ever points at.
+#
+# It gets its own database so testing cannot corrupt or read real players'
+# saves. Both blocks below are repeated rather than inherited on purpose:
+# d1_databases and vars are non-inheritable, so overriding either one for an
+# environment means every non-inheritable key must be restated for it.
+# ---------------------------------------------------------------------------
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "petpomo-preview"
+database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
+
+[env.preview.vars]
 ALLOWED_ORIGINS = ""
