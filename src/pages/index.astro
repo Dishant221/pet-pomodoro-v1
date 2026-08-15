@@ -1,8 +1,91 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Game from '../islands/Game';
+import { SITE, legalName } from '../site';
+
+/**
+ * WebApplication + FAQPage on the one page a search engine is most likely to
+ * show. The FAQ entries are real questions people type — "is there a free
+ * pomodoro timer", "does it work offline" — answered here rather than only in
+ * a blog post, because this is the page that will rank for the product terms.
+ */
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: SITE.name,
+    url: new URL('/', Astro.site).href,
+    applicationCategory: 'ProductivityApplication',
+    operatingSystem: 'Any (web browser)',
+    browserRequirements: 'Requires JavaScript. WebGL recommended.',
+    description:
+      'A free pomodoro focus timer with a virtual pet. Your cat naps through each 25-minute session in a hand-painted world that follows your real time of day and local weather.',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    author: { '@type': 'Organization', name: legalName, url: SITE.url },
+    featureList: [
+      'Pomodoro timer with configurable focus and break lengths',
+      'Virtual pet that reacts to your focus sessions',
+      'Hand-painted scenes that follow your local time of day',
+      'Real weather from your approximate location, with no location permission',
+      'Works offline',
+      'No account required',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is PetPomo free?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, completely. There are no accounts, no paid features and no ads. Coins are earned by focusing and can only be spent inside the game.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do I need an account?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. Your progress is saved in your browser. Optional cloud sync uses a random code your browser generates, so we never learn who you are.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does it work offline?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. After the first visit the whole game is cached and runs with no connection. Only the live weather needs the network, and without it the world simply shows fair weather.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How does it know my local weather without asking permission?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'It uses the approximate location our host attaches to every web request, rounded to about 11 kilometres before it is used. Your device location is never requested and no permission prompt appears.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the Pomodoro Technique?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Work for 25 minutes on one task, take a 5-minute break, and take a longer break after four rounds. When you get distracted, write the distraction down and carry on rather than chasing it.',
+        },
+      },
+    ],
+  },
+];
 ---
 
-<Layout title="PetPomo — Focus" wide>
+<Layout
+  title="PetPomo — Free Pomodoro Timer with a Virtual Pet"
+  description="A free pomodoro focus timer with a virtual pet. Your cat naps through each 25-minute session in a hand-painted world that follows your real time of day and weather. No account, works offline."
+  schema={schema}
+  wide
+>
   <Game client:only="preact" />
 </Layout>

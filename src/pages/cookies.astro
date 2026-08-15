@@ -1,0 +1,48 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Cookie Notice"
+  description="PetPomo sets no cookies. Here is exactly what it stores in your browser instead, and why."
+  updated="2026-08-16"
+  intro="PetPomo sets no cookies at all. This page explains what it does use, so you can check for yourself."
+>
+  <h2>No cookies</h2>
+  <p>
+    There is no cookie banner here because there is nothing to consent to. PetPomo sets no cookies — not for
+    analytics, not for advertising, not for sessions. You can confirm this in your browser's developer tools under
+    <em>Application → Cookies</em>.
+  </p>
+
+  <h2>What it does use: local storage</h2>
+  <p>
+    Local storage holds your game so it is still there when you come back. Unlike cookies it is never transmitted to
+    a server automatically — it stays in your browser until you clear it.
+  </p>
+  <ul>
+    <li><code>petpomo.save.v1</code> — coins, unlocks, pet mood, settings and session history.</li>
+    <li><code>petpomo.timer.v1</code> — the current timer, stored as an absolute end time so it survives a refresh.</li>
+    <li><code>petpomo.lastSeen.v1</code> — when you were last here, to work out how hungry the pet got.</li>
+    <li><code>petpomo.weather.v1</code> — the last weather reading, cached for 30 minutes to avoid re-asking.</li>
+    <li><code>petpomo.weather.absent.v1</code> — set only if the weather endpoint is unavailable, so we stop asking.</li>
+    <li><code>petpomo.syncCode.v1</code> — your sync code, but only if you turned cloud sync on.</li>
+  </ul>
+
+  <h2>Clearing it</h2>
+  <p>
+    Clearing site data for this domain removes all of it and resets the game. There is a reset button in
+    <a href="/settings">Settings</a> too, along with an export so you can keep a copy first.
+  </p>
+
+  <h2>Third parties</h2>
+  <p>
+    No third-party scripts run on this site — no analytics, no ad network, no embedded widgets, no external fonts.
+    The only outbound request the site makes on your behalf is to its own <code>/api/weather</code> endpoint, and that
+    is described in the <a href="/privacy">privacy policy</a>.
+  </p>
+  <p>
+    If advertising is added later it will very likely involve cookies. This page and the privacy policy will be
+    updated first, and a consent banner will be shown where the law requires one.
+  </p>
+</Legal>

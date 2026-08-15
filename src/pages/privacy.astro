@@ -1,0 +1,90 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Privacy Policy"
+  description="What PetPomo stores, what it does not, and why the weather feature needs no location permission."
+  updated="2026-08-16"
+  intro="The short version: your save file lives in your browser, there is no account, and we never learn who you are."
+>
+  <h2>What is stored on your device</h2>
+  <p>
+    Your progress — focus sessions, coins, what you have bought, your pet's mood, and your settings — is written to
+    your browser's <strong>local storage</strong>. It never leaves your device unless you switch on cloud sync. Clearing
+    your browser data deletes it permanently; there is no copy for us to restore.
+  </p>
+
+  <h2>Cloud sync, if you turn it on</h2>
+  <p>
+    Cloud sync is off by default. When you enable it, your browser generates a random 24-character code and uploads
+    your save file under that code. The code is the only credential — we do not ask for an email address, and there
+    is no account to log in to.
+  </p>
+  <ul>
+    <li>We store an opaque blob of game state. We cannot tell who it belongs to.</li>
+    <li>Anyone holding your sync code can read and overwrite that save, so treat it like a password.</li>
+    <li>We never email it, never log it, and it only travels over an encrypted connection.</li>
+    <li>Lose the code and the save is unreachable — for you and for us.</li>
+  </ul>
+
+  <h2>Weather and your location</h2>
+  <p>
+    The world in the game follows the real weather where you are. Getting that <strong>does not use your device's
+    location</strong> and never triggers a permission prompt.
+  </p>
+  <p>
+    Instead, our host (Cloudflare) attaches an approximate location to every web request as it arrives, the same way
+    any website can see roughly where a visitor is connecting from. Before we use it for anything, we round it to one
+    decimal place — an area of roughly 11&nbsp;km — and that rounded value is all that is ever sent to the weather
+    provider, <a href="https://open-meteo.com" rel="noopener noreferrer nofollow" target="_blank">Open-Meteo</a>.
+  </p>
+  <p>
+    The rounded coordinates are used as a cache key so that everyone in the same area shares a single lookup. Nothing
+    is written to our database, nothing is logged, and no record is created against you. If you would rather not have
+    this at all, blocking <code>/api/weather</code> is harmless — the game falls back to fair weather.
+  </p>
+
+  <h2>What we do not do</h2>
+  <ul>
+    <li>No accounts, no passwords, no email addresses.</li>
+    <li>No advertising or analytics trackers, and no third-party cookies.</li>
+    <li>No selling or sharing of personal information, because we do not collect any.</li>
+    <li>No profiling and no automated decision-making about you.</li>
+  </ul>
+  <p>
+    If advertising is introduced later, this page will be updated <em>before</em> it goes live, and the change will be
+    described plainly rather than buried.
+  </p>
+
+  <h2>Cookies</h2>
+  <p>
+    PetPomo sets no cookies. Local storage is used instead, and it is used only for your own game data. See the
+    <a href="/cookies">cookie notice</a> for detail.
+  </p>
+
+  <h2>Server logs</h2>
+  <p>
+    Our host keeps short-lived operational logs (things like request counts and error rates) to keep the service
+    running and to defend against abuse. We do not build user profiles from them.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    PetPomo is suitable for all ages and collects no personal information from anyone, children included.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    Because we hold no personal data, there is normally nothing to request, correct or erase. If you use cloud sync
+    and want that save deleted, send us the sync code from
+    <a href="/contact">the contact page</a> and we will delete the row. Since we cannot verify who owns a code, please
+    do not send one that is not yours.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    Material changes will be reflected in the “last updated” date above. Continuing to use the site after a change
+    means you accept it.
+  </p>
+</Legal>

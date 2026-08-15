@@ -1,0 +1,71 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { SITE } from '../../site';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
+);
+
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/**
+ * A Blog schema listing its posts. This is what lets a search engine
+ * understand the page as a publication rather than as a list of links.
+ */
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: `${SITE.name} Blog`,
+  description: 'Writing about focus, the pomodoro technique, habits and building PetPomo.',
+  url: new URL('/blog/', Astro.site).href,
+  blogPost: posts.map((p) => ({
+    '@type': 'BlogPosting',
+    headline: p.data.title,
+    description: p.data.description,
+    datePublished: p.data.publishedAt.toISOString(),
+    url: new URL(`/blog/${p.id}/`, Astro.site).href,
+  })),
+};
+---
+
+<Layout
+  title="Blog — PetPomo"
+  description="Writing about focus, the pomodoro technique, virtual pets and habits that actually stick."
+  schema={schema}
+>
+  <header class="mb-7">
+    <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">Blog</h1>
+    <p class="mt-2 max-w-2xl text-sm" style="color: var(--ink-soft)">
+      Focus, the pomodoro technique, and notes from building a virtual pet that lives on your desk.
+      <a href="/rss.xml" class="underline underline-offset-2">RSS</a>.
+    </p>
+  </header>
+
+  {
+    posts.length === 0 ? (
+      <p class="text-sm" style="color: var(--ink-soft)">
+        Nothing published yet.
+      </p>
+    ) : (
+      <ul class="grid gap-4">
+        {posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}/`} class="pp-card pp-focus-ring block p-5 transition hover:opacity-90">
+              <article class="grid gap-1.5">
+                <h2 class="text-lg font-bold tracking-tight">{post.data.title}</h2>
+                <p class="text-sm" style="color: var(--ink-soft)">
+                  {post.data.description}
+                </p>
+                <p class="text-xs" style="color: var(--ink-soft)">
+                  <time datetime={post.data.publishedAt.toISOString()}>{fmt(post.data.publishedAt)}</time>
+                  {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
+                </p>
+              </article>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Layout>

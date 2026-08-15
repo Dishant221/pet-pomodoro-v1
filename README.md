@@ -48,16 +48,13 @@ functions/api/           mounts the API as a same-origin Pages Function
 
 A few decisions worth knowing about:
 
-**The SVGs are inlined into the JS bundle** (`?raw`), not loaded as `<img>` or
-fetched. That's what lets CSS recolour `.fur`/`.belly`/`.line` for themes and
-lets GSAP animate named groups like `#tail` and `#zzz`. All 13 files total ~52 KB
-raw, which is cheaper than 13 requests and guarantees the game works offline.
-
-**The whole world is one 800×450 SVG.** The scene is inlined into a `<g>`, and
-the cat is a nested `<svg>` with its own 200×200 viewBox. That means the
-manifest's scene coordinates (`petGround`, `#snack-slot`) are used directly with
-no coordinate conversion, and every pose stays pixel-identical wherever the cat
-is standing.
+**There are two stages, and the flat one is the fallback.** The painted stage
+described below needs WebGL. Where there is none — an old browser, a
+blocklisted driver — `Stage.tsx` renders the original flat-SVG world instead,
+which is why `src/assets/` and the manifest's `petGround` / `#snack-slot`
+coordinates are still here. Those SVGs are inlined into the bundle (`?raw`)
+rather than fetched, so CSS can recolour `.fur`/`.belly`/`.line` for themes,
+GSAP can animate named groups like `#tail`, and the fallback works offline.
 
 **The timer stores an absolute end timestamp**, never a countdown. Every tick,
 tab focus and page load recomputes from `Date.now()`, so a refresh, a
@@ -105,9 +102,11 @@ It is all optional. No network, a blocked request, or a static deploy with no
 Function at all lands on fair weather and a correct clock; a 404 is remembered
 so the client stops asking.
 
-**Three.js earns its place now.** An earlier version of this note said it did not — that was true when the world was flat SVG. The pet is 3D so it can be lit by the same sun as the painting, cast a real shadow onto it, and turn to face you. The brief made it optional garnish, and GSAP + SVG already carry
-the particle bursts. Three.js core is ~170 KB gzip against a 200 KB budget the
-whole app currently meets in ~64 KB.
+**Three.js earns its place now.** An earlier version of this file argued
+against it, and that was correct when the world was flat SVG. It stopped being
+correct once the world became a painting: the pet is 3D precisely so it can be
+lit by the same sun the painter used, cast a real shadow onto the painted
+ground, and turn to face you. None of those are available to a sprite.
 
 ## Accessibility
 

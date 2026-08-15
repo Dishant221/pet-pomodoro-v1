@@ -1,0 +1,68 @@
+# Cloudflare Pages response headers.
+#
+# Rules are matched most-specific-first and are NOT additive across matches —
+# a more specific block replaces the broader one for the paths it covers, so
+# anything that must survive has to be restated. That is why the asset blocks
+# below repeat the security headers instead of only setting cache-control.
+
+/*
+  # No MIME sniffing. Stops a text response being reinterpreted as script.
+  X-Content-Type-Options: nosniff
+
+  # Clickjacking. frame-ancestors in the CSP is the modern control and covers
+  # this; X-Frame-Options stays for older browsers that ignore the CSP form.
+  X-Frame-Options: DENY
+
+  # Send the origin cross-site, the full path same-site. Enough for referral
+  # analytics later without leaking which page someone was on.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Refuse powerful features outright. The weather feature deliberately does
+  # not use geolocation — it derives an approximate area from the request —
+  # so denying it here makes that guarantee enforceable rather than a promise.
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=(), interest-cohort=()
+
+  # Two years, subdomains included, and eligible for preload.
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+  # Isolate this origin from cross-origin windows and documents.
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+  # Content-Security-Policy — the frame-ancestors half only.
+  #
+  # The rest of the policy is emitted by Astro as a <meta> element on every
+  # page, because it has to carry hashes for the inline scripts Astro generates
+  # to hydrate client islands. Writing script-src here by hand blocked exactly
+  # those and left the game a blank canvas. See `security.csp` in
+  # astro.config.mjs for the full policy.
+  #
+  # frame-ancestors cannot live there: it is ignored in a <meta> element and
+  # browsers warn about it. So it stays here, where it works. Browsers enforce
+  # every policy they are given, so the two compose rather than compete.
+  Content-Security-Policy: frame-ancestors 'none'
+
+# Fingerprinted build output — safe to cache forever.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# The service worker must never be served stale, or a deploy cannot roll out.
+/sw.js
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+
+# Small, unfingerprinted, and must reflect a deploy quickly.
+/boot.js
+  Cache-Control: public, max-age=600
+  X-Content-Type-Options: nosniff
+
+/sw-register.js
+  Cache-Control: public, max-age=600
+  X-Content-Type-Options: nosniff

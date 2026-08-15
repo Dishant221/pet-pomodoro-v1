@@ -1,0 +1,74 @@
+---
+import Layout from './Layout.astro';
+
+/**
+ * Shared shell for the policy pages.
+ *
+ * These exist because a site that shows ads, takes payments or stores anything
+ * is expected to have them — by ad networks, by payment processors, by app
+ * stores, and by law in most of the places people will visit from. Keeping
+ * them on one layout means the "last updated" line, the heading rhythm and the
+ * link styling cannot drift apart between documents, which is exactly the kind
+ * of inconsistency that makes a policy page look untrustworthy.
+ */
+
+interface Props {
+  title: string;
+  description: string;
+  /** ISO date. Shown to the reader and used for the machine-readable stamp. */
+  updated: string;
+  intro?: string;
+}
+
+const { title, description, updated, intro } = Astro.props;
+
+const pretty = new Date(updated).toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+---
+
+<Layout title={`${title} — PetPomo`} description={description}>
+  <article class="pp-legal mx-auto grid max-w-3xl gap-5">
+    <header class="grid gap-2">
+      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
+      {intro && <p class="text-sm" style="color: var(--ink-soft)">{intro}</p>}
+      <p class="text-xs" style="color: var(--ink-soft)">
+        Last updated <time datetime={updated}>{pretty}</time>
+      </p>
+    </header>
+
+    <div class="pp-card grid gap-4 p-5 text-sm leading-relaxed" style="color: var(--ink-soft)">
+      <slot />
+    </div>
+  </article>
+</Layout>
+
+<style is:global>
+  /* Scoped to the policy pages so the game's own typography is untouched. */
+  .pp-legal h2 {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+  }
+  .pp-legal h3 {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .pp-legal ul {
+    display: grid;
+    gap: 0.4rem;
+    padding-left: 1.1rem;
+    list-style: disc;
+  }
+  .pp-legal a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pp-legal strong {
+    color: var(--ink);
+  }
+</style>

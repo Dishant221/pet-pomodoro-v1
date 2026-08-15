@@ -145,6 +145,38 @@ npx wrangler d1 execute petpomo-preview --remote --command "DELETE FROM saves"
 
 ---
 
+## Security headers
+
+`public/_headers` carries HSTS, `nosniff`, `X-Frame-Options`, a
+`Referrer-Policy`, a `Permissions-Policy` that denies every powerful feature
+including geolocation, and cache rules.
+
+The Content-Security-Policy is split across two places, deliberately:
+
+- **`security.csp` in `astro.config.mjs`** produces the real policy, emitted as
+  a `<meta>` element per page. It has to live there because Astro generates a
+  small inline script per client island and the policy needs their hashes. A
+  hand-written `script-src 'self'` in `_headers` blocked exactly those and left
+  the game a blank canvas — it looked correct and shipped nothing.
+- **`_headers`** carries only `frame-ancestors 'none'`, which is ignored inside
+  a `<meta>` element.
+
+Browsers enforce every policy they are given, so the two compose.
+
+**None of this is active under `astro preview`**, which serves static files and
+applies no headers. Verify against the real runtime:
+
+```bash
+npm run build
+npx wrangler pages dev dist --port 8788
+PETPOMO_BASE=http://localhost:8788 npm run test:e2e
+```
+
+Adding a third-party script, font, or analytics tag will be blocked until its
+origin is added to `security.csp.directives`. That is the intended behaviour —
+when it happens, it is worth asking whether the third party is worth it before
+widening the policy.
+
 ## Local development
 
 ```bash

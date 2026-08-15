@@ -4,13 +4,26 @@ Two Playwright scripts that drive the real app in Edge with real pointer input.
 They assert behaviour, not implementation — the pet's state is read from the
 stage's `aria-label`, which is also what a screen reader announces.
 
-## `acceptance.mjs` — 52 checks
+## `acceptance.mjs` — 54 checks
 
 ```bash
 npm run build
-npm run preview            # must be on port 4330
+npx astro preview --port 4330
 npm run test:e2e
 ```
+
+**Run it against the real Pages runtime before shipping anything.** `astro
+preview` serves static files and nothing else — it applies none of
+`public/_headers` and serves no `/api` Functions, so a Content-Security-Policy
+that blocks the entire game passes cleanly there:
+
+```bash
+npx wrangler pages dev dist --port 8788
+PETPOMO_BASE=http://localhost:8788 npm run test:e2e
+```
+
+The `zero console errors` check is what catches CSP violations — they surface
+as console errors, so a policy that breaks hydration fails the run.
 
 Covers: all 5 routes; scene + cat SVG inlining; CSS recolouring winning over the
 SVG `fill` attribute; all 9 pet states reached through real interaction
@@ -22,7 +35,12 @@ the real clock; settings applying instantly; reduced motion actually killing
 parallax (and parallax actually moving when it's allowed); export; offline load
 via the service worker; and a zero-console-error assertion.
 
-Two things worth knowing if you edit it:
+Three things worth knowing if you edit it:
+
+- **Poll for pet states, don't sleep.** Several are transient — `waking` lasts
+  1.6s before handing off to `celebrating`. `waitForPetState()` exists for
+  this; sleeping a fixed interval assumes a page-load time that stops holding
+  the moment you point the suite at the slower Pages runtime.
 
 - **Seed saves from `/about`.** It's the only page without an island that writes
   to localStorage, so injections can't race the Game island's 200 ms debounced

@@ -1,6 +1,14 @@
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:4330';
+/**
+ * Defaults to `astro preview`. Point it at `wrangler pages dev` instead to run
+ * the same suite against the real Pages runtime, which is the only way to
+ * exercise the Content-Security-Policy and the /api Functions:
+ *
+ *   npx wrangler pages dev dist --port 8788
+ *   PETPOMO_BASE=http://localhost:8788 npm run test:e2e
+ */
+const BASE = process.env.PETPOMO_BASE || 'http://localhost:4330';
 const results = [];
 const consoleErrors = [];
 
@@ -14,6 +22,32 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** The stage mirrors its world state onto data attributes — the canvas can't. */
 async function petState(page) {
   return page.getAttribute('.pp-stage', 'data-pet-state');
+}
+
+/**
+ * Wait for the pet to reach a state, rather than sleeping a guessed amount.
+ *
+ * Several pet states are transient — `waking` lasts 1.6s and then hands off to
+ * `celebrating`. Sleeping a fixed interval and then reading the state assumes
+ * the page loaded in a predictable time, which stopped being true the moment
+ * the suite could also be pointed at the slower Pages runtime. Polling asserts
+ * the same thing without the assumption.
+ *
+ * Returns the state actually observed, so a failure message can say what it
+ * saw instead of just "not what we wanted".
+ */
+async function waitForPetState(page, wanted, timeout = 8000) {
+  const list = Array.isArray(wanted) ? wanted : [wanted];
+  try {
+    await page.waitForFunction(
+      (want) => want.includes(document.querySelector('.pp-stage')?.dataset.petState),
+      list,
+      { timeout, polling: 100 },
+    );
+  } catch {
+    /* fall through — the caller reports whatever state it ended up in */
+  }
+  return petState(page);
 }
 
 async function coins(page) {
@@ -138,8 +172,10 @@ await page.evaluate(() => {
 });
 await page.reload({ waitUntil: 'networkidle' });
 await stageReady(page);
-await sleep(900);
-check('focus bell -> waking', (await petState(page)) === 'waking', `state=${await petState(page)}`);
+// `waking` only lasts 1.6s before handing off to `celebrating`, so catch it by
+// polling rather than by sleeping and hoping the page loaded fast enough.
+const wokeState = await waitForPetState(page, 'waking', 6000);
+check('focus bell -> waking', wokeState === 'waking', `state=${wokeState}`);
 // The toast auto-dismisses after 3.2s, so read it before the celebrate wait.
 const bellToast = await page.locator('.pp-toast').innerText().catch(() => '');
 check('completion toast names the reward', /\+\d+ coins/.test(bellToast), bellToast);
@@ -240,8 +276,10 @@ await dragFeed(page);
 await page.waitForFunction(() => document.querySelector('.pp-stage')?.dataset.petState === 'eating', null, {
   timeout: 12000,
 }).catch(() => {});
-await sleep(3600);
-check('feeding recovers the cat from sad', (await petState(page)) === 'idle', `state=${await petState(page)}`);
+// Eating runs for 2.6s and then returns to idle. Wait for the handoff instead
+// of assuming it has happened.
+const fedState = await waitForPetState(page, 'idle', 12000);
+check('feeding recovers the cat from sad', fedState === 'idle', `state=${fedState}`);
 
 // -------------------------------------------------------- 11. shop economy
 await seedSave(page, 's.coins = 5000;');

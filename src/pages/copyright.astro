@@ -1,0 +1,67 @@
+---
+import Legal from '../layouts/Legal.astro';
+import { legalName } from '../site';
+
+const year = new Date().getFullYear();
+---
+
+<Legal
+  title="Copyright"
+  description="Who owns the PetPomo artwork, code and characters, what you may do with them, and how to report infringement."
+  updated="2026-08-16"
+  intro="What you may do with the game's artwork and code, and how to report a problem."
+>
+  <h2>Ownership</h2>
+  <p>
+    © {year} {legalName}. The PetPomo name, the characters, the artwork, the sound design and the source code are
+    owned by {legalName} unless credited otherwise below.
+  </p>
+
+  <h2>What you may do</h2>
+  <ul>
+    <li>Play the game, for free, as much as you like.</li>
+    <li>Take screenshots and recordings, and post them anywhere — including monetised videos and streams.</li>
+    <li>Link to the site, and quote short excerpts of the writing with attribution.</li>
+  </ul>
+
+  <h2>What you may not do</h2>
+  <ul>
+    <li>Re-host the game, in whole or in part, on another domain.</li>
+    <li>Extract the artwork, characters or sounds and use them in your own product.</li>
+    <li>Sell merchandise using the characters or artwork.</li>
+    <li>Present the game or its assets as your own work.</li>
+  </ul>
+  <p>If you want to do something not on either list, ask on <a href="/contact">the contact page</a>.</p>
+
+  <h2>Third-party credits</h2>
+  <ul>
+    <li>
+      Weather data from <a href="https://open-meteo.com" rel="noopener noreferrer nofollow" target="_blank">Open-Meteo</a>,
+      used under their free non-commercial terms.
+    </li>
+    <li>
+      Built with <a href="https://astro.build" rel="noopener noreferrer nofollow" target="_blank">Astro</a>,
+      <a href="https://preactjs.com" rel="noopener noreferrer nofollow" target="_blank">Preact</a>,
+      <a href="https://threejs.org" rel="noopener noreferrer nofollow" target="_blank">Three.js</a>,
+      <a href="https://gsap.com" rel="noopener noreferrer nofollow" target="_blank">GSAP</a> and
+      <a href="https://tailwindcss.com" rel="noopener noreferrer nofollow" target="_blank">Tailwind CSS</a>, each
+      under its own licence.
+    </li>
+    <li>Every sound effect is synthesized in the browser at runtime. No audio is sampled or licensed.</li>
+  </ul>
+
+  <h2>Reporting infringement</h2>
+  <p>
+    If you believe something on this site infringes your copyright, get in touch through
+    <a href="/contact">the contact page</a> with:
+  </p>
+  <ul>
+    <li>What you own, and evidence that you own it.</li>
+    <li>The exact URL where it appears here.</li>
+    <li>A way to reach you.</li>
+  </ul>
+  <p>
+    Anything that looks like a genuine claim will be taken down while it is investigated. If you find your work here
+    and simply want credit rather than removal, say so — that is usually the easier fix for everyone.
+  </p>
+</Legal>

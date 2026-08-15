@@ -1,26 +1,62 @@
 ---
 import '../styles/global.css';
 
+/**
+ * The one place every page's `<head>` is assembled.
+ *
+ * Search engines and social scrapers need three things a single-page app
+ * usually forgets: an absolute canonical URL, a description that differs per
+ * page, and structured data saying what this thing actually is. All three are
+ * built here so no page can quietly ship without them.
+ */
+
 interface Props {
   title: string;
+  /** Shown in search results and on social cards. ~155 chars is the useful limit. */
+  description?: string;
   /** The focus page runs its own full-bleed stage and hides the page chrome. */
   wide?: boolean;
   /** Keep a page out of search results — internal previews and experiments. */
   noindex?: boolean;
+  /** JSON-LD to embed, if this page describes a specific thing. */
+  schema?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title, wide = false, noindex = false } = Astro.props;
+const {
+  title,
+  description = 'A free pomodoro timer with a virtual pet. Focus in 25-minute sessions while your cat naps in a hand-painted world that follows your real time of day and weather.',
+  wide = false,
+  noindex = false,
+  schema,
+} = Astro.props;
+
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+// Astro.site comes from `site` in astro.config; canonical must be absolute.
+const canonical = new URL(path === '/' ? '/' : `${path}/`, Astro.site).href;
+const ogImage = new URL('/og.png', Astro.site).href;
 
 const NAV = [
   { href: '/', label: 'Focus', icon: '🐱' },
   { href: '/stats', label: 'Stats', icon: '📊' },
   { href: '/shop', label: 'Shop', icon: '🛍️' },
   { href: '/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/blog', label: 'Blog', icon: '📖' },
   { href: '/about', label: 'About', icon: '💡' },
 ];
 
+const FOOTER = [
+  { href: '/about', label: 'About' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/cookies', label: 'Cookies' },
+  { href: '/copyright', label: 'Copyright' },
+];
+
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+
+const year = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -28,47 +64,62 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="PetPomo — a pomodoro timer with a cat who sleeps while you focus." />
-    <meta name="theme-color" content="#fff7ed" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {
+      !noindex && (
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+      )
+    }
+
+    <meta name="theme-color" content="#fff7ed" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    {/* Site-wide so readers and aggregators can find the feed from any page. */}
+    <link rel="alternate" type="application/rss+xml" title="PetPomo" href="/rss.xml" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
 
-    <script is:inline>
-      // Apply the saved theme + pet skin before first paint so there is no flash.
-      (function () {
-        try {
-          var raw = localStorage.getItem('petpomo.save.v1');
-          var save = raw ? JSON.parse(raw) : null;
-          var theme = (save && save.equipped && save.equipped.theme) || 'playful';
-          var reduced = !!(save && save.settings && save.settings.reducedMotion);
-          var root = document.documentElement;
-          root.className = 'theme-' + theme;
-          root.dataset.reducedMotion = String(reduced);
+    {/* Open Graph / Twitter. Absolute URLs only — scrapers do not resolve
+        relative ones, and a missing image is the difference between a card
+        and a bare grey link. */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PetPomo" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="en" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
-          var pet = (save && save.equipped && save.equipped.pet) || 'mochi';
-          var SKINS = {
-            shadow: { fur: '#5c5f6e', furDark: '#43465a', belly: '#c9cddb', line: '#23252f' },
-            cloud: { fur: '#f0f1f5', furDark: '#d3d7e2', belly: '#ffffff', line: '#5b5f70' },
-            inky: { fur: '#3f8a86', furDark: '#2d6a67', belly: '#d6f0ec', line: '#1d3b3a' },
-          };
-          var s = SKINS[pet];
-          if (s) {
-            root.style.setProperty('--fur', s.fur);
-            root.style.setProperty('--fur-dark', s.furDark);
-            root.style.setProperty('--belly', s.belly);
-            root.style.setProperty('--line', s.line);
-          }
-        } catch (e) {
-          /* first run, or storage blocked — defaults are already on <html> */
-        }
-      })();
-    </script>
+    {
+      schema && (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={JSON.stringify(schema)}
+        />
+      )
+    }
+
+    {/* Blocking, and not inlined — see public/boot.js for why. */}
+    <script src="/boot.js" is:inline></script>
   </head>
 
   <body class="min-h-dvh flex flex-col">
+    <a
+      href="#main"
+      class="pp-focus-ring sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:px-3 focus:py-2"
+      style="background: var(--accent); color: var(--accent-ink);">Skip to content</a
+    >
+
     <header
       class="sticky top-0 z-30 backdrop-blur-md"
       style="background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--border);"
@@ -104,25 +155,41 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       </nav>
     </header>
 
-    <main class={wide ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}>
+    <main id="main" class={wide ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}>
       <slot />
     </main>
 
-    {
-      !wide && (
-        <footer class="mx-auto w-full max-w-5xl px-4 pb-8 text-xs sm:px-5" style="color: var(--ink-soft)">
-          Everything is stored on this device. Nothing leaves your browser unless you turn on sync.
-        </footer>
-      )
-    }
+    {/* The footer is on every page including the full-bleed game. Privacy,
+        terms and contact have to be reachable from the page people actually
+        land on — both because reviewers look for it and because burying them
+        one click deeper helps nobody. On `wide` it collapses to a single
+        quiet line so it does not fight the stage. */}
+    <footer
+      class:list={[
+        'mx-auto w-full max-w-5xl px-4 sm:px-5',
+        wide ? 'flex flex-wrap items-center gap-x-4 gap-y-1 py-2 text-[11px]' : 'pb-10 pt-6 text-xs',
+      ]}
+      style={`color: var(--ink-soft); ${wide ? '' : 'border-top: 1px solid var(--border);'}`}
+    >
+      <nav
+        class:list={['flex flex-wrap gap-x-4 gap-y-2', wide ? '' : 'mb-3']}
+        aria-label="Footer"
+      >
+        {
+          FOOTER.map((item) => (
+            <a href={item.href} class="pp-focus-ring rounded underline-offset-2 hover:underline">
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <p>
+        © {year} PetPomo.{
+          !wide && ' Everything is stored on this device — nothing leaves your browser unless you turn on sync.'
+        }
+      </p>
+    </footer>
 
-    <script is:inline>
-      // Offline support. Registered late so it never competes with first paint.
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
-        });
-      }
-    </script>
+    <script src="/sw-register.js" is:inline></script>
   </body>
 </html>

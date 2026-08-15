@@ -1,0 +1,18 @@
+# PetPomo — https://petpomo.pages.dev
+#
+# Everything is open to every crawler. The three app panels below are
+# disallowed not to hide them but because they are empty without a save file
+# in local storage: a crawler sees a bare shell, indexes it as thin content,
+# and that drags the whole site's quality signals down.
+
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /stats
+Disallow: /shop
+
+# The API returns JSON and has nothing to index. Crawling it would also burn
+# the weather cache for no benefit.
+Disallow: /api/
+
+Sitemap: https://petpomo.pages.dev/sitemap-index.xml
