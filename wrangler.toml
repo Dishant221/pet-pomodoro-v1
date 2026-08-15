@@ -1,0 +1,16 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "petpomo"
+compatibility_date = "2026-05-01"
+pages_build_output_dir = "dist"
+
+# D1 holds nothing but opaque save blobs keyed by a client-generated secret.
+# Run `npx wrangler d1 create petpomo` and paste the returned id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "petpomo"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+[vars]
+# Same-origin deploys need no allowlist. Set this only if you split the API onto
+# its own Worker/domain, e.g. "https://petpomo.pages.dev".
+ALLOWED_ORIGINS = ""

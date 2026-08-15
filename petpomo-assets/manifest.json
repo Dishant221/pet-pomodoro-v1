@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "character": "cat",
+  "viewBox": { "cat": "0 0 200 200", "scene": "0 0 800 450" },
+  "themeableClasses": {
+    "fur": "main coat color (default #F2A65A)",
+    "fur-dark": "stripe/accent color (default #E8894A)",
+    "belly": "belly/chest color (default #FBE8D3)",
+    "line": "outline/eye/mouth color (default #4A3728)"
+  },
+  "states": {
+    "idle":        { "file": "cat/cat-idle.svg",        "loop": "sway #tail rotate -6..6deg 3s; blink #eyes scaleY every 4-7s" },
+    "sleeping":    { "file": "cat/cat-sleeping.svg",    "loop": "scale #breath 1..1.03 2.4s ease-in-out; fade #zzz children staggered" },
+    "waking":      { "file": "cat/cat-waking.svg",      "oneShot": "stretch: scaleX #cat 1..1.06 0.8s, then transition to begging" },
+    "begging":     { "file": "cat/cat-begging.svg",     "loop": "bounce #cat translateY 0..-8px 0.6s; wave #paw-left/#paw-right alternate; pop #hunger-bubble every 20s" },
+    "eating":      { "file": "cat/cat-eating.svg",      "loop": "rock #head rotate 6..10deg 0.35s (munch); jitter #crumbs" },
+    "petted":      { "file": "cat/cat-petted.svg",      "loop": "float #hearts children translateY -20px + fade 1.4s staggered; wiggle #tail" },
+    "playing":     { "file": "cat/cat-playing.svg",     "loop": "pounce #cat translateX 0..14px + bob 0.5s; roll #yarn rotate 360deg 1.2s; wiggle #yarn-tail; flash #motion-lines" },
+    "celebrating": { "file": "cat/cat-celebrating.svg", "oneShot": "jump #cat translateY -24px 0.5s bounce x2; spin #coin rotateY; twinkle #sparkles" },
+    "sad":         { "file": "cat/cat-sad.svg",         "loop": "drip #tear translateY + fade 1.6s; sway #cloud translateX -4..4px 3s" }
+  },
+  "scenes": {
+    "livingroom": {
+      "file": "scenes/scene-livingroom.svg",
+      "parallax": { "layer-sky": 0, "layer-back": 0.15, "layer-mid": 0.3, "layer-front": 0.5 },
+      "dayNight": "swap #window-sky fill #BEE3F2 (day) / #1E2A4A (night); #sun opacity 1/0; #stars opacity 0/1; raise #lamp-glow at night",
+      "snackSlot": "#snack-slot",
+      "petGround": { "y": 392, "xRange": [220, 580] }
+    },
+    "garden": {
+      "file": "scenes/scene-garden.svg",
+      "parallax": { "layer-sky": 0, "layer-back": 0.15, "layer-mid": 0.3, "layer-front": 0.5 },
+      "ambient": "drift #clouds translateX 60s loop; sway .flower rotate -3..3deg 2.5s; flutter #butterfly along bezier",
+      "snackSlot": "#snack-slot",
+      "petGround": { "y": 396, "xRange": [180, 620] }
+    },
+    "jungle": {
+      "file": "scenes/scene-jungle.svg",
+      "parallax": { "layer-sky": 0, "layer-back": 0.12, "layer-mid": 0.3, "layer-front": 0.55 },
+      "ambient": "pulse #fireflies opacity 0.3..1 staggered (night only); sway #big-leaves rotate 2deg 4s",
+      "snackSlot": "#snack-slot",
+      "petGround": { "y": 396, "xRange": [200, 600] }
+    },
+    "treehouse": {
+      "file": "scenes/scene-treehouse.svg",
+      "parallax": { "layer-sky": 0, "layer-back": 0.15, "layer-mid": 0.3, "layer-front": 0.5 },
+      "ambient": "fly #bird translateX -500px 25s loop; sway #hanging-leaves rotate 3deg 3.5s; flicker #lantern glow at night",
+      "snackSlot": "#snack-slot",
+      "petGround": { "y": 322, "xRange": [230, 570] }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" preserveAspectRatio="xMidYMax slice">
+  <!-- PetPomo scene: LIVING ROOM. Parallax layers: #layer-sky #layer-back #layer-mid #layer-front -->
+  <!-- Day/night: swap #window-sky fill (day #BEE3F2 / night #1E2A4A) and toggle #stars/#sun -->
+  <g id="layer-sky">
+    <rect fill="#F6E7D3" width="800" height="450"/>
+    <rect fill="#E8D3B8" y="330" width="800" height="120"/>
+    <rect fill="#C9A377" y="322" width="800" height="10"/>
+  </g>
+  <g id="layer-back">
+    <g id="window">
+      <rect fill="#8C6A4A" x="470" y="60" width="220" height="180" rx="8"/>
+      <rect id="window-sky" fill="#BEE3F2" x="482" y="72" width="196" height="156" rx="4"/>
+      <g id="sun"><circle fill="#F5C542" cx="640" cy="104" r="18"/></g>
+      <g id="stars" fill="#FFFFFF" opacity="0" >
+        <circle cx="510" cy="95" r="2"/><circle cx="560" cy="120" r="1.5"/><circle cx="620" cy="90" r="2"/><circle cx="650" cy="140" r="1.5"/>
+      </g>
+      <path fill="#A8D8A0" d="M482 200 q40 -24 80 -6 q60 22 116 -4 l0 38 l-196 0 z"/>
+      <rect fill="#8C6A4A" x="576" y="72" width="8" height="156"/>
+      <rect fill="#8C6A4A" x="482" y="144" width="196" height="8"/>
+    </g>
+    <g id="bookshelf">
+      <rect fill="#A8794F" x="80" y="90" width="150" height="200" rx="6"/>
+      <rect fill="#8C6A4A" x="92" y="110" width="126" height="8"/>
+      <rect fill="#8C6A4A" x="92" y="166" width="126" height="8"/>
+      <rect fill="#8C6A4A" x="92" y="222" width="126" height="8"/>
+      <rect fill="#C96A6A" x="100" y="126" width="14" height="40" rx="2"/>
+      <rect fill="#7FA6C9" x="118" y="130" width="14" height="36" rx="2"/>
+      <rect fill="#A8C97F" x="136" y="124" width="14" height="42" rx="2"/>
+      <rect fill="#D9A85C" x="158" y="132" width="14" height="34" rx="2"/>
+      <rect fill="#B58ED2" x="104" y="182" width="14" height="40" rx="2"/>
+      <rect fill="#E8A0B4" x="122" y="186" width="14" height="36" rx="2"/>
+      <rect fill="#7FC9B8" x="146" y="180" width="14" height="42" rx="2"/>
+    </g>
+  </g>
+  <g id="layer-mid">
+    <g id="lamp">
+      <rect fill="#8C6A4A" x="710" y="180" width="8" height="150"/>
+      <path fill="#F2C879" d="M684 180 L744 180 L730 132 L698 132 z"/>
+      <ellipse id="lamp-glow" fill="#F9E3A8" opacity="0.5" cx="714" cy="200" rx="60" ry="46"/>
+      <ellipse fill="#8C6A4A" cx="714" cy="334" rx="26" ry="8"/>
+    </g>
+    <g id="plant">
+      <path fill="#6FA867" d="M300 250 q-16 -40 8 -60 q4 34 -2 60 z"/>
+      <path fill="#8CC17F" d="M312 252 q4 -44 32 -52 q-8 36 -26 54 z"/>
+      <path fill="#5C8F55" d="M296 254 q-30 -18 -28 -46 q26 12 32 44 z"/>
+      <path fill="#C97F5C" d="M284 250 h48 l-6 40 h-36 z"/>
+    </g>
+  </g>
+  <g id="layer-front">
+    <ellipse id="rug" fill="#D98C8C" cx="400" cy="392" rx="220" ry="42"/>
+    <ellipse fill="#E8A8A8" cx="400" cy="392" rx="170" ry="30"/>
+    <ellipse fill="#D98C8C" cx="400" cy="392" rx="120" ry="20"/>
+    <g id="snack-shelf">
+      <rect fill="#A8794F" x="30" y="356" width="90" height="12" rx="4"/>
+      <rect fill="#8C6A4A" x="40" y="368" width="8" height="30"/>
+      <rect fill="#8C6A4A" x="102" y="368" width="8" height="30"/>
+      <g id="snack-slot">
+        <path fill="#E8894A" d="M56 340 q10 -14 24 0 q6 8 -2 14 h-20 q-8 -6 -2 -14 z"/>
+        <circle fill="#FBE8D3" cx="68" cy="346" r="4"/>
+      </g>
+    </g>
+  </g>
+</svg>

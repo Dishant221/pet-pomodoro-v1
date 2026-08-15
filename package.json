@@ -8,10 +8,34 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "check": "astro check",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:local": "wrangler d1 execute petpomo --local --file=worker/schema.sql",
+    "db:remote": "wrangler d1 execute petpomo --remote --file=worker/schema.sql",
+    "dev:full": "astro build && wrangler pages dev dist",
+    "test:e2e": "node tests/acceptance.mjs",
+    "test:sync": "node tests/sync.mjs",
+    "deploy": "astro build && wrangler pages deploy dist --project-name petpomo"
   },
   "dependencies": {
-    "astro": "^7.1.6"
+    "@astrojs/preact": "^6.0.2",
+    "@nanostores/preact": "^1.1.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.1.6",
+    "gsap": "^3.15.0",
+    "hono": "^4.13.0",
+    "nanostores": "^1.4.2",
+    "preact": "^10.29.8",
+    "tailwindcss": "^4.3.3",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^5.20260804.1",
+    "@types/three": "^0.185.4",
+    "playwright": "^1.62.1",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.119.0"
   }
 }

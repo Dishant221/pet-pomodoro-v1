@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: SAD (ears drooped, looking down, tear; sway #cloud) -->
+  <g id="cat">
+    <g id="tail">
+      <path class="fur" fill="#F2A65A" d="M146 168 q26 4 32 -14 l-11 -5 q-4 11 -20 8 z"/>
+    </g>
+    <g id="body">
+      <ellipse class="fur" fill="#F2A65A" cx="100" cy="148" rx="44" ry="36"/>
+      <ellipse class="belly" fill="#FBE8D3" cx="100" cy="156" rx="24" ry="22"/>
+      <ellipse class="fur" fill="#F2A65A" cx="74" cy="176" rx="12" ry="8"/>
+      <ellipse class="fur" fill="#F2A65A" cx="126" cy="176" rx="12" ry="8"/>
+    </g>
+    <g id="head" transform="rotate(5 100 92) translate(0 8)">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M60 74 L44 58 L76 56 z"/>
+        <path class="fur" fill="#F2A65A" d="M140 74 L156 58 L124 56 z"/>
+        <path fill="#F7C6A3" d="M62 70 L53 61 L71 60 z"/>
+        <path fill="#F7C6A3" d="M138 70 L147 61 L129 60 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="100" cy="88" r="42"/>
+      <g id="eyes" class="line" stroke="#4A3728" stroke-width="2.6" stroke-linecap="round" fill="none">
+        <path d="M76 90 q8 6 16 2"/>
+        <path d="M124 90 q-8 6 -16 2"/>
+      </g>
+      <path id="tear" fill="#8FC1E8" d="M78 100 q-5 8 0 12 q5 -4 0 -12 z"/>
+      <path fill="#F7A8B8" d="M96 102 q4 -3 8 0 q-1 4 -4 4 q-3 0 -4 -4 z"/>
+      <path class="line" fill="none" stroke="#4A3728" stroke-width="2.2" stroke-linecap="round" d="M92 116 q8 -6 16 0"/>
+    </g>
+    <g id="cloud" fill="#AEB8C4">
+      <ellipse cx="100" cy="26" rx="22" ry="11"/>
+      <ellipse cx="84" cy="30" rx="13" ry="9"/>
+      <ellipse cx="116" cy="30" rx="13" ry="9"/>
+      <g stroke="#8FC1E8" stroke-width="2.4" stroke-linecap="round">
+        <path d="M88 42 l-3 8"/>
+        <path d="M100 44 l-3 8"/>
+        <path d="M112 42 l-3 8"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+{
+  "name": "PetPomo",
+  "short_name": "PetPomo",
+  "description": "A pomodoro timer with a cat who naps while you focus.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff7ed",
+  "theme_color": "#fff7ed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

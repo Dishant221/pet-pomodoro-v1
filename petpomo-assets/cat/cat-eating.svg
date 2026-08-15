@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: EATING (head down at bowl; rock #head slightly for munch) -->
+  <g id="cat">
+    <g id="tail">
+      <path class="fur" fill="#F2A65A" d="M150 140 q30 -10 24 -40 q-2 -12 -14 -13 l-2 12 q7 1 8 8 q3 18 -18 23 z"/>
+    </g>
+    <g id="body">
+      <ellipse class="fur" fill="#F2A65A" cx="112" cy="140" rx="48" ry="36"/>
+      <path class="fur-dark" fill="#E8894A" d="M96 110 q12 -6 24 -3 l-3 10 q-10 -3 -17 1 z"/>
+      <ellipse class="fur" fill="#F2A65A" cx="86" cy="170" rx="13" ry="8"/>
+      <ellipse class="fur" fill="#F2A65A" cx="140" cy="170" rx="13" ry="8"/>
+    </g>
+    <g id="head">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M30 110 L18 84 L48 92 z"/>
+        <path class="fur" fill="#F2A65A" d="M84 106 L92 78 L62 90 z"/>
+        <path fill="#F7C6A3" d="M33 105 L27 91 L44 96 z"/>
+        <path fill="#F7C6A3" d="M80 101 L84 87 L68 93 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="56" cy="128" r="36"/>
+      <g id="eyes" class="line" stroke="#4A3728" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <path d="M40 126 q5 4 10 0"/>
+        <path d="M64 126 q5 4 10 0"/>
+      </g>
+      <path fill="#F7A8B8" d="M52 140 q4 -3 8 0 q-1 4 -4 4 q-3 0 -4 -4 z"/>
+      <circle fill="#F5B8C4" opacity="0.5" cx="34" cy="138" r="5"/>
+      <circle fill="#F5B8C4" opacity="0.5" cx="78" cy="138" r="5"/>
+    </g>
+    <g id="bowl">
+      <ellipse fill="#D9CBBE" cx="56" cy="180" rx="30" ry="9"/>
+      <path fill="#B58ED2" d="M32 176 q24 -12 48 0 q-2 8 -24 8 q-22 0 -24 -8 z"/>
+      <ellipse fill="#8C6A4A" cx="48" cy="172" rx="5" ry="3"/>
+      <ellipse fill="#8C6A4A" cx="62" cy="170" rx="5" ry="3"/>
+      <ellipse fill="#8C6A4A" cx="56" cy="175" rx="5" ry="3"/>
+    </g>
+    <g id="crumbs" fill="#8C6A4A">
+      <circle cx="90" cy="176" r="1.6"/>
+      <circle cx="96" cy="182" r="1.2"/>
+    </g>
+  </g>
+</svg>

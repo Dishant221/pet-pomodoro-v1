@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PetPomo cat: BEGGING (paws up, big eyes, hungry bubble; bounce whole #cat) -->
+  <g id="cat">
+    <g id="tail">
+      <path class="fur" fill="#F2A65A" d="M140 160 q30 2 34 -26 q2 -14 -10 -18 l-4 11 q6 3 4 9 q-3 14 -24 13 z"/>
+    </g>
+    <g id="body">
+      <ellipse class="fur" fill="#F2A65A" cx="100" cy="146" rx="38" ry="38"/>
+      <ellipse class="belly" fill="#FBE8D3" cx="100" cy="152" rx="22" ry="24"/>
+      <ellipse class="fur" fill="#F2A65A" cx="80" cy="180" rx="12" ry="8"/>
+      <ellipse class="fur" fill="#F2A65A" cx="120" cy="180" rx="12" ry="8"/>
+    </g>
+    <g id="paw-left">
+      <ellipse class="fur" fill="#F2A65A" cx="68" cy="118" rx="10" ry="14" transform="rotate(-20 68 118)"/>
+      <ellipse fill="#F7C6A3" cx="65" cy="110" rx="5" ry="6" transform="rotate(-20 65 110)"/>
+    </g>
+    <g id="paw-right">
+      <ellipse class="fur" fill="#F2A65A" cx="132" cy="118" rx="10" ry="14" transform="rotate(20 132 118)"/>
+      <ellipse fill="#F7C6A3" cx="135" cy="110" rx="5" ry="6" transform="rotate(20 135 110)"/>
+    </g>
+    <g id="head">
+      <g id="ears">
+        <path class="fur" fill="#F2A65A" d="M60 56 L54 22 L84 40 z"/>
+        <path class="fur" fill="#F2A65A" d="M140 56 L146 22 L116 40 z"/>
+        <path fill="#F7C6A3" d="M64 49 L61 31 L78 41 z"/>
+        <path fill="#F7C6A3" d="M136 49 L139 31 L122 41 z"/>
+      </g>
+      <circle class="fur" fill="#F2A65A" cx="100" cy="72" r="42"/>
+      <g id="eyes">
+        <circle class="line" fill="#4A3728" cx="84" cy="72" r="9"/>
+        <circle class="line" fill="#4A3728" cx="116" cy="72" r="9"/>
+        <circle fill="#FFFFFF" cx="87" cy="68" r="3.4"/>
+        <circle fill="#FFFFFF" cx="119" cy="68" r="3.4"/>
+        <circle fill="#FFFFFF" cx="81" cy="75" r="1.6" opacity="0.8"/>
+        <circle fill="#FFFFFF" cx="113" cy="75" r="1.6" opacity="0.8"/>
+      </g>
+      <path fill="#F7A8B8" d="M96 86 q4 -3 8 0 q-1 5 -4 5 q-3 0 -4 -5 z"/>
+      <path class="line" fill="none" stroke="#4A3728" stroke-width="2" stroke-linecap="round" d="M100 91 q0 4 -6 4 M100 91 q0 4 6 4"/>
+      <path class="line" fill="#C96A6A" d="M96 96 q4 6 8 0 q-1 6 -4 6 q-3 0 -4 -6 z"/>
+    </g>
+    <g id="hunger-bubble">
+      <circle fill="#FFFFFF" stroke="#4A3728" stroke-width="2" cx="165" cy="42" r="22"/>
+      <circle fill="#FFFFFF" stroke="#4A3728" stroke-width="2" cx="146" cy="62" r="5"/>
+      <circle fill="#FFFFFF" stroke="#4A3728" stroke-width="1.6" cx="138" cy="72" r="2.6"/>
+      <g id="fish-icon">
+        <path fill="#8FB8D9" d="M154 42 q8 -8 18 -4 q4 2 4 4 q0 2 -4 4 q-10 4 -18 -4 z"/>
+        <path fill="#8FB8D9" d="M174 36 l6 -5 v10 z M174 48 l6 5 v-10 z" transform="translate(-2 1)"/>
+        <circle fill="#4A3728" cx="158" cy="41" r="1.4"/>
+      </g>
+    </g>
+  </g>
+</svg>
