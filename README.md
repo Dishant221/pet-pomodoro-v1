@@ -31,7 +31,10 @@ src/game/
   anim.ts                every GSAP timeline: poses, parallax, ambient, day/night
   audio.ts               all SFX + ambient beds, synthesized in Web Audio
   economy.ts             shop catalog and coin rewards
+  world.ts               the player's real local time + real weather
   sync.ts                optional cloud-sync client
+src/three/
+  daylight.ts            bends a world's lighting to that time and weather
 src/stores/              persist / profile / timer / pet  (nanostores)
 src/islands/             Game, Stage, ShopPanel, StatsPanel, SettingsPanel
 worker/                  Hono sync API + D1 schema
@@ -68,6 +71,20 @@ two bandpass formants; the purr is brown noise under a 26 Hz tremolo; the bell i
 five inharmonic partials. Nothing is fetched, nothing 404s, and it works offline.
 Swap in CC0 samples later by replacing the `play*` bodies — the mixer and call
 sites don't change.
+
+**The world runs on the player's clock and the player's weather.** `world.ts`
+takes the time of day straight from the browser, so it is already in their
+timezone and stays right when they travel. Weather comes from `/api/weather`,
+which reads the approximate location Cloudflare already attaches to the request
+— no geolocation prompt, no consent banner for a permission we never take.
+`daylight.ts` turns those two into a lighting recipe: the sun sets the colour
+and direction, then weather attenuates it, so an overcast noon and a clear dusk
+are both dim in completely different colours. Indoor scenes get a reduced
+`exposure` because a living room has windows, not weather.
+
+It is all optional. No network, a blocked request, or a static deploy with no
+Function at all lands on fair weather and a correct clock; a 404 is remembered
+so the client stops asking.
 
 **No Three.js.** The brief made it optional garnish, and GSAP + SVG already carry
 the particle bursts. Three.js core is ~170 KB gzip against a 200 KB budget the

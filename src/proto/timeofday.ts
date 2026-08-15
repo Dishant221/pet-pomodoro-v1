@@ -12,7 +12,10 @@
  * one is allowed its own opinion.
  */
 
-export type PhaseId = 'dawn' | 'morning' | 'noon' | 'afternoon' | 'dusk' | 'night';
+// Phase naming and the hour boundaries are production concerns now — the
+// prototype borrows them rather than keeping a second, divergent copy.
+export { phaseForHour, type PhaseId } from '../game/world';
+import type { PhaseId } from '../game/world';
 
 export interface TimeOfDay {
   id: PhaseId;
@@ -285,24 +288,6 @@ export const PHASES: Record<PhaseId, TimeOfDay> = {
 };
 
 export const PHASE_IDS = Object.keys(PHASES) as PhaseId[];
-
-/**
- * Which phase it is for a given local hour.
- *
- * Local to the *visitor*, not to the server — a Cloudflare edge node has no
- * meaningful time of day. The caller passes `new Date().getHours()`, which is
- * already in the browser's own zone, so this needs no timezone handling at all.
- */
-export function phaseForHour(hour: number): PhaseId {
-  const h = ((hour % 24) + 24) % 24;
-  if (h < 5) return 'night';
-  if (h < 8) return 'dawn';
-  if (h < 11) return 'morning';
-  if (h < 15) return 'noon';
-  if (h < 18) return 'afternoon';
-  if (h < 21) return 'dusk';
-  return 'night';
-}
 
 /** Where the sun sits in the painted frame, in viewBox units (1600×900). */
 export function sunScreenPos(t: TimeOfDay): { x: number; y: number } {

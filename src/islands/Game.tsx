@@ -39,6 +39,7 @@ import {
   tickVitals,
 } from '../stores/pet';
 import { REWARDS, SNACK_BY_ID, coinsForFocus } from '../game/economy';
+import { startWorld } from '../game/world';
 import * as audio from '../game/audio';
 import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
@@ -71,6 +72,8 @@ export default function Game() {
   useEffect(() => {
     applyAppearance($profile.get());
     const stopTick = startTicking();
+    // Real local time and real weather, feeding the stage's lighting.
+    const stopWorld = startWorld();
 
     // Catch up on hunger/happiness drift while the tab was closed.
     try {
@@ -91,6 +94,7 @@ export default function Game() {
     settle();
     return () => {
       stopTick();
+      stopWorld();
       clearInterval(heartbeat);
       if (toastTimer.current) clearTimeout(toastTimer.current);
       audio.dispose();

@@ -53,6 +53,27 @@ curl https://petpomo.pages.dev/api/health
 # {"ok":true}
 ```
 
+## 3. Weather (no setup)
+
+`GET /api/weather` needs nothing configured — no key, no account, no binding.
+It reads the approximate location Cloudflare puts on `request.cf`, rounds it to
+one decimal (~11 km), and asks [Open-Meteo](https://open-meteo.com), which is
+free and unauthenticated.
+
+The rounded coordinate pair is also the cache key, so a whole town shares one
+upstream call and no per-visitor record is ever created. Nothing is written to
+D1 and nothing is logged.
+
+```bash
+curl https://petpomo.pages.dev/api/weather
+# {"ok":true,"condition":"rain","temperature":14,...}
+```
+
+`"ok": false` means it fell back to fair weather — no geolocation on the
+request (a VPN, a datacentre IP, or `wrangler pages dev` locally), or the
+upstream was slow. The game is unaffected either way; it is decoration on a
+world that is already correct.
+
 ### Why a Pages Function and not a standalone Worker
 
 The client calls a bare `/api/*` with no configured base URL. Running the API as

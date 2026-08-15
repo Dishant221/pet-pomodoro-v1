@@ -64,7 +64,14 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
 const page = await ctx.newPage();
 
 page.on('console', (m) => {
-  if (m.type() === 'error') consoleErrors.push(m.text());
+  if (m.type() !== 'error') return;
+  // The /api/* Pages Function is optional by design — the game is a static
+  // site that works with no server at all. `astro preview` serves the static
+  // build only, so /api/weather legitimately 404s here and the client falls
+  // back to fair weather. Matched on the failing URL rather than the message
+  // text, so a 404 on anything else still fails the run.
+  if (m.location()?.url?.includes('/api/')) return;
+  consoleErrors.push(m.text());
 });
 page.on('pageerror', (e) => consoleErrors.push(`pageerror: ${e.message}`));
 

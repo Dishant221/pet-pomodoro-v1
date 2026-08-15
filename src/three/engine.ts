@@ -13,9 +13,11 @@ import type { SnackId } from '../game/economy';
 import { buildCat, DEFAULT_PALETTE, type CatPalette, type CatRig, copyPose, lerpPose, makePose } from './cat';
 import { ACTION_LENGTH, MEOW_PERIOD, blendTime, evaluate, type Action, type AnimCtx } from './animations';
 import { buildProp, TOY_IDS, TOYS, type PropId, type PropSpec } from './props';
-import { buildWorld, type World } from './worlds';
+import { buildWorld, type LightRecipe, type World } from './worlds';
 import { createFx, type FxSystem } from './fx';
 import { disposeTree, sky, type SkyHandle } from './toon';
+import { modulate } from './daylight';
+import { dayFraction, FAIR_WEATHER, type Weather } from '../game/world';
 
 export interface EngineCallbacks {
   /** A completed stroke — worth coins and happiness. */
@@ -71,6 +73,15 @@ export class Engine {
 
   private world!: World;
   private worldId: SceneId;
+
+  /**
+   * The player's real time and weather. Defaults keep the stage looking right
+   * before the world store has had a chance to report in.
+   */
+  private dayFrac = dayFraction();
+  private weather: Weather = FAIR_WEATHER;
+  /** Seconds since the lighting was last recomputed. */
+  private lightAge = Infinity;
   private cat: CatRig;
   private fx: FxSystem;
 
@@ -211,7 +222,45 @@ export class Engine {
     this.world = buildWorld(id);
     this.scene.add(this.world.group);
 
-    const L = this.world.lights;
+    this.lightAge = Infinity;
+    this.refreshLighting();
+
+    // Re-home everything that lives on the old floor.
+    this.clearGround();
+    this.busy = false;
+    this.pos.set(0, 0, 0.1);
+    this.cat.root.position.copy(this.pos);
+    this.target = null;
+    this.speed = 0;
+  }
+
+  /**
+   * How much of the outdoor sky each world actually sees.
+   *
+   * The living room has windows, not weather — running it at full strength put
+   * a sunset inside the lounge and it read as a house fire. The treehouse is
+   * partly sheltered; the garden and jungle are wide open.
+   */
+  private static readonly EXPOSURE: Partial<Record<SceneId, number>> = {
+    livingroom: 0.35,
+    treehouse: 0.8,
+  };
+
+  /**
+   * Rebuild the lighting from the world's own recipe, bent to the player's
+   * real time and weather.
+   *
+   * Worlds animate their own `lights` during `update` (window light moving
+   * across a room, for one), so this modulates whatever the world currently
+   * says rather than a snapshot taken at load.
+   */
+  private refreshLighting(): void {
+    const L: LightRecipe = modulate(this.world.lights, {
+      fraction: this.dayFrac,
+      weather: this.weather,
+      exposure: Engine.EXPOSURE[this.worldId] ?? 1,
+    });
+
     this.key.color.set(L.key.color);
     this.key.intensity = L.key.intensity;
     this.key.position.set(...L.key.position);
@@ -221,16 +270,25 @@ export class Engine {
     this.rim.color.set(L.rim.color);
     this.rim.intensity = L.rim.intensity;
     this.rim.position.set(...L.rim.position);
-    this.scene.fog = new THREE.Fog(L.fog.color, L.fog.near, L.fog.far);
-    this.skyDome.set(L.sky);
 
-    // Re-home everything that lives on the old floor.
-    this.clearGround();
-    this.busy = false;
-    this.pos.set(0, 0, 0.1);
-    this.cat.root.position.copy(this.pos);
-    this.target = null;
-    this.speed = 0;
+    // Reuse the fog object; replacing it every quarter second would churn.
+    if (this.scene.fog instanceof THREE.Fog) {
+      this.scene.fog.color.set(L.fog.color);
+      this.scene.fog.near = L.fog.near;
+      this.scene.fog.far = L.fog.far;
+    } else {
+      this.scene.fog = new THREE.Fog(L.fog.color, L.fog.near, L.fog.far);
+    }
+
+    this.skyDome.set(L.sky);
+    this.lightAge = 0;
+  }
+
+  /** Tell the stage what time it is and what the sky is doing. */
+  setDaylight(fraction: number, weather: Weather): void {
+    this.dayFrac = fraction;
+    this.weather = weather;
+    if (this.world) this.refreshLighting();
   }
 
   private clearGround(): void {
@@ -894,9 +952,14 @@ export class Engine {
     this.tickPose(dt);
     this.tickCamera(dt);
 
-    const dayPhase = dayFraction();
-    this.world.update(dt, this.now, dayPhase);
-    this.skyDome.set(this.world.lights.sky);
+    this.world.update(dt, this.now, this.dayFrac);
+
+    // Worlds animate their own lights, so the modulation has to be reapplied
+    // rather than done once. Four times a second is far below the rate any of
+    // this changes, and keeps the colour maths off the per-frame budget.
+    this.lightAge += dt;
+    if (this.lightAge >= 0.25) this.refreshLighting();
+
     this.fx.update(dt);
 
     // Sleeping cats get Zzz, on a slow rhythm.
@@ -1067,12 +1130,6 @@ export class Engine {
       this.pos.z * 0.4 - 0.1,
     );
   }
-}
-
-/** Fraction through the local day: 0 at midnight, 0.5 at noon. */
-function dayFraction(): number {
-  const d = new Date();
-  return (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 86400;
 }
 
 /** True when the browser can actually give us a WebGL context. */

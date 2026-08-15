@@ -5,6 +5,8 @@ import type { PetSkinId, SnackId } from '../game/economy';
 import { Engine, webglAvailable } from '../three/engine';
 import { paletteFor } from '../three/palette';
 import type { PropSpec } from '../three/props';
+import { $world } from '../game/world';
+import { useStore } from '@nanostores/preact';
 
 /**
  * Preact shell around the WebGL engine.
@@ -55,6 +57,9 @@ export default function Stage3D(props: Stage3DProps) {
   const engineRef = useRef<Engine | null>(null);
   const [supported, setSupported] = useState<boolean | null>(null);
   const [grabbing, setGrabbing] = useState(false);
+  // The player's real time of day and real weather. Changes about once a
+  // minute, so subscribing here costs nothing.
+  const world = useStore($world);
 
   // Callbacks live in a ref so the engine can be built once and still call the
   // latest handler — rebuilding the engine on every render would be ruinous.
@@ -96,6 +101,10 @@ export default function Stage3D(props: Stage3DProps) {
     engineRef.current = engine;
     engine.setIntent(cbRef.current.petState);
     engine.setMood(cbRef.current.mood);
+    // Seed the sky before the first frame, so there is no flash of midday
+    // lighting on a night visit.
+    const w = $world.get();
+    engine.setDaylight(w.fraction, w.weather);
     engine.start();
 
     const api: StageApi = {
@@ -148,6 +157,10 @@ export default function Stage3D(props: Stage3DProps) {
   useEffect(() => {
     engineRef.current?.setMood(props.mood);
   }, [props.mood]);
+
+  useEffect(() => {
+    engineRef.current?.setDaylight(world.fraction, world.weather);
+  }, [world.fraction, world.weather]);
 
   // The fallback brings its own stage chrome, so it is rendered bare.
   if (supported === false) return <>{props.fallback}</>;

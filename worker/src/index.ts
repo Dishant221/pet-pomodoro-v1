@@ -15,7 +15,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 // Type-only import: pulls in D1Database without dragging the Workers global
 // typings (fetch, Response, ...) into the browser-side program.
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, IncomingRequestCfProperties } from '@cloudflare/workers-types';
 
 type Bindings = {
   DB: D1Database;
@@ -108,6 +108,150 @@ app.post('/api/save', async (c) => {
     .run();
 
   return c.json({ ok: true, updatedAt: now });
+});
+
+// --- weather ----------------------------------------------------------------
+
+/**
+ * GET /api/weather — what the sky is doing where the visitor is.
+ *
+ * The game world reacts to the player's real weather, which needs a location.
+ * Cloudflare already knows roughly where the request came from and puts it on
+ * `request.cf`, so nothing has to be asked of the user: no geolocation prompt,
+ * no IP handling of our own, no consent banner for a permission we never take.
+ *
+ * Privacy is a design constraint here, not a footnote:
+ *
+ *   - Coordinates are rounded to one decimal (~11 km) before they are used for
+ *     anything. That is precise enough to know it is raining on you and far too
+ *     coarse to place you.
+ *   - The rounded pair is the cache key, so a whole town shares one upstream
+ *     call and no per-visitor record is ever created.
+ *   - Nothing is written to D1 and nothing is logged. The response is derived
+ *     and discarded.
+ *
+ * Failure is not an error state. If geolocation is missing, the upstream is
+ * slow, or the fetch throws, the caller gets fair weather and `ok: false`. A
+ * pomodoro timer must never fail to load because a weather API had a bad day.
+ */
+
+/**
+ * Workers-only globals, declared narrowly.
+ *
+ * This file is compiled as part of the browser program (see the type-only D1
+ * import above), so the Workers ambient globals are deliberately absent. Rather
+ * than pull them all in — which would put `fetch`, `Response` and friends into
+ * every client module's scope — the three runtime features this endpoint needs
+ * are described here and nowhere else.
+ */
+interface EdgeCache {
+  match(request: Request): Promise<Response | undefined>;
+  put(request: Request, response: Response): Promise<void>;
+}
+/** `caches.default` is a Workers extension; the DOM lib does not know it. */
+const edgeCache = (caches as unknown as { default?: EdgeCache }).default;
+/** `cf` on both Request and RequestInit is likewise Workers-only. */
+type CfInit = RequestInit & { cf?: { cacheTtl?: number; cacheEverything?: boolean } };
+const cfOf = (r: Request) => (r as unknown as { cf?: IncomingRequestCfProperties }).cf;
+
+type Condition = 'clear' | 'cloudy' | 'overcast' | 'fog' | 'rain' | 'snow' | 'storm';
+
+interface WeatherPayload {
+  ok: boolean;
+  condition: Condition;
+  /** Degrees Celsius, or null when unknown. */
+  temperature: number | null;
+  windKph: number | null;
+  /** Upstream's own day/night flag — more reliable than guessing from a clock. */
+  isDay: boolean | null;
+  /** IANA zone, so the client can sanity-check its own clock. */
+  timezone: string | null;
+}
+
+const FAIR: WeatherPayload = {
+  ok: false,
+  condition: 'clear',
+  temperature: null,
+  windKph: null,
+  isDay: null,
+  timezone: null,
+};
+
+/** How long a rounded location's weather is reused. Weather is not fast. */
+const WEATHER_TTL_S = 900;
+/** Upstream budget. Past this the game gets fair weather and moves on. */
+const WEATHER_TIMEOUT_MS = 3000;
+
+/** WMO code → the handful of conditions the game actually renders. */
+function conditionFor(code: number): Condition {
+  if (code === 0) return 'clear';
+  if (code <= 2) return 'cloudy';
+  if (code === 3) return 'overcast';
+  if (code === 45 || code === 48) return 'fog';
+  if (code >= 95) return 'storm';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  if (code >= 51) return 'rain';
+  return 'clear';
+}
+
+app.get('/api/weather', async (c) => {
+  const cf = cfOf(c.req.raw);
+  const lat = Number(cf?.latitude);
+  const lon = Number(cf?.longitude);
+  const timezone = typeof cf?.timezone === 'string' ? cf.timezone : null;
+
+  // No usable geolocation — a VPN, a datacentre IP, or local dev.
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return c.json({ ...FAIR, timezone }, 200, { 'cache-control': 'public, max-age=300' });
+  }
+
+  // Deliberately coarse. See the note above.
+  const rlat = lat.toFixed(1);
+  const rlon = lon.toFixed(1);
+
+  const cacheKey = new Request(`https://petpomo.internal/weather/${rlat},${rlon}`);
+  const hit = await edgeCache?.match(cacheKey);
+  if (hit) return hit;
+
+  let payload: WeatherPayload;
+  try {
+    const url =
+      `https://api.open-meteo.com/v1/forecast?latitude=${rlat}&longitude=${rlon}` +
+      `&current=temperature_2m,is_day,weather_code,wind_speed_10m&wind_speed_unit=kmh&timezone=auto`;
+
+    const init: CfInit = {
+      signal: AbortSignal.timeout(WEATHER_TIMEOUT_MS),
+      // Let the edge share one upstream call across colos too.
+      cf: { cacheTtl: WEATHER_TTL_S, cacheEverything: true },
+    };
+    const res = await fetch(url, init);
+    if (!res.ok) throw new Error(`upstream ${res.status}`);
+
+    const data = (await res.json()) as {
+      current?: { temperature_2m?: number; is_day?: number; weather_code?: number; wind_speed_10m?: number };
+      timezone?: string;
+    };
+    const cur = data.current;
+    if (!cur || typeof cur.weather_code !== 'number') throw new Error('no current block');
+
+    payload = {
+      ok: true,
+      condition: conditionFor(cur.weather_code),
+      temperature: typeof cur.temperature_2m === 'number' ? Math.round(cur.temperature_2m) : null,
+      windKph: typeof cur.wind_speed_10m === 'number' ? Math.round(cur.wind_speed_10m) : null,
+      isDay: typeof cur.is_day === 'number' ? cur.is_day === 1 : null,
+      timezone: data.timezone ?? timezone,
+    };
+  } catch {
+    // Deliberately silent. There is nothing an operator could act on, and the
+    // game is unaffected.
+    return c.json({ ...FAIR, timezone }, 200, { 'cache-control': 'public, max-age=60' });
+  }
+
+  const response = c.json(payload, 200, { 'cache-control': `public, max-age=${WEATHER_TTL_S}` });
+  // Cache a clone; the original is still being streamed to this caller.
+  if (edgeCache) c.executionCtx.waitUntil(edgeCache.put(cacheKey, response.clone()));
+  return response;
 });
 
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
