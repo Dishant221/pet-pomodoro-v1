@@ -5,7 +5,7 @@ done twice. **Ask for "the pending list" and this file is the answer.**
 
 Last updated: 16 August 2026. Branch: `testing`.
 
-Numbering runs to 45 and is append-only: an item keeps its number for life, so
+Numbering runs to 47 and is append-only: an item keeps its number for life, so
 "#33" means the same thing in a conversation three months from now.
 
 ---
@@ -52,8 +52,10 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 25 | Blog | Content collection, 2 posts, RSS. |
 | 26 | Perf budget | First-load JS 84 KB gzip against a 200 KB ceiling, enforced in CI. |
 | 27 | CI/CD | Push to `testing` → preview; push to `main` → production. |
-| 28 | Test suite | 104 acceptance checks + 10 sync checks, run against the real Pages runtime. |
+| 28 | Test suite | 115 acceptance checks + 10 sync checks, run against the real Pages runtime. |
 | 44 | Pinnable world | Time of day, weather and season each switchable off `auto` in Settings. Derived view over reality, never a write into it; the readout says when it is pinned. |
+| 46 | Widget switches | World readout, pet panel, timer card and wall clock each on their own toggle. All four off is supported and tested; with the timer hidden the space bar starts and pauses. |
+| 47 | Wall clock | Small analog faces, top left: the player's zone plus up to 3 more, chosen from the browser's full IANA list. Night-tinted per zone, exact time in the tooltip and the accessible name. |
 
 ---
 

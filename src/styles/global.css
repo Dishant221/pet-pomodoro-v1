@@ -709,13 +709,29 @@ body {
 .pp-metrics > * {
   pointer-events: auto;
 }
-/* The world readout: top left, opposite the pet panel, same bare treatment.
-   Weather belongs on the painting, not in a box on top of it. */
-.pp-world {
+/* The top-left corner: the world readout and the wall clock, stacked. Either
+   can be turned off in Settings, so the column owns the placement and the two
+   members own nothing — a stack where each item positions itself leaves a gap
+   the shape of whichever one is missing. */
+.pp-corner {
   position: absolute;
   top: 0.6rem;
   left: 0.6rem;
   z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  max-width: min(52vw, 22rem);
+  pointer-events: none;
+}
+.pp-corner > * {
+  pointer-events: auto;
+}
+
+/* The world readout: top left, opposite the pet panel, same bare treatment.
+   Weather belongs on the painting, not in a box on top of it. */
+.pp-world {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -730,6 +746,91 @@ body {
   color: #fff;
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.6), 0 0 8px rgb(0 0 0 / 0.35);
   padding-inline: 0.15rem;
+}
+
+/* --- the wall clock ------------------------------------------------------
+   One small analog face per zone. Unlike the world chips this one does get a
+   disc: the chips are words, which a text shadow carries over any painting,
+   and a hand is a two-pixel line that would vanish against pale sky. The disc
+   is the smallest thing that makes the hands legible everywhere. */
+.pp-wallclock {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+/* Wider than the 34px face it holds, because the label under it is the part
+   that needs the room — "New York" ellipsised to "New Y…" is a worse widget
+   than one four pixels wider. */
+.pp-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  width: 2.95rem;
+}
+.pp-dial svg {
+  width: 2.125rem;
+  height: 2.125rem;
+  overflow: visible;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
+}
+.pp-dial-face {
+  fill: rgb(12 16 28 / 0.42);
+  stroke: rgb(255 255 255 / 0.7);
+  stroke-width: 1.6;
+}
+/* Somewhere it is night. Worth one shade — it is the only thing the widget
+   says beyond the time, and it is the thing you actually wanted to know. */
+.pp-dial-face[data-night='true'] {
+  fill: rgb(6 10 26 / 0.66);
+  stroke: rgb(185 205 245 / 0.72);
+}
+.pp-dial-tick {
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.pp-dial-hour,
+.pp-dial-minute {
+  stroke: #fff;
+  stroke-linecap: round;
+}
+.pp-dial-hour {
+  stroke-width: 2.6;
+}
+.pp-dial-minute {
+  stroke-width: 1.8;
+}
+.pp-dial-second {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+.pp-dial-pin {
+  fill: #fff;
+}
+.pp-dial-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.65), 0 0 8px rgb(0 0 0 / 0.4);
+}
+/* The world chips drop their words on a narrow screen; the dials keep theirs,
+   because a clock face with no place under it is a decoration. They shrink
+   instead. */
+@media (max-width: 560px) {
+  .pp-dial {
+    width: 2.6rem;
+  }
+  .pp-dial svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
 }
 .pp-world .pp-chip [aria-hidden='true'] {
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.55));

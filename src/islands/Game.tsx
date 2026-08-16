@@ -43,6 +43,7 @@ import {
 import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../game/economy';
 import { startWorld } from '../game/world';
 import { $view } from '../game/view';
+import WallClock from './WallClock';
 import type { Condition, PhaseId } from '../game/world';
 import { PHASES } from '../world/palette';
 import { SEASONS, type SeasonId } from '../world/season';
@@ -112,6 +113,9 @@ export default function Game() {
   const [toast, setToast] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const reduced = prefersReducedMotion(profile);
+
+  /** Which overlays the player has kept. See `Settings.showWorld` and friends. */
+  const { showWorld, showPet, showTimer, showClock } = profile.settings;
 
   /**
    * The equipped character's name, which every message about the pet uses.
@@ -399,6 +403,31 @@ export default function Game() {
     toggle();
   };
 
+  /**
+   * With the timer card hidden, the space bar starts and pauses instead.
+   *
+   * Hiding the countdown is allowed to make the stage bare; it is not allowed
+   * to make the app unusable, and without the card there is no control left to
+   * start a session with. Only bound while the card is gone — a global space
+   * handler that is always on would fight every button on the page.
+   */
+  useEffect(() => {
+    if (showTimer) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' && e.key !== ' ') return;
+      // Space already means something inside a control or a text field, and
+      // stealing it there is how a shortcut becomes a bug.
+      const t = e.target as HTMLElement | null;
+      if (t?.closest('input, textarea, select, button, a, [contenteditable="true"], [role="dialog"]')) return;
+      if (confirmAbandon) return;
+      e.preventDefault();
+      audio.unlock();
+      toggle();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showTimer, confirmAbandon]);
+
   const handleAbandon = () => {
     setConfirmAbandon(false);
     abandon();
@@ -560,7 +589,11 @@ export default function Game() {
       ? `${petName} is curled up asleep. Go do the work.`
       : breakHint
     : timer.mode === 'focus'
-      ? `Press start. ${petName} will nap while you focus.`
+      ? showTimer
+        ? `Press start. ${petName} will nap while you focus.`
+        : // The card that says "start" is hidden, so the hint has to carry the
+          // shortcut — otherwise the only way to find it is to read the source.
+          `Press space to start. ${petName} will nap while you focus.`
       : breakHint;
 
   /**
@@ -810,7 +843,7 @@ export default function Game() {
       {/* Docked: the bar owns a strip of the layout, so the stage is whatever
           is left and the two can never overlap. Floating: it goes inside the
           stage below, absolutely positioned over the world. */}
-      {!floating && hud}
+      {!floating && showTimer && hud}
 
       {/* --- the world ------------------------------------------------------ */}
       <div class="relative min-h-0 flex-1" ref={fieldRef}>
@@ -848,10 +881,18 @@ export default function Game() {
           }
         />
 
-        {worldRead}
-        {metrics}
+        {/* The top-left corner is a column, not two absolutely-placed things.
+            Either of them can be switched off, and a stack that positions its
+            own members would leave a hole where the missing one used to be. */}
+        {(showWorld || showClock) && (
+          <div class="pp-corner">
+            {showWorld && worldRead}
+            {showClock && <WallClock zones={profile.settings.clockZones} reduced={reduced} />}
+          </div>
+        )}
+        {showPet && metrics}
 
-        {floating && hud}
+        {floating && showTimer && hud}
 
         {/* Toasts move out from under the floating clock, which starts at the
             top of the stage — two things fading in and out over each other in

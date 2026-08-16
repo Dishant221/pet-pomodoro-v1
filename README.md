@@ -41,6 +41,7 @@ src/game/
   mood.ts                how the animal feels, derived from its vitals
   world.ts               the player's real local time + real weather
   view.ts                that world as the player asked to see it — the pins
+  zones.ts               timezones for the wall clock, all of it through Intl
   sync.ts                optional cloud-sync client
 src/world/
   palette.ts             six time-of-day palettes + the weather wash
@@ -52,7 +53,7 @@ src/three/
   painted.ts             the gameplay objects that stay 3D on a painted stage
   stage-types.ts         the World contract the engine renders against
 src/stores/              persist / profile / timer / pet  (nanostores)
-src/islands/             Game, Stage, ShopPanel, StatsPanel, SettingsPanel
+src/islands/             Game, Stage, WallClock, ShopPanel, StatsPanel, SettingsPanel
 worker/                  Hono sync API + D1 schema
 functions/api/           mounts the API as a same-origin Pages Function
 ```
@@ -227,6 +228,41 @@ temperature and its `ok` flag, so the readout says "set by you in Settings"
 instead of reporting a measurement nobody took. Pinning a phase pins a *moment*
 inside it rather than a preset, because the lighting reads the day fraction and
 would have nothing to place the sun by otherwise.
+
+**The overlays are the player's to keep or lose.** Four things sit on the
+painting — the world readout, the pet panel, the timer card and the wall clock
+— and each has its own switch. Which of them earn their place is not something
+one default can settle: somebody using this as a focus timer wants the
+countdown and nothing else, and somebody who leaves it open all day wants the
+animal and the sky. All four off is a supported state, and it is tested,
+because the painting and the pet are the app and the rest is furniture.
+
+Hiding the timer is the only one with a consequence: with the card gone there
+is no button to start a session, so the space bar takes over, and the on-stage
+hint changes to say so. The handler is bound only while the card is hidden — a
+global space handler that is always on would fight every button on the page —
+and it stands down inside inputs, controls and dialogs.
+
+**The wall clock is analog on purpose.** It is a glance widget: the countdown
+already gives exact digits and takes the middle of the screen to do it, and
+"is it still morning in Berlin" is a question a dial answers from the corner of
+your eye. The exact time is not thrown away — each face carries it in an SVG
+`<title>` and an `aria-label`, so a hover or a screen reader gets "Berlin,
+09:02". Faces go darker between 20:00 and 06:00 *in their own zone*, which is
+the one thing the widget says beyond the time and usually the thing you wanted.
+
+Zones go through `Intl` and nothing else (`src/game/zones.ts`). That means the
+browser's own IANA database does the work: no zone table in the bundle, and —
+the part that matters — daylight saving is right on the days it changes.
+Hand-rolled `UTC+5:30` tables are correct until the last Sunday in March and
+then quietly wrong for six months. The picker is a native `<select>` over
+`Intl.supportedValuesOf('timeZone')`, about 417 zones on a current browser,
+with a thirty-city fallback for browsers that will not enumerate. Labels prefer
+the browser's own abbreviation in the *player's* locale — `Asia/Kolkata` is
+`IST` to a browser set to India — and fall back to the city when the browser
+only offers `GMT+5:30`, which is wider than the dial and less use than
+"Kolkata". A handful of zones are still filed under names their cities dropped
+decades ago, so `Calcutta`, `Saigon` and `Rangoon` are relabelled.
 
 One trap worth naming: `$view` derives from a string of the three switches, not
 from `$profile` directly. A computed store hands its subscribers a fresh object

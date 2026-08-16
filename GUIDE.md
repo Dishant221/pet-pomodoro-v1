@@ -122,6 +122,8 @@ visitor's saved progress.
 | Colours by time of day | `src/world/palette.ts` |
 | Seasons | `src/world/season.ts` |
 | Letting a player pin the sky | `src/game/view.ts` (reality itself stays in `world.ts`) |
+| The wall clock and its timezones | `src/islands/WallClock.tsx` + `src/game/zones.ts` |
+| Which overlays the stage carries | `showWorld` / `showPet` / `showTimer` / `showClock` in `src/stores/profile.ts` |
 | Moods | `src/game/mood.ts` |
 | Sounds | `src/game/audio.ts` |
 | Timer rules | `src/stores/timer.ts` |

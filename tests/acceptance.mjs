@@ -874,6 +874,123 @@ check(
 );
 await page.clock.setFixedTime(new Date());
 
+// --------------------------------------------- 17i. the wall clock
+//
+// Four faces: the player's own zone, which comes from the browser and is never
+// in the save, plus the three they picked. Asserted on `data-time`, which each
+// dial carries precisely so a test does not have to read hand angles off an SVG.
+await seedSave(
+  page,
+  `Object.assign(s.settings, { showClock: true, clockZones: ['UTC', 'Asia/Tokyo', 'America/New_York'] });`,
+);
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+const dials = await page.$$eval('.pp-dial', (els) =>
+  els.map((e) => ({ zone: e.dataset.zone, time: e.dataset.time, label: e.querySelector('.pp-dial-label')?.textContent })),
+);
+check(
+  'the wall clock draws the local zone plus every chosen one',
+  dials.length === 4 && ['UTC', 'Asia/Tokyo', 'America/New_York'].every((z) => dials.some((d) => d.zone === z)),
+  JSON.stringify(dials.map((d) => d.zone)),
+);
+// The times have to actually differ by the right amount, or four identical
+// dials would pass the check above. UTC and Tokyo are nine hours apart and
+// neither observes daylight saving, so this holds on every date.
+const gap = (a, b) => {
+  const mins = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+  return ((mins(b) - mins(a) + 1440) % 1440) / 60;
+};
+const utc = dials.find((d) => d.zone === 'UTC')?.time ?? '';
+const tokyo = dials.find((d) => d.zone === 'Asia/Tokyo')?.time ?? '';
+check('each dial shows its own zone, nine hours apart', gap(utc, tokyo) === 9, `UTC ${utc} vs Tokyo ${tokyo}`);
+check(
+  'every dial is labelled and named for a screen reader',
+  dials.every((d) => (d.label ?? '').length > 0) &&
+    (await page.locator('.pp-dial svg[aria-label]').count()) === 4,
+  JSON.stringify(dials.map((d) => d.label)),
+);
+// A widget that overruns the corner is not the small widget that was asked for.
+const clockBox = await page.locator('.pp-wallclock').boundingBox();
+check(
+  'the wall clock stays small',
+  clockBox.width <= 260 && clockBox.height <= 70,
+  `${Math.round(clockBox.width)}x${Math.round(clockBox.height)}`,
+);
+
+// A save is not always something this player wrote, and a zone id is a string
+// from a file. `Intl` throws on a bad one, and an exception thrown while
+// painting the corner would take the island down with it.
+await seedSave(
+  page,
+  `Object.assign(s.settings, { showClock: true, clockZones: ['Mars/Olympus', 'UTC', 42, 'UTC', 'Asia/Tokyo', 'Europe/Paris', 'Europe/Berlin'] });`,
+);
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+const hostileZones = await page.$$eval('.pp-dial', (els) => els.map((e) => e.dataset.zone));
+const storedZones = await page.evaluate(
+  () => JSON.parse(localStorage.getItem('petpomo.save.v1')).settings.clockZones,
+);
+check(
+  'invalid, duplicate and excess zones are dropped, not defaulted',
+  storedZones.length === 3 &&
+    !storedZones.includes('Mars/Olympus') &&
+    new Set(storedZones).size === storedZones.length &&
+    hostileZones.length === 4,
+  `stored=${JSON.stringify(storedZones)} drawn=${hostileZones.length}`,
+);
+
+// ------------------------------------------------- 17j. widget switches
+//
+// Each of the four overlays comes off independently, and the stage survives all
+// four being gone — the painting and the animal are the app, the rest is furniture.
+for (const [key, selector, name] of [
+  ['showWorld', '.pp-world', 'world readout'],
+  ['showPet', '.pp-metrics', 'pet panel'],
+  ['showClock', '.pp-wallclock', 'wall clock'],
+  ['showTimer', '.pp-hud', 'timer card'],
+]) {
+  await seedSave(page, `s.settings.${key} = false;`);
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+  await stageReady(page);
+  check(`${name} switches off`, (await page.locator(selector).count()) === 0);
+  await seedSave(page, `s.settings.${key} = true;`);
+}
+
+// All four off at once: no overlay left, and the pet still renders and still
+// takes a click. This is the combination most likely to throw on a null node.
+await seedSave(
+  page,
+  `Object.assign(s.settings, { showWorld: false, showPet: false, showTimer: false, showClock: false });`,
+);
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+const bare = await page.evaluate(() => ({
+  overlays: document.querySelectorAll('.pp-world, .pp-metrics, .pp-hud, .pp-wallclock').length,
+  stage: !!document.querySelector('.pp-stage canvas'),
+}));
+check('a bare stage keeps the painting and the pet', bare.overlays === 0 && bare.stage, JSON.stringify(bare));
+
+// With no timer card there is no start button, so the space bar has to work —
+// otherwise hiding a widget makes the app unusable.
+const beforeSpace = await page.evaluate(() => document.querySelector('.pp-stage').dataset.petState);
+await page.locator('.pp-stage').click({ position: { x: 8, y: 8 } });
+await page.keyboard.press('Space');
+const afterSpace = await waitForPetState(page, 'sleeping', 4000);
+check(
+  'with the timer hidden, space starts a session',
+  afterSpace === 'sleeping',
+  `${beforeSpace} -> ${afterSpace}`,
+);
+await page.keyboard.press('Space');
+await sleep(400);
+await seedSave(
+  page,
+  `Object.assign(s.settings, { showWorld: true, showPet: true, showTimer: true, showClock: false, clockZones: [] });`,
+);
+// The timer is persisted separately from the save, so restoring the settings
+// would otherwise leave a paused focus session for the next section to inherit.
+await page.evaluate(() => localStorage.removeItem('petpomo.timer.v1'));
+
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load

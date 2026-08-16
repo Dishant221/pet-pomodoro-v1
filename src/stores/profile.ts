@@ -6,6 +6,7 @@ import { PET_BY_ID, PET_ITEMS, SNACK_ITEMS, THEME_ITEMS } from '../game/economy'
 import { SAVE_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persist';
 import type { Condition, PhaseId } from '../game/world';
 import type { SeasonId } from '../world/season';
+import { MAX_ZONES, isValidZone } from '../game/zones';
 
 export type TimerMode = 'focus' | 'short' | 'long';
 
@@ -101,6 +102,30 @@ export interface Settings {
   phaseMode: 'auto' | PhaseId;
   weatherMode: 'auto' | Condition;
   seasonMode: 'auto' | SeasonId;
+  /**
+   * Which overlays the stage carries.
+   *
+   * The stage is a painting with four things sitting on top of it, and which
+   * of them earn their place is not something one default can settle: the
+   * person using this as a focus timer wants the countdown and nothing else,
+   * and the person who leaves it open all day wants the animal and the sky.
+   * Four switches, all independent, and the painting underneath survives every
+   * combination — including all four off.
+   *
+   * `showTimer` is the one with a consequence: with the card hidden there is
+   * no button to start a session, so the space bar takes over. See `Game`.
+   */
+  showWorld: boolean;
+  showPet: boolean;
+  showTimer: boolean;
+  showClock: boolean;
+  /**
+   * Extra timezones on the wall clock, as IANA ids.
+   *
+   * The player's own zone is always drawn and is never in this list — it comes
+   * from the browser, not from the save, so it stays right when they travel.
+   */
+  clockZones: string[];
 }
 
 export interface PetVitals {
@@ -168,6 +193,15 @@ export const DEFAULT_SETTINGS: Settings = {
   phaseMode: 'auto',
   weatherMode: 'auto',
   seasonMode: 'auto',
+  showWorld: true,
+  showPet: true,
+  showTimer: true,
+  // Off by default. Three of the four overlays were here before anyone asked
+  // for them; this one is a thing you go and turn on, and a stage that grows a
+  // new widget over a returning player's painting is a worse first impression
+  // than one they had to find.
+  showClock: false,
+  clockZones: [],
 };
 
 /**
@@ -255,6 +289,28 @@ function oneOf<T extends string>(raw: unknown, valid: Set<string>, fallback: T):
   return typeof raw === 'string' && valid.has(raw) ? (raw as T) : fallback;
 }
 
+/**
+ * Timezones off a save, reduced to ones this browser will actually accept.
+ *
+ * The set of valid zones is the browser's, not ours, so this cannot be a
+ * `Set` of known strings like the others — it has to ask. Anything it rejects
+ * is dropped rather than replaced: a save carrying `Mars/Olympus` should end
+ * up with one fewer dial, not with a default city the player never chose.
+ *
+ * Deduped and capped for the same reason the picker caps: the widget draws one
+ * face per entry, and a save claiming two hundred zones would paint over the
+ * stage.
+ */
+function zoneList(raw: unknown): string[] {
+  const list = Array.isArray(raw) ? raw : [];
+  const kept: string[] = [];
+  for (const tz of list) {
+    if (kept.length >= MAX_ZONES) break;
+    if (isValidZone(tz) && !kept.includes(tz)) kept.push(tz);
+  }
+  return kept;
+}
+
 export function hydrate(raw: Partial<Profile> | null): Profile {
   const base = defaultProfile();
   if (!raw || typeof raw !== 'object') return base;
@@ -308,6 +364,11 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       phaseMode: oneOf<Settings['phaseMode']>(rawSettings.phaseMode, VALID_PHASE_MODES, d.phaseMode),
       weatherMode: oneOf<Settings['weatherMode']>(rawSettings.weatherMode, VALID_WEATHER_MODES, d.weatherMode),
       seasonMode: oneOf<Settings['seasonMode']>(rawSettings.seasonMode, VALID_SEASON_MODES, d.seasonMode),
+      showWorld: bool(rawSettings.showWorld, d.showWorld),
+      showPet: bool(rawSettings.showPet, d.showPet),
+      showTimer: bool(rawSettings.showTimer, d.showTimer),
+      showClock: bool(rawSettings.showClock, d.showClock),
+      clockZones: zoneList(rawSettings.clockZones),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
@@ -368,6 +429,10 @@ export function clampSettings(s: Settings): Settings {
     // held between a size the controls still fit in and one that stops the card
     // covering the whole stage.
     clockW: s.clockW === 0 ? 0 : clamp(Math.round(s.clockW), CLOCK_MIN_W, CLOCK_MAX_W),
+    // The cap lives here rather than only in the picker, so it holds for every
+    // route into the settings — the picker, an imported file, and a pull from
+    // cloud sync all pass through this function.
+    clockZones: Array.isArray(s.clockZones) ? s.clockZones.slice(0, MAX_ZONES) : [],
   };
 }
 

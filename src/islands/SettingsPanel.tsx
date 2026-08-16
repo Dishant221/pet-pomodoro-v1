@@ -16,6 +16,7 @@ import { SCENES, SCENE_IDS } from '../game/manifest';
 import { THEME_ITEMS } from '../game/economy';
 import { pull, push, getSyncCode, setSyncCode, newSyncCode } from '../game/sync';
 import * as audio from '../game/audio';
+import { MAX_ZONES, allZones, digitalInZone, localZone, offsetLabel, zoneLabel } from '../game/zones';
 
 export default function SettingsPanel() {
   const profile = useStore($profile);
@@ -203,6 +204,46 @@ export default function SettingsPanel() {
               </span>
             </Row>
           )}
+        </Group>
+
+        <Group title="Widgets">
+          <p class="text-sm" style="color: var(--ink-soft)">
+            What sits on top of the painting. Turn all four off and you are left with the animal, the
+            scenery and nothing else.
+          </p>
+          <Toggle
+            label="World readout"
+            hint="Time of day, weather and season, top left."
+            checked={s.showWorld}
+            onChange={(v) => updateSettings({ showWorld: v })}
+          />
+          <Toggle
+            label="Pet panel"
+            hint="Mood, the three meters, feeding and mute, top right."
+            checked={s.showPet}
+            onChange={(v) => updateSettings({ showPet: v })}
+          />
+          <Toggle
+            label="Timer card"
+            hint={
+              s.showTimer
+                ? 'The countdown itself.'
+                : 'Hidden — press the space bar on the game page to start and pause.'
+            }
+            checked={s.showTimer}
+            onChange={(v) => updateSettings({ showTimer: v })}
+          />
+          <Toggle
+            label="Wall clock"
+            hint="Small analog faces showing the real time here and anywhere else you pick."
+            checked={s.showClock}
+            onChange={(v) => updateSettings({ showClock: v })}
+          />
+
+          {/* The zone picker only exists when the clock does. It is the widest
+              control on the page and the longest list, and rendering a zone
+              chooser under a switch that is off is furniture. */}
+          {s.showClock && <ZonePicker zones={s.clockZones} />}
         </Group>
 
         <Group title="World">
@@ -565,6 +606,91 @@ function Slider({ label, value, onInput }: { label: string; value: number; onInp
         </span>
       </span>
     </Row>
+  );
+}
+
+/**
+ * Choose the extra zones on the wall clock.
+ *
+ * A native `<select>` rather than a search box with a filtered list: it is one
+ * element, it costs no JavaScript, and every platform already gives it type-ahead,
+ * a keyboard, and a picker sized for a phone. The zone list comes from the
+ * browser's own IANA data, so it is current without anything being shipped.
+ *
+ * Zones already chosen and the player's own are filtered out of the options —
+ * both would draw a second identical face, which reads as a bug rather than a
+ * choice.
+ */
+function ZonePicker({ zones }: { zones: string[] }) {
+  const [pick, setPick] = useState('');
+  const here = localZone();
+  const now = new Date();
+  const full = zones.length >= MAX_ZONES;
+
+  const options = allZones()
+    .filter((tz) => tz !== here && !zones.includes(tz))
+    .map((tz) => ({ tz, label: tz.replace(/_/g, ' ') }));
+
+  const add = () => {
+    if (!pick || full) return;
+    updateSettings({ clockZones: [...zones, pick] });
+    setPick('');
+  };
+
+  return (
+    <div class="grid gap-2 border-t pt-3" style="border-color: var(--border)">
+      <Row label="Wall clock zones">
+        <span class="flex flex-wrap items-center gap-2">
+          <select
+            class="pp-focus-ring min-w-0 rounded-lg px-3 py-1.5 text-sm"
+            style="max-width: 14rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink)"
+            value={pick}
+            disabled={full}
+            onChange={(e) => setPick((e.currentTarget as HTMLSelectElement).value)}
+            aria-label="Timezone to add"
+          >
+            <option value="">{full ? `${MAX_ZONES} of ${MAX_ZONES} chosen` : 'Choose a timezone…'}</option>
+            {options.map((o) => (
+              <option key={o.tz} value={o.tz}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <button type="button" class="pp-btn pp-focus-ring px-3 py-1.5 text-sm" disabled={!pick || full} onClick={add}>
+            Add
+          </button>
+        </span>
+      </Row>
+
+      <p class="text-xs" style="color: var(--ink-soft)">
+        Your own zone — {zoneLabel(here, now)}, {digitalInZone(here, now)} — always has a face and does
+        not count towards the {MAX_ZONES}. Daylight saving is handled by your browser, so these stay
+        right on the weekends it changes.
+      </p>
+
+      {zones.length > 0 && (
+        <ul class="flex flex-wrap gap-1.5" aria-label="Timezones on the wall clock">
+          {zones.map((tz) => (
+            <li key={tz}>
+              <span class="pp-chip text-sm">
+                <strong>{zoneLabel(tz, now)}</strong>
+                <span style="color: var(--ink-soft)">
+                  {digitalInZone(tz, now)} · {offsetLabel(tz, now)}
+                </span>
+                <button
+                  type="button"
+                  class="pp-focus-ring px-1 font-bold"
+                  aria-label={`Remove ${tz.replace(/_/g, ' ')}`}
+                  onClick={() => updateSettings({ clockZones: zones.filter((z) => z !== tz) })}
+                >
+                  ×
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
