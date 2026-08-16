@@ -837,6 +837,34 @@ function paintRoom(t: TimeOfDay): SceneLayers {
     return `<rect x="-20" y="${r2(y)}" width="${VIEW_W + 40}" height="${r2((VIEW_H - HORIZON + 30) / 22 + 2)}" fill="${shade}" opacity="${r2(0.5 + (i / 22) * 0.45)}"/>`;
   }).join('');
 
+  /**
+   * The patch of daylight the window throws on the floor.
+   *
+   * Indoors, the window is the only thing that knows what time it is, and a
+   * window alone is too small a signal — at noon the room read exactly as it
+   * did at dusk, and the only visible difference was a few pixels of sky. A
+   * room tells you the hour by where the light lands and how warm it is, so
+   * this is a skewed parallelogram of window-shaped light: long and shallow
+   * when the sun is low, short and bright when it is overhead, and gone at
+   * night, when it is replaced by the lamp's pool instead.
+   */
+  const lightPool = (() => {
+    const up = t.sunY > 0.03;
+    if (!up) {
+      // After dark the only light on the floor comes from the lamp.
+      return `<ellipse cx="${VIEW_W - 554}" cy="${VIEW_H - 210}" rx="330" ry="120" fill="#ffe6a8" opacity="0.12"/>`;
+    }
+    // A low sun reaches far into the room; a high one pools near the window.
+    const reach = 1 - t.sunY; // 0 overhead, 1 on the horizon
+    const nearX = winX + winW * 0.15;
+    const spanX = winW * (0.9 + reach * 0.5);
+    const top = HORIZON + 40 + (1 - reach) * 120;
+    const depth = 150 + reach * 260;
+    const skew = reach * 320;
+    return `<polygon points="${nearX},${top} ${nearX + spanX},${top} ${nearX + spanX + skew},${top + depth} ${nearX + skew},${top + depth}"
+      fill="${t.sunColor}" opacity="${(0.1 + t.sunY * 0.22).toFixed(3)}"/>`;
+  })();
+
   const ground = svg(`
     <defs>${brushFilter('f-floor', 4, '0.03', 89)}</defs>
     <g filter="url(#f-floor)">
@@ -845,6 +873,7 @@ function paintRoom(t: TimeOfDay): SceneLayers {
       <ellipse cx="${VIEW_W / 2}" cy="${VIEW_H - 130}" rx="560" ry="190" fill="#e6d8c4" opacity="0.7"/>
       <ellipse cx="${VIEW_W / 2}" cy="${VIEW_H - 130}" rx="470" ry="150" fill="#efe4d2" opacity="0.6"/>
     </g>
+    ${lightPool}
   `);
 
   // A pot plant leaning in from the near corner, to sit in front of the cat.

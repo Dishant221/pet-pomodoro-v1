@@ -193,6 +193,29 @@ const adFilled = await page.evaluate(() => {
 });
 check('a filled ad slot claims its space', adFilled >= 50, `${Math.round(adFilled)}px`);
 
+// The world drives the painting, the lighting and the sound, and for a while it
+// did all of that without appearing anywhere a person could read — announced to
+// screen readers through the canvas label and to nobody else. This asserts the
+// three readings are on screen as words, and that they agree with the state the
+// stage says it is in.
+const worldRead = await page.evaluate(() => {
+  const s = document.querySelector('.pp-stage');
+  const el = document.querySelector('.pp-world');
+  return {
+    text: (el?.innerText ?? '').toLowerCase(),
+    phase: s.dataset.phase,
+    season: s.dataset.season,
+    weather: s.dataset.weather,
+  };
+});
+check(
+  'time of day, weather and season are readable on screen',
+  worldRead.text.includes(worldRead.phase) &&
+    worldRead.text.includes(worldRead.season) &&
+    worldRead.text.includes(worldRead.weather),
+  `"${worldRead.text.replace(/\n/g, ' ')}" vs ${worldRead.phase}/${worldRead.weather}/${worldRead.season}`,
+);
+
 // One bar, not two. The floating card is the command centre by default.
 const hudBox = await page.locator('.pp-hud').boundingBox();
 const stageBox = await page.locator('.pp-stage').boundingBox();

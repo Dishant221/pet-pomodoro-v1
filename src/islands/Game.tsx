@@ -42,6 +42,9 @@ import {
 } from '../stores/pet';
 import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../game/economy';
 import { $world, startWorld } from '../game/world';
+import type { Condition, PhaseId } from '../game/world';
+import { PHASES } from '../world/palette';
+import { SEASONS, type SeasonId } from '../world/season';
 import { MOODS, moodFor, voiceRateFor } from '../game/mood';
 import * as audio from '../game/audio';
 import { CLOCK_MAX_W, CLOCK_MIN_W } from '../stores/profile';
@@ -52,6 +55,50 @@ const LAST_SEEN_KEY = 'petpomo.lastSeen.v1';
 
 /** The docked edges and the floating card, as one thing CSS can switch on. */
 type HudLayout = 'top' | 'left' | 'float';
+
+/**
+ * Glyphs and words for the world readout.
+ *
+ * Kept here rather than in the world modules on purpose: these are how the
+ * state is *presented*, and `world.ts` should not care that dusk is drawn as a
+ * sunset emoji. The labels are separate from the ids for the same reason —
+ * `overcast` is a value, "Overcast" is copy.
+ */
+const PHASE_GLYPH: Record<PhaseId, string> = {
+  dawn: '🌅',
+  morning: '🌤️',
+  noon: '☀️',
+  afternoon: '🌇',
+  dusk: '🌆',
+  night: '🌙',
+};
+
+const CONDITION_GLYPH: Record<Condition, string> = {
+  clear: '☀️',
+  cloudy: '⛅',
+  overcast: '☁️',
+  fog: '🌫️',
+  rain: '🌧️',
+  snow: '❄️',
+  storm: '⛈️',
+};
+
+const CONDITION_LABEL: Record<Condition, string> = {
+  clear: 'Clear',
+  cloudy: 'Cloudy',
+  overcast: 'Overcast',
+  fog: 'Fog',
+  rain: 'Rain',
+  snow: 'Snow',
+  storm: 'Storm',
+};
+
+const SEASON_GLYPH: Record<SeasonId, string> = {
+  spring: '🌱',
+  summer: '🌿',
+  autumn: '🍂',
+  winter: '🌨️',
+};
 
 export default function Game() {
   const profile = useStore($profile);
@@ -524,6 +571,45 @@ export default function Game() {
    * only place to see whether the animal was hungry — so moving one moved the
    * other. This panel does not move, and the clock is free to.
    */
+  /**
+   * The world readout: time of day, weather, season.
+   *
+   * All three already drove the painting, the lighting and the sound, and none
+   * of them appeared anywhere a person could read. That is a strange way to
+   * build a feature — the work was being done and then hidden, and the only way
+   * to know it was working was to leave the tab open for six hours. It was
+   * announced to screen readers via the canvas label and to nobody else.
+   *
+   * Top left, opposite the pet panel, in the same bare style: this is weather,
+   * not chrome, and it should sit on the painting rather than in a box.
+   */
+  const worldRead = (
+    <div class="pp-world" role="group" aria-label="Time of day, weather and season">
+      <span class="pp-chip" title={`${PHASES[world.phase].label} — the world follows your device's clock`}>
+        <span aria-hidden="true">{PHASE_GLYPH[world.phase]}</span>
+        <span class="text-xs font-bold">{PHASES[world.phase].label}</span>
+      </span>
+      <span
+        class="pp-chip"
+        title={
+          world.weather.ok
+            ? `${CONDITION_LABEL[world.weather.condition]} where you are`
+            : 'Live weather unavailable — showing fair weather'
+        }
+      >
+        <span aria-hidden="true">{CONDITION_GLYPH[world.weather.condition]}</span>
+        <span class="text-xs font-bold">
+          {CONDITION_LABEL[world.weather.condition]}
+          {world.weather.temperature != null ? ` ${world.weather.temperature}°` : ''}
+        </span>
+      </span>
+      <span class="pp-chip" title={`${SEASONS[world.season].label} where you are`}>
+        <span aria-hidden="true">{SEASON_GLYPH[world.season]}</span>
+        <span class="text-xs font-bold">{SEASONS[world.season].label}</span>
+      </span>
+    </div>
+  );
+
   const metrics = (
     <div class="pp-metrics" role="group" aria-label={`${petName}: condition and care`}>
       <div class="pp-metrics-row">
@@ -745,6 +831,7 @@ export default function Game() {
           }
         />
 
+        {worldRead}
         {metrics}
 
         {floating && hud}
