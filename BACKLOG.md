@@ -5,6 +5,9 @@ done twice. **Ask for "the pending list" and this file is the answer.**
 
 Last updated: 16 August 2026. Branch: `testing`.
 
+Numbering runs to 45 and is append-only: an item keeps its number for life, so
+"#33" means the same thing in a conversation three months from now.
+
 ---
 
 ## How to read this
@@ -49,7 +52,8 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 25 | Blog | Content collection, 2 posts, RSS. |
 | 26 | Perf budget | First-load JS 84 KB gzip against a 200 KB ceiling, enforced in CI. |
 | 27 | CI/CD | Push to `testing` → preview; push to `main` → production. |
-| 28 | Test suite | 101 acceptance checks + 10 sync checks, run against the real Pages runtime. |
+| 28 | Test suite | 104 acceptance checks + 10 sync checks, run against the real Pages runtime. |
+| 44 | Pinnable world | Time of day, weather and season each switchable off `auto` in Settings. Derived view over reality, never a write into it; the readout says when it is pinned. |
 
 ---
 
@@ -67,6 +71,13 @@ horizon, which re-composes all six scenes.
 **31. Ad slot** — The markup and CSS exist and are tested; the slot claims its
 space the moment it is marked `data-filled`. **Gap:** no ad network, no
 consent flow, no ads.txt.
+
+**45. Two flaky acceptance checks** — `drag-feed reaches eating state` and
+`stroking >=1s reaches petted` fail intermittently, on `main` as well as on
+`testing`, and were reproduced failing on an unmodified build. Both aim the
+mouse at a point sampled from a pet that keeps walking, so the drop or the
+stroke can land on empty floor. **Gap:** the pet needs holding still for the
+duration of those two interactions, or the helpers need to re-aim mid-gesture.
 
 **32. Documentation** — README covers the design decisions, DEPLOY.md the
 infrastructure, GUIDE.md the plain-language walkthrough. **Gap:** the full

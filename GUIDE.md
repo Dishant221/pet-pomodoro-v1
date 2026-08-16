@@ -121,6 +121,7 @@ visitor's saved progress.
 | How the scenery is painted | `src/world/paint.ts` |
 | Colours by time of day | `src/world/palette.ts` |
 | Seasons | `src/world/season.ts` |
+| Letting a player pin the sky | `src/game/view.ts` (reality itself stays in `world.ts`) |
 | Moods | `src/game/mood.ts` |
 | Sounds | `src/game/audio.ts` |
 | Timer rules | `src/stores/timer.ts` |

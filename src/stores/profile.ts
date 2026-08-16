@@ -4,6 +4,8 @@ import { SCENE_IDS } from '../game/manifest';
 import type { PetSkinId, SnackId, ThemeId } from '../game/economy';
 import { PET_BY_ID, PET_ITEMS, SNACK_ITEMS, THEME_ITEMS } from '../game/economy';
 import { SAVE_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persist';
+import type { Condition, PhaseId } from '../game/world';
+import type { SeasonId } from '../world/season';
 
 export type TimerMode = 'focus' | 'short' | 'long';
 
@@ -86,6 +88,19 @@ export interface Settings {
    * and want opposite behaviour.
    */
   clockW: number;
+  /**
+   * Pin the world, or let it follow reality.
+   *
+   * `auto` is the default and the point of the thing: the world matching the
+   * one outside your window is most of why it feels like a place. But "most"
+   * is not "always" — someone who wants to work at a fixed dusk, or who is
+   * looking at six hours of grey November and would rather have summer, should
+   * be able to say so. Three independent switches rather than one, because
+   * wanting a clear sky is not the same as wanting a different hour.
+   */
+  phaseMode: 'auto' | PhaseId;
+  weatherMode: 'auto' | Condition;
+  seasonMode: 'auto' | SeasonId;
 }
 
 export interface PetVitals {
@@ -150,6 +165,9 @@ export const DEFAULT_SETTINGS: Settings = {
   clockFont: 'rounded',
   clockSize: 'md',
   clockW: 0,
+  phaseMode: 'auto',
+  weatherMode: 'auto',
+  seasonMode: 'auto',
 };
 
 /**
@@ -198,6 +216,18 @@ const VALID_SNACKS = new Set<string>(SNACK_ITEMS.map((s) => s.id));
 const VALID_MODES = new Set<string>(['focus', 'short', 'long']);
 const VALID_CLOCK_MODES = new Set<string>(['docked', 'float']);
 const VALID_CLOCK_DOCKS = new Set<string>(['top', 'left']);
+const VALID_PHASE_MODES = new Set<string>(['auto', 'dawn', 'morning', 'noon', 'afternoon', 'dusk', 'night']);
+const VALID_WEATHER_MODES = new Set<string>([
+  'auto',
+  'clear',
+  'cloudy',
+  'overcast',
+  'fog',
+  'rain',
+  'snow',
+  'storm',
+]);
+const VALID_SEASON_MODES = new Set<string>(['auto', 'spring', 'summer', 'autumn', 'winter']);
 const VALID_CLOCK_FONTS = new Set<string>(['rounded', 'mono', 'serif']);
 const VALID_CLOCK_SIZES = new Set<string>(['sm', 'md', 'lg']);
 
@@ -275,6 +305,9 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       clockFont: oneOf<ClockFont>(rawSettings.clockFont, VALID_CLOCK_FONTS, d.clockFont),
       clockSize: oneOf<ClockSize>(rawSettings.clockSize, VALID_CLOCK_SIZES, d.clockSize),
       clockW: num(rawSettings.clockW, d.clockW),
+      phaseMode: oneOf<Settings['phaseMode']>(rawSettings.phaseMode, VALID_PHASE_MODES, d.phaseMode),
+      weatherMode: oneOf<Settings['weatherMode']>(rawSettings.weatherMode, VALID_WEATHER_MODES, d.weatherMode),
+      seasonMode: oneOf<Settings['seasonMode']>(rawSettings.seasonMode, VALID_SEASON_MODES, d.seasonMode),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),

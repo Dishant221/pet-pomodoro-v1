@@ -10,7 +10,7 @@ import {
   resetAll,
   updateSettings,
 } from '../stores/profile';
-import type { ClockDock, ClockFont, ClockMode, ClockSize } from '../stores/profile';
+import type { ClockDock, ClockFont, ClockMode, ClockSize, Settings } from '../stores/profile';
 import { syncDurations } from '../stores/timer';
 import { SCENES, SCENE_IDS } from '../game/manifest';
 import { THEME_ITEMS } from '../game/economy';
@@ -203,6 +203,58 @@ export default function SettingsPanel() {
               </span>
             </Row>
           )}
+        </Group>
+
+        <Group title="World">
+          <p class="text-sm" style="color: var(--ink-soft)">
+            On <strong>Auto</strong> the world matches the one outside your window — your device's
+            clock, your local weather, and the season where you are. Pin any of them to work in a
+            fixed sky instead.
+          </p>
+          <Row label="Time of day">
+            <Choice
+              value={s.phaseMode}
+              options={[
+                { id: 'auto', label: 'Auto' },
+                { id: 'dawn', label: 'Dawn' },
+                { id: 'morning', label: 'Morning' },
+                { id: 'noon', label: 'Noon' },
+                { id: 'afternoon', label: 'Afternoon' },
+                { id: 'dusk', label: 'Dusk' },
+                { id: 'night', label: 'Night' },
+              ]}
+              onPick={(v) => updateSettings({ phaseMode: v as Settings['phaseMode'] })}
+            />
+          </Row>
+          <Row label="Weather">
+            <Choice
+              value={s.weatherMode}
+              options={[
+                { id: 'auto', label: 'Auto' },
+                { id: 'clear', label: 'Clear' },
+                { id: 'cloudy', label: 'Cloudy' },
+                { id: 'overcast', label: 'Overcast' },
+                { id: 'fog', label: 'Fog' },
+                { id: 'rain', label: 'Rain' },
+                { id: 'snow', label: 'Snow' },
+                { id: 'storm', label: 'Storm' },
+              ]}
+              onPick={(v) => updateSettings({ weatherMode: v as Settings['weatherMode'] })}
+            />
+          </Row>
+          <Row label="Season">
+            <Choice
+              value={s.seasonMode}
+              options={[
+                { id: 'auto', label: 'Auto' },
+                { id: 'spring', label: 'Spring' },
+                { id: 'summer', label: 'Summer' },
+                { id: 'autumn', label: 'Autumn' },
+                { id: 'winter', label: 'Winter' },
+              ]}
+              onPick={(v) => updateSettings({ seasonMode: v as Settings['seasonMode'] })}
+            />
+          </Row>
         </Group>
 
         <Group title="Appearance">

@@ -58,6 +58,28 @@ export function phaseForHour(hour: number): PhaseId {
 }
 
 /**
+ * A representative hour for a phase — the inverse of `phaseForFraction`.
+ *
+ * Needed because a player can pin the world to a time of day, and the lighting
+ * does not read the phase: it reads the fraction, so the sun rises and sets
+ * smoothly instead of jumping between six presets. Pinning "dusk" therefore
+ * means pinning a *moment* within dusk, and the middle of the band is the one
+ * that looks most like the name.
+ */
+const PHASE_HOUR: Record<PhaseId, number> = {
+  night: 23.5,
+  dawn: 6.5,
+  morning: 9.5,
+  noon: 13,
+  afternoon: 16.5,
+  dusk: 19.5,
+};
+
+export function fractionForPhase(phase: PhaseId): number {
+  return (PHASE_HOUR[phase] ?? 13) / 24;
+}
+
+/**
  * Nominal sunrise and sunset, in local hours.
  *
  * A real solar-position calculation needs latitude, which would mean either a

@@ -16,7 +16,7 @@ import { paletteFor } from '../three/palette';
 import { speciesOf } from '../game/economy';
 import { SPECIES } from '../three/species';
 import type { PropSpec } from '../three/props';
-import { $world } from '../game/world';
+import { $view } from '../game/view';
 import { useStore } from '@nanostores/preact';
 import PaintedBackdrop from './PaintedBackdrop';
 
@@ -73,7 +73,7 @@ export default function Stage3D(props: Stage3DProps) {
   const [grabbing, setGrabbing] = useState(false);
   // The player's real time of day and real weather. Changes about once a
   // minute, so subscribing here costs nothing.
-  const world = useStore($world);
+  const world = useStore($view);
 
   // Callbacks live in a ref so the engine can be built once and still call the
   // latest handler — rebuilding the engine on every render would be ruinous.
@@ -145,7 +145,7 @@ export default function Stage3D(props: Stage3DProps) {
       engine.setMood(cbRef.current.mood);
       // Seed the sky before the first frame, so there is no flash of midday
       // lighting on a night visit.
-      const w = $world.get();
+      const w = $view.get();
       engine.setDaylight(w.fraction, w.weather);
       engine.start();
 

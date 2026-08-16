@@ -41,7 +41,8 @@ import {
   tickVitals,
 } from '../stores/pet';
 import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../game/economy';
-import { $world, startWorld } from '../game/world';
+import { startWorld } from '../game/world';
+import { $view } from '../game/view';
 import type { Condition, PhaseId } from '../game/world';
 import { PHASES } from '../world/palette';
 import { SEASONS, type SeasonId } from '../world/season';
@@ -105,7 +106,7 @@ export default function Game() {
   const timer = useStore($timer);
   const remaining = useStore($remaining);
   const petState = useStore($petState);
-  const world = useStore($world);
+  const world = useStore($view);
 
   const [confirmAbandon, setConfirmAbandon] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -585,16 +586,25 @@ export default function Game() {
    */
   const worldRead = (
     <div class="pp-world" role="group" aria-label="Time of day, weather and season">
-      <span class="pp-chip" title={`${PHASES[world.phase].label} — the world follows your device's clock`}>
+      <span
+        class="pp-chip"
+        title={
+          profile.settings.phaseMode !== 'auto'
+            ? `${PHASES[world.phase].label} — set by you in Settings`
+            : `${PHASES[world.phase].label} — the world follows your device's clock`
+        }
+      >
         <span aria-hidden="true">{PHASE_GLYPH[world.phase]}</span>
         <span class="text-xs font-bold">{PHASES[world.phase].label}</span>
       </span>
       <span
         class="pp-chip"
         title={
-          world.weather.ok
-            ? `${CONDITION_LABEL[world.weather.condition]} where you are`
-            : 'Live weather unavailable — showing fair weather'
+          profile.settings.weatherMode !== 'auto'
+            ? `${CONDITION_LABEL[world.weather.condition]} — set by you in Settings`
+            : world.weather.ok
+              ? `${CONDITION_LABEL[world.weather.condition]} where you are`
+              : 'Live weather unavailable — showing fair weather'
         }
       >
         <span aria-hidden="true">{CONDITION_GLYPH[world.weather.condition]}</span>
@@ -603,7 +613,14 @@ export default function Game() {
           {world.weather.temperature != null ? ` ${world.weather.temperature}°` : ''}
         </span>
       </span>
-      <span class="pp-chip" title={`${SEASONS[world.season].label} where you are`}>
+      <span
+        class="pp-chip"
+        title={
+          profile.settings.seasonMode !== 'auto'
+            ? `${SEASONS[world.season].label} — set by you in Settings`
+            : `${SEASONS[world.season].label} where you are`
+        }
+      >
         <span aria-hidden="true">{SEASON_GLYPH[world.season]}</span>
         <span class="text-xs font-bold">{SEASONS[world.season].label}</span>
       </span>

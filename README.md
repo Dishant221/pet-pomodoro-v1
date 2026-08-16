@@ -40,6 +40,7 @@ src/game/
   economy.ts             shop catalog and coin rewards
   mood.ts                how the animal feels, derived from its vitals
   world.ts               the player's real local time + real weather
+  view.ts                that world as the player asked to see it — the pins
   sync.ts                optional cloud-sync client
 src/world/
   palette.ts             six time-of-day palettes + the weather wash
@@ -208,6 +209,31 @@ are both dim in completely different colours. Indoor scenes get a reduced
 It is all optional. No network, a blocked request, or a static deploy with no
 Function at all lands on fair weather and a correct clock; a 404 is remembered
 so the client stops asking.
+
+**And the player can overrule it.** Time of day, weather and season are three
+independent switches in Settings, each defaulting to `auto`. Matching the world
+outside the window is most of why the place feels like a place, but "most" is
+not "always": someone who wants to work at a fixed dusk, or who is looking at
+six hours of grey November and would rather have summer, should be able to say
+so. Three switches rather than one, because wanting a clear sky is not the same
+as wanting a different hour.
+
+The override is a *view*, not a write. `world.ts` keeps reporting reality;
+`view.ts` derives `$view` from it and the three settings, and everything that
+draws reads `$view`. A store that quietly reports a fake sky is one nobody can
+debug — "is it actually raining, or did I pin rain three weeks ago?" should
+never be a question answered by reading code. A pinned sky also drops its
+temperature and its `ok` flag, so the readout says "set by you in Settings"
+instead of reporting a measurement nobody took. Pinning a phase pins a *moment*
+inside it rather than a preset, because the lighting reads the day fraction and
+would have nothing to place the sun by otherwise.
+
+One trap worth naming: `$view` derives from a string of the three switches, not
+from `$profile` directly. A computed store hands its subscribers a fresh object
+whenever any source fires, and `$profile` fires every few seconds as vitals
+drift — deriving straight from it re-rendered the 3D stage on every tick. A
+primitive is compared by identity before nanostores notifies, so the store stays
+silent until a switch actually moves.
 
 **The 3D engine loads after the page does.** Three.js and everything built on
 it is about 150 KB gzipped — more than the entire rest of the app — so

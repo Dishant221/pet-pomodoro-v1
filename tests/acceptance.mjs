@@ -827,6 +827,53 @@ check(
 );
 await seedSave(page, `s.settings.clockW = 0;`);
 
+// ------------------------------------------------- 17h. a pinned world
+//
+// The three world switches are the one place a setting overrules reality, so
+// the test has to prove both halves: that a pin is obeyed, and that clearing it
+// hands the world back. Asserted on the stage's data attributes rather than the
+// chips, because the chips are copy and the stage is what the engine draws.
+//
+// The clock is frozen at a July midday in the north — a time that is emphatically
+// not night and a date that is emphatically not winter — so a pin that silently
+// did nothing could not pass by coincidence.
+await page.clock.setFixedTime(new Date('2026-07-15T12:00:00'));
+await seedSave(
+  page,
+  `Object.assign(s.settings, { phaseMode: 'night', weatherMode: 'snow', seasonMode: 'winter' });`,
+);
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+const pinned = await page.evaluate(() => ({
+  phase: document.querySelector('.pp-stage').dataset.phase,
+  weather: document.querySelector('.pp-stage').dataset.weather,
+  season: document.querySelector('.pp-stage').dataset.season,
+}));
+check(
+  'a pinned world overrules the real one',
+  pinned.phase === 'night' && pinned.weather === 'snow' && pinned.season === 'winter',
+  JSON.stringify(pinned),
+);
+
+// Back to auto: the July midday has to come back, which is what proves the
+// override is a view over reality and not a write into it.
+await seedSave(
+  page,
+  `Object.assign(s.settings, { phaseMode: 'auto', weatherMode: 'auto', seasonMode: 'auto' });`,
+);
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+const released = await page.evaluate(() => ({
+  phase: document.querySelector('.pp-stage').dataset.phase,
+  season: document.querySelector('.pp-stage').dataset.season,
+}));
+check(
+  'clearing the pins gives reality back',
+  released.phase === 'noon' && released.season === 'summer',
+  JSON.stringify(released),
+);
+await page.clock.setFixedTime(new Date());
+
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load
