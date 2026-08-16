@@ -248,7 +248,7 @@ body {
   position: absolute;
   z-index: 30;
   width: max-content;
-  max-width: min(94%, 34rem);
+  max-width: min(94%, 44rem);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -259,6 +259,20 @@ body {
 .pp-hud[data-layout='float'] .pp-hud-inner {
   padding: 0.5rem 0.7rem 0.6rem;
   justify-content: center;
+}
+/* The card carries every control now, and the right-hand cluster is a nowrap
+   row — wider than the card, and `overflow: hidden` was quietly cutting the
+   coins off one end and the mute button off the other. It becomes its own
+   centred, wrapping row here instead of being pushed to an edge that is not
+   there. */
+.pp-hud[data-layout='float'] .pp-hud-cluster {
+  margin-left: 0;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pp-chip {
+  white-space: nowrap;
 }
 /* Nothing animates while it is being dragged: a transition on a box that is
    already following the pointer is a box that lags behind it. */
