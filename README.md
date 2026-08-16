@@ -25,7 +25,7 @@ Deploying, including the optional cloud sync: see [DEPLOY.md](./DEPLOY.md).
 ```
 petpomo-assets/          the provided source art + manifest.json (the contract)
 src/assets/pet/          9 cat poses, viewBox 0 0 200 200
-src/assets/scenes/       4 backgrounds, viewBox 0 0 800 450
+src/assets/scenes/       6 backgrounds, viewBox 0 0 800 450
 src/game/
   manifest.ts            typed port of manifest.json — the single source of truth
   anim.ts                every GSAP timeline: poses, parallax, ambient, day/night

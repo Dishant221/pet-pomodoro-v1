@@ -4,7 +4,7 @@ Two Playwright scripts that drive the real app in Edge with real pointer input.
 They assert behaviour, not implementation — the pet's state is read from the
 stage's `aria-label`, which is also what a screen reader announces.
 
-## `acceptance.mjs` — 67 checks
+## `acceptance.mjs` — 69 checks
 
 ```bash
 npm run build
@@ -30,7 +30,7 @@ SVG `fill` attribute; all 9 pet states reached through real interaction
 (idle → sleeping → waking → celebrating → eating → petted → playing → begging →
 sad); a full pomodoro including a mid-session refresh with the absolute end
 timestamp preserved; drag-feed; stroke-to-pet with hearts; coins → shop → equip
-→ reload; all 4 scenes and 4 themes switching live; the living room following
+→ reload; all 6 scenes and 4 themes switching live; the living room following
 the real clock; settings applying instantly; reduced motion actually killing
 parallax (and parallax actually moving when it's allowed); all three clock
 placements including dragging the floating one and finding it in the same place

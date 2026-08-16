@@ -332,10 +332,10 @@ check(
 );
 
 // --------------------------------------------------------- 13. all scenes
-for (const id of ['livingroom', 'garden', 'jungle', 'treehouse']) {
+for (const id of ['livingroom', 'garden', 'jungle', 'treehouse', 'mountain', 'snow']) {
   await seedSave(
     page,
-    `s.owned.scenes = ['livingroom','garden','jungle','treehouse']; s.equipped.scene = '${id}';`,
+    `s.owned.scenes = ['livingroom','garden','jungle','treehouse','mountain','snow']; s.equipped.scene = '${id}';`,
   );
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
   await stageReady(page);
@@ -560,7 +560,7 @@ check(
 );
 check(
   'hostile save cannot invent owned items',
-  hostile.owned.scenes.every((s) => ['livingroom', 'garden', 'jungle', 'treehouse'].includes(s)) &&
+  hostile.owned.scenes.every((s) => ['livingroom', 'garden', 'jungle', 'treehouse', 'mountain', 'snow'].includes(s)) &&
     hostile.owned.snacks.every((s) => ['fish', 'cookie', 'milk', 'sushi'].includes(s)),
   JSON.stringify(hostile.owned),
 );

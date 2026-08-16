@@ -34,6 +34,8 @@ export const SCENE_ITEMS: (ShopItem & { id: SceneId })[] = [
   { id: 'garden', name: 'Garden', blurb: 'Drifting clouds, swaying flowers, a butterfly.', price: 120 },
   { id: 'jungle', name: 'Jungle', blurb: 'Deep canopy with fireflies after dark.', price: 200 },
   { id: 'treehouse', name: 'Treehouse', blurb: 'Up in the branches. A bird passes through.', price: 320 },
+  { id: 'mountain', name: 'Mountain', blurb: 'An alpine meadow under snow-capped peaks.', price: 420 },
+  { id: 'snow', name: 'Snowfield', blurb: 'Deep winter. Drifts, laden pines, cold blue light.', price: 520 },
 ];
 
 export const THEME_ITEMS: (ShopItem & { id: ThemeId })[] = [

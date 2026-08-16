@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" preserveAspectRatio="xMidYMax slice">
+  <!-- PetPomo scene: SNOW. Layers: #layer-sky #layer-back #layer-mid #layer-front. Animate #clouds x-drift, #flakes fall, sway .pine -->
+  <g id="layer-sky">
+    <rect fill="#DCE9F5" width="800" height="450"/>
+    <rect fill="#B8CFE4" width="800" height="190"/>
+    <circle fill="#FDF6DC" cx="150" cy="72" r="26" opacity="0.85"/>
+    <g id="clouds" fill="#F2F7FC" opacity="0.9">
+      <g><ellipse cx="300" cy="70" rx="60" ry="19"/><ellipse cx="340" cy="62" rx="36" ry="14"/></g>
+      <g><ellipse cx="600" cy="96" rx="48" ry="16"/><ellipse cx="632" cy="88" rx="30" ry="12"/></g>
+    </g>
+    <g id="flakes" fill="#FFFFFF" opacity="0.9">
+      <circle cx="120" cy="150" r="3"/>
+      <circle cx="280" cy="196" r="2.5"/>
+      <circle cx="430" cy="140" r="3"/>
+      <circle cx="560" cy="200" r="2.5"/>
+      <circle cx="690" cy="160" r="3"/>
+      <circle cx="212" cy="238" r="2"/>
+      <circle cx="498" cy="252" r="2"/>
+    </g>
+  </g>
+
+  <g id="layer-back">
+    <!-- far range, fully under snow -->
+    <path fill="#A9BDD2" d="M-20 306 L84 158 L146 216 L230 104 L322 246 L404 176 L466 254 L556 134 L648 242 L716 192 L820 296 L820 450 L-20 450 Z"/>
+    <path fill="#F1F7FD" d="M230 104 L272 158 L254 150 L240 166 L222 148 L198 160 Z"/>
+    <path fill="#F1F7FD" d="M556 134 L594 184 L578 177 L563 194 L546 176 L524 187 Z"/>
+    <path fill="#F1F7FD" opacity="0.9" d="M84 158 L114 200 L100 194 L88 208 L74 192 L56 202 Z"/>
+    <!-- near range -->
+    <path fill="#8496A8" d="M-20 336 L56 238 L126 292 L208 200 L298 304 L370 248 L452 318 L538 218 L628 308 L708 262 L820 340 L820 450 L-20 450 Z"/>
+    <path fill="#6F8194" opacity="0.6" d="M208 200 L298 304 L252 304 Z"/>
+    <path fill="#6F8194" opacity="0.6" d="M538 218 L628 308 L584 308 Z"/>
+    <path fill="#FFFFFF" d="M208 200 L242 248 L227 241 L215 258 L200 240 L180 252 Z"/>
+    <path fill="#FFFFFF" d="M538 218 L570 262 L556 256 L544 272 L530 254 L511 265 Z"/>
+    <path fill="#FFFFFF" opacity="0.9" d="M56 238 L82 274 L70 269 L60 282 L48 268 L32 277 Z"/>
+  </g>
+
+  <g id="layer-mid">
+    <!-- snow-laden conifers -->
+    <g>
+      <g class="pine">
+        <path fill="#31543F" d="M92 356 L112 306 L132 356 Z"/>
+        <path fill="#31543F" d="M96 338 L112 296 L128 338 Z"/>
+        <path fill="#F4FAFF" d="M112 300 L124 330 L112 326 L100 330 Z"/>
+        <path fill="#F4FAFF" opacity="0.9" d="M112 312 L128 348 L112 344 L96 348 Z"/>
+        <rect fill="#6B5741" x="109" y="352" width="6" height="14"/>
+      </g>
+      <g class="pine">
+        <path fill="#31543F" d="M158 362 L182 300 L206 362 Z"/>
+        <path fill="#31543F" d="M163 342 L182 288 L201 342 Z"/>
+        <path fill="#F4FAFF" d="M182 292 L196 328 L182 324 L168 328 Z"/>
+        <path fill="#F4FAFF" opacity="0.9" d="M182 306 L200 352 L182 348 L164 352 Z"/>
+        <rect fill="#6B5741" x="179" y="358" width="7" height="16"/>
+      </g>
+      <g class="pine">
+        <path fill="#31543F" d="M520 360 L544 298 L568 360 Z"/>
+        <path fill="#31543F" d="M525 340 L544 286 L563 340 Z"/>
+        <path fill="#F4FAFF" d="M544 290 L558 326 L544 322 L530 326 Z"/>
+        <path fill="#F4FAFF" opacity="0.9" d="M544 304 L562 350 L544 346 L526 350 Z"/>
+        <rect fill="#6B5741" x="541" y="356" width="7" height="16"/>
+      </g>
+      <g class="pine">
+        <path fill="#31543F" d="M690 362 L714 302 L738 362 Z"/>
+        <path fill="#31543F" d="M695 342 L714 290 L733 342 Z"/>
+        <path fill="#F4FAFF" d="M714 294 L728 330 L714 326 L700 330 Z"/>
+        <path fill="#F4FAFF" opacity="0.9" d="M714 308 L732 352 L714 348 L696 352 Z"/>
+        <rect fill="#6B5741" x="711" y="358" width="7" height="16"/>
+      </g>
+    </g>
+    <g fill="#4A7259" opacity="0.5">
+      <path d="M262 344 L278 308 L294 344 Z"/>
+      <path d="M340 348 L354 316 L368 348 Z"/>
+      <path d="M430 344 L446 310 L462 344 Z"/>
+      <path d="M614 346 L630 312 L646 346 Z"/>
+    </g>
+    <!-- snow-capped rocks -->
+    <ellipse fill="#8A9099" cx="330" cy="380" rx="34" ry="14"/>
+    <path fill="#F4FAFF" d="M300 378 q30 -18 60 0 q-30 -8 -60 0 z"/>
+  </g>
+
+  <g id="layer-front">
+    <!-- the snowfield: lit crests over blue shadow -->
+    <path fill="#EDF4FB" d="M-20 364 q200 -20 400 -6 q210 14 440 -8 L820 450 L-20 450 Z"/>
+    <path fill="#CFDDEC" opacity="0.75" d="M-20 402 q180 16 360 2 q220 -16 480 6 L820 450 L-20 450 Z"/>
+    <path fill="#FFFFFF" opacity="0.9" d="M-20 418 q200 -14 420 2 q200 14 420 -6 L820 450 L-20 450 Z"/>
+    <g id="snack-slot">
+      <ellipse fill="#B7C6D6" cx="86" cy="414" rx="30" ry="10"/>
+      <path fill="#E8894A" d="M72 402 q10 -14 24 0 q6 8 -2 12 h-20 q-8 -4 -2 -12 z"/>
+    </g>
+    <g fill="none" stroke="#B7935E" stroke-width="3" stroke-linecap="round" opacity="0.8">
+      <path d="M46 446 q8 -40 2 -64"/>
+      <path d="M74 448 q-6 -34 0 -56"/>
+      <path d="M732 446 q8 -44 0 -68"/>
+      <path d="M760 448 q-6 -36 0 -56"/>
+    </g>
+    <g fill="none" stroke="#B9CBDD" stroke-width="2" stroke-linecap="round" opacity="0.7">
+      <path d="M180 428 q26 -8 52 0"/>
+      <path d="M420 440 q30 -9 60 0"/>
+      <path d="M600 424 q24 -7 48 0"/>
+    </g>
+  </g>
+</svg>

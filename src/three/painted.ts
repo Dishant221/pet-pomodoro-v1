@@ -83,6 +83,32 @@ const SPECS: Record<SceneId, PaintedSpec> = {
     bowlColor: '#7f9c6d',
     indoor: false,
   },
+  mountain: {
+    // Open ground, so the cat gets the widest roam of any scene.
+    bounds: { minX: -1.6, maxX: 1.6, minZ: -1.05, maxZ: 0.95 },
+    bed: new THREE.Vector3(-1.4, 0, -0.5),
+    bowl: new THREE.Vector3(1.45, 0, -0.1),
+    stash: [new THREE.Vector3(3.0, 0, -1.35), new THREE.Vector3(-3.0, 0, -1.5)],
+    gift: new THREE.Vector3(0, 0, 0.78),
+    // Alpine wool and weathered stoneware, rather than the garden's pinks.
+    bedColor: '#a8b8c9',
+    bedTrim: '#7f92a6',
+    bowlColor: '#8c7f6e',
+    indoor: false,
+  },
+  snow: {
+    bounds: { minX: -1.55, maxX: 1.55, minZ: -1.0, maxZ: 0.9 },
+    bed: new THREE.Vector3(-1.35, 0, -0.48),
+    bowl: new THREE.Vector3(1.4, 0, -0.08),
+    stash: [new THREE.Vector3(2.9, 0, -1.3), new THREE.Vector3(-2.9, 0, -1.45)],
+    gift: new THREE.Vector3(0, 0, 0.76),
+    // A warm bed reads as shelter against all that blue — the one spot of heat
+    // in the frame is where the cat sleeps, which is the point of the scene.
+    bedColor: '#c86f5c',
+    bedTrim: '#9d5142',
+    bowlColor: '#6f7f92',
+    indoor: false,
+  },
   livingroom: {
     bounds: { minX: -1.4, maxX: 1.4, minZ: -1.0, maxZ: 0.85 },
     bed: new THREE.Vector3(-1.05, 0, -0.55),

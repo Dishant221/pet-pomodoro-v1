@@ -828,6 +828,311 @@ function mixHex(a: string, b: string, t: number): string {
   return `#${((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1)}`;
 }
 
+// --- mountain & snow ---------------------------------------------------------
+
+/**
+ * A range of peaks.
+ *
+ * `ridge` above draws hills as a sine curve, which is right for hills and wrong
+ * for mountains: what makes a mountain read as rock rather than as a green mound
+ * is that its silhouette is made of straight lines meeting at angles. So this
+ * builds a polyline instead — up a flank, over an apex, down the far side —
+ * with a shoulder partway up each flank so no peak is a clean isoceles "V".
+ *
+ * Passing `snow` draws a cap on every apex, with a ragged lower edge. A snowline
+ * is a horizontal band in reality, but drawing it as one exposes the trick: the
+ * caps all end at the same y and the range looks like it was dipped in paint.
+ * Ending each cap a fraction of the way down its *own* flank keeps the taller
+ * peaks capped deeper, which is both what happens and what looks right.
+ */
+function peakRange(
+  baseY: number,
+  height: number,
+  count: number,
+  seed: number,
+  rock: string,
+  rockLit: string,
+  opacity: number,
+  snow: string | null,
+): string {
+  const rand = mulberry32(seed);
+  const span = (VIEW_W + 200) / count;
+  const pts: Array<[number, number]> = [[-100, baseY]];
+  /** apex, left shoulder, right shoulder — kept for the caps and the lit faces. */
+  const summits: Array<{ a: [number, number]; l: [number, number]; r: [number, number] }> = [];
+
+  let x = -100;
+  for (let i = 0; i < count; i++) {
+    const w = span * (0.72 + rand() * 0.56);
+    const h = height * (0.42 + rand() * 0.78);
+    const ax = x + w * (0.34 + rand() * 0.32);
+    const a: [number, number] = [r2(ax), r2(baseY - h)];
+    const l: [number, number] = [r2(ax - w * 0.3), r2(baseY - h * (0.4 + rand() * 0.22))];
+    const rr: [number, number] = [r2(ax + w * 0.32), r2(baseY - h * (0.36 + rand() * 0.24))];
+    pts.push(l, a, rr);
+    summits.push({ a, l, r: rr });
+    x += w;
+    // The col between two peaks, never quite down to the base.
+    pts.push([r2(x), r2(baseY - height * 0.16 * rand())]);
+  }
+  pts.push([VIEW_W + 100, baseY]);
+
+  const outline = `M ${pts.map(([px, py]) => `${px} ${py}`).join(' L ')} L ${VIEW_W + 100} ${VIEW_H} L -100 ${VIEW_H} Z`;
+
+  // One flank of each peak catches light. Two flat tones beat any gradient
+  // here — rock reads as faceted, not as an airbrushed cone.
+  const lit = summits
+    .map(({ a, l, r: rr }) => {
+      const face = rand() > 0.5 ? rr : l;
+      return `<path d="M ${a[0]} ${a[1]} L ${face[0]} ${face[1]} L ${r2((a[0] + face[0]) / 2)} ${r2(Math.max(a[1], face[1]) + (baseY - a[1]) * 0.42)} Z" fill="${rockLit}" opacity="0.5"/>`;
+    })
+    .join('');
+
+  const caps = snow
+    ? summits
+        .map(({ a, l, r: rr }) => {
+          // A third of the way down each flank, so tall peaks stay capped deeper.
+          const t = 0.34 + rand() * 0.16;
+          const lx = r2(a[0] + (l[0] - a[0]) * t);
+          const ly = r2(a[1] + (l[1] - a[1]) * t);
+          const rx = r2(a[0] + (rr[0] - a[0]) * t);
+          const ry = r2(a[1] + (rr[1] - a[1]) * t);
+          // Melt fingers running down the gullies, so the lower edge is not a line.
+          const teeth = Array.from({ length: 4 }, (_, i) => {
+            const f = (i + 1) / 5;
+            const bx = r2(rx + (lx - rx) * f);
+            const by = r2(ry + (ly - ry) * f + (rand() - 0.2) * (a[1] - ly) * 0.45);
+            return `${bx} ${by}`;
+          }).join(' L ');
+          return `<path d="M ${a[0]} ${a[1]} L ${rx} ${ry} L ${teeth} L ${lx} ${ly} Z" fill="${snow}" opacity="0.95"/>`;
+        })
+        .join('')
+    : '';
+
+  return `<g opacity="${opacity}"><path d="${outline}" fill="${rock}"/>${lit}${caps}</g>`;
+}
+
+/** Snow takes its colour from the sky it reflects, which is why it is never white. */
+function snowTones(t: TimeOfDay) {
+  return {
+    lit: mixHex(t.cloudLit, '#ffffff', 0.55),
+    mid: mixHex(t.cloudLit, t.skyLow, 0.34),
+    shade: mixHex(t.hillFar, t.skyMid, 0.42),
+    deep: mixHex(t.hillNear, t.skyMid, 0.3),
+  };
+}
+
+/**
+ * Rock, with distance expressed as colour rather than as transparency.
+ *
+ * The first pass faded the far range with opacity and it read as glass — you
+ * could see the clouds through the mountain. Aerial perspective is not a rock
+ * you can see through; it is a rock that has taken on the colour of the air in
+ * front of it. So the far tones are mixed towards the low sky and drawn nearly
+ * opaque, and the near ones keep their own colour.
+ */
+function rockTones(t: TimeOfDay) {
+  return {
+    far: mixHex(mixHex(t.hillFar, '#7d8590', 0.4), t.skyLow, 0.5),
+    farLit: mixHex(mixHex(t.hillFar, '#c3ccd6', 0.5), t.skyLow, 0.42),
+    near: mixHex(t.hillNear, '#5f5a56', 0.5),
+    nearLit: mixHex(t.hillNear, '#a89e93', 0.5),
+  };
+}
+
+function paintPeaks(t: TimeOfDay, snowy: boolean): string {
+  const rock = rockTones(t);
+  const snow = snowTones(t);
+  return svg(`
+    <defs>${brushFilter('f-peak', 9, '0.006', 137)}</defs>
+    <g filter="url(#f-peak)">
+      ${peakRange(HORIZON - 60, 215, 5, 149, rock.far, rock.farLit, 0.94, mixHex(snow.lit, t.skyLow, 0.4))}
+      ${peakRange(HORIZON - 20, 155, 7, 163, rock.near, rock.nearLit, 1, snowy ? snow.lit : snow.mid)}
+    </g>
+  `);
+}
+
+/**
+ * A conifer treeline.
+ *
+ * `paintTrees` mixes broadleaf canopies with the odd conifer, which is right for
+ * a temperate garden. Above the treeline nothing else grows, so this is conifers
+ * only — and they get smaller and sparser towards the back, because on a
+ * mountainside the trees genuinely do thin out as the ground climbs.
+ */
+function paintConifers(t: TimeOfDay, snowy: boolean): string {
+  const rand = mulberry32(179);
+  const tone = snowTones(t);
+
+  /** A conifer with snow sitting on its tiers, drawn as the same shapes shifted up. */
+  const snowy1 = (cx: number, baseY: number, h: number): string => {
+    const body = conifer(cx, baseY, h, t, rand);
+    const tiers = 4;
+    const caps = Array.from({ length: tiers }, (_, i) => {
+      const f = i / tiers;
+      const tierTop = baseY - h * (0.28 + f * 0.72);
+      const tierBase = baseY - h * f * 0.62;
+      const tw = (h * 0.22) * (1 - f * 0.62);
+      return `<path d="M ${r2(cx)} ${r2(tierTop)} L ${r2(cx + tw * 0.82)} ${r2(tierBase - h * 0.05)} L ${r2(cx)} ${r2(tierBase - h * 0.09)} L ${r2(cx - tw * 0.82)} ${r2(tierBase - h * 0.05)} Z" fill="${tone.lit}" opacity="0.9"/>`;
+    }).join('');
+    return `<g>${body}${caps}</g>`;
+  };
+
+  const draw = (cx: number, baseY: number, h: number) => (snowy ? snowy1(cx, baseY, h) : conifer(cx, baseY, h, t, rand));
+
+  const back = Array.from({ length: 22 }, (_, i) => {
+    const x = r2(-60 + (i / 21) * (VIEW_W + 120) + (rand() - 0.5) * 70);
+    return draw(x, HORIZON - 18 + rand() * 10, r2(70 + rand() * 50));
+  }).join('');
+
+  const front = Array.from({ length: 8 }, (_, i) => {
+    const x = r2(40 + (i / 7) * (VIEW_W - 80) + (rand() - 0.5) * 120);
+    return draw(x, HORIZON + 14 + rand() * 16, r2(160 + rand() * 110));
+  }).join('');
+
+  return svg(`
+    <defs>${brushFilter('f-conif', 8, '0.018', 191)}</defs>
+    <g filter="url(#f-conif)">
+      <g opacity="0.55">${back}</g>
+      <g opacity="0.95">${front}</g>
+    </g>
+  `);
+}
+
+/**
+ * A snowfield.
+ *
+ * Snow is the opposite problem to grass: grass needs thousands of strokes to
+ * stop reading as felt, and snow needs almost none — it is a smooth surface, and
+ * stippling it is what makes cheap winter art look like porridge. What it does
+ * need is *form*: wind-carved drifts, each with a lit crest and a blue shadow
+ * pocket on its lee side, because a flat white field has no shape at all.
+ */
+function paintSnowGround(t: TimeOfDay): string {
+  const rand = mulberry32(223);
+  const s = snowTones(t);
+
+  const drifts = Array.from({ length: 26 }, () => {
+    const depth = Math.pow(rand(), 0.6);
+    const y = r2(HORIZON + 10 + depth * (VIEW_H - HORIZON));
+    const x = r2(rand() * VIEW_W);
+    const rx = r2(120 + depth * 340);
+    const ry = r2(rx * (0.16 + rand() * 0.14));
+    // Shadow first, offset down-sun; the lit crest sits on top and slightly high.
+    return `<g>
+      <ellipse cx="${r2(x + rx * 0.08)}" cy="${r2(y + ry * 0.5)}" rx="${rx}" ry="${ry}" fill="${s.shade}" opacity="${r2(0.22 + rand() * 0.26)}"/>
+      <ellipse cx="${x}" cy="${y}" rx="${r2(rx * 0.94)}" ry="${r2(ry * 0.9)}" fill="${s.lit}" opacity="${r2(0.4 + rand() * 0.4)}"/>
+    </g>`;
+  }).join('');
+
+  // Wind scallops: shallow arcs raked across the surface, denser near the camera.
+  const scallops = Array.from({ length: 110 }, () => {
+    const depth = Math.pow(rand(), 0.5);
+    const y = r2(HORIZON + 16 + depth * (VIEW_H - HORIZON - 16));
+    const x = r2(rand() * VIEW_W);
+    const w = r2(40 + depth * 190);
+    return `<path d="M ${x} ${y} q ${r2(w / 2)} ${r2(-6 - depth * 12)} ${w} 0" stroke="${s.shade}" stroke-width="${r2(1 + depth * 3)}" fill="none" opacity="${r2(0.1 + rand() * 0.22)}"/>`;
+  }).join('');
+
+  // Ice crystals catching the light. Few and bright beats many and grey.
+  const sparkle = Array.from({ length: 70 }, () => {
+    const depth = Math.pow(rand(), 0.4);
+    const y = r2(HORIZON + 24 + depth * (VIEW_H - HORIZON - 24));
+    return `<circle cx="${r2(rand() * VIEW_W)}" cy="${y}" r="${r2(0.9 + depth * 2.2)}" fill="${s.lit}" opacity="${r2(0.35 + rand() * 0.5)}"/>`;
+  }).join('');
+
+  return svg(`
+    <defs>
+      ${brushFilter('f-snow', 8, '0.012', 227)}
+      ${grainFilter('f-grain-snow', 13)}
+      <linearGradient id="g-snow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${s.mid}"/>
+        <stop offset="26%" stop-color="${s.lit}"/>
+        <stop offset="100%" stop-color="${s.shade}"/>
+      </linearGradient>
+      <linearGradient id="g-snowhaze" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${s.mid}" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="${s.mid}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <g filter="url(#f-snow)">
+      <rect x="-20" y="${HORIZON - 6}" width="${VIEW_W + 40}" height="${VIEW_H - HORIZON + 26}" fill="url(#g-snow)"/>
+      ${drifts}
+      ${scallops}
+    </g>
+    ${sparkle}
+    <rect x="-20" y="${HORIZON - 12}" width="${VIEW_W + 40}" height="86" fill="url(#g-snowhaze)"/>
+    <rect y="${HORIZON}" width="${VIEW_W}" height="${VIEW_H - HORIZON}" filter="url(#f-grain-snow)" opacity="0.05" style="mix-blend-mode:overlay"/>
+  `);
+}
+
+/** A bank of snow across the bottom edge, with dead stalks pushing through it. */
+function paintSnowFront(t: TimeOfDay): string {
+  const rand = mulberry32(229);
+  const s = snowTones(t);
+
+  const stalks = Array.from({ length: 70 }, () => {
+    const x = r2(rand() * (VIEW_W + 60) - 30);
+    const h = r2(50 + rand() * 190);
+    const lean = r2((rand() - 0.5) * h * 0.5);
+    return `<path d="M ${x} ${VIEW_H + 10} q ${r2(lean * 0.3)} ${r2(-h * 0.6)} ${lean} ${r2(-h)}" stroke="${mixHex(t.frontGrass, '#8a7a5e', 0.55)}" stroke-width="${r2(1.4 + rand() * 2.4)}" fill="none" stroke-linecap="round" opacity="${r2(0.3 + rand() * 0.45)}"/>`;
+  }).join('');
+
+  /**
+   * The near bank, and the reason this layer exists at all.
+   *
+   * The front plate's whole job is to cross in front of the pet — painted snow
+   * over the cat's paws is what puts it *in* the picture instead of on top of
+   * it. A bank sitting neatly below the bottom edge does none of that.
+   *
+   * The crest height is the whole tuning, and it has a narrow correct range: too
+   * low and the layer may as well not exist, too high and the drift swallows the
+   * animal instead of standing in front of it. These crest at the paws, with a
+   * lit upper edge so the overlap reads as a drift rather than as a white bar.
+   */
+  const bank = Array.from({ length: 9 }, (_, i) => {
+    const x = r2((i / 8) * VIEW_W + (rand() - 0.5) * 190);
+    const rx = r2(280 + rand() * 260);
+    const ry = r2(100 + rand() * 80);
+    const cy = r2(VIEW_H + ry * 0.5);
+    return `<g>
+      <ellipse cx="${x}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${s.mid}" opacity="${r2(0.8 + rand() * 0.2)}"/>
+      <ellipse cx="${r2(x - rx * 0.06)}" cy="${r2(cy - ry * 0.1)}" rx="${r2(rx * 0.9)}" ry="${r2(ry * 0.86)}" fill="${s.lit}" opacity="${r2(0.55 + rand() * 0.35)}"/>
+    </g>`;
+  }).join('');
+
+  return svg(`
+    <defs>${brushFilter('f-sfront', 7, '0.02', 233)}</defs>
+    <g filter="url(#f-sfront)">
+      ${stalks}
+      ${bank}
+    </g>
+  `);
+}
+
+function paintMountain(t: TimeOfDay): SceneLayers {
+  return {
+    sky: paintSky(t, mulberry32(139)),
+    hills: paintPeaks(t, false),
+    trees: paintConifers(t, false),
+    // An alpine meadow is grass with mountains behind it, so the existing field
+    // is the right ground rather than a shortcut — the peaks and the treeline
+    // are what make the place.
+    ground: paintGround(t),
+    front: paintFront(t),
+  };
+}
+
+function paintSnow(t: TimeOfDay): SceneLayers {
+  return {
+    sky: paintSky(t, mulberry32(151)),
+    hills: paintPeaks(t, true),
+    trees: paintConifers(t, true),
+    ground: paintSnowGround(t),
+    front: paintSnowFront(t),
+  };
+}
+
 // --- entry point -------------------------------------------------------------
 
 function paintGarden(t: TimeOfDay): SceneLayers {
@@ -847,6 +1152,8 @@ const PAINTERS: Record<SceneId, (t: TimeOfDay) => SceneLayers> = {
   jungle: paintJungle,
   treehouse: paintTreehouse,
   livingroom: paintRoom,
+  mountain: paintMountain,
+  snow: paintSnow,
 };
 
 /**

@@ -20,6 +20,8 @@ import sceneLivingroom from '../assets/scenes/scene-livingroom.svg?raw';
 import sceneGarden from '../assets/scenes/scene-garden.svg?raw';
 import sceneJungle from '../assets/scenes/scene-jungle.svg?raw';
 import sceneTreehouse from '../assets/scenes/scene-treehouse.svg?raw';
+import sceneMountain from '../assets/scenes/scene-mountain.svg?raw';
+import sceneSnow from '../assets/scenes/scene-snow.svg?raw';
 
 export const MANIFEST_VERSION = 1;
 
@@ -34,7 +36,7 @@ export type PetState =
   | 'celebrating'
   | 'sad';
 
-export type SceneId = 'livingroom' | 'garden' | 'jungle' | 'treehouse';
+export type SceneId = 'livingroom' | 'garden' | 'jungle' | 'treehouse' | 'mountain' | 'snow';
 
 export interface PetStateSpec {
   /** Inlined SVG markup, viewBox "0 0 200 200". */
@@ -112,6 +114,26 @@ export const SCENES: Record<SceneId, SceneSpec> = {
     snackSlot: 'snack-slot',
     dayNight: false,
     ambientHz: 147,
+  },
+  mountain: {
+    svg: sceneMountain,
+    label: 'Mountain',
+    // The far range barely moves: distance is what parallax exists to say, and
+    // peaks that slide like the treeline read as painted flats on a stage.
+    parallax: { 'layer-sky': 0, 'layer-back': 0.08, 'layer-mid': 0.26, 'layer-front': 0.52 },
+    petGround: { y: 396, xRange: [190, 610] },
+    snackSlot: 'snack-slot',
+    dayNight: true,
+    ambientHz: 196,
+  },
+  snow: {
+    svg: sceneSnow,
+    label: 'Snowfield',
+    parallax: { 'layer-sky': 0, 'layer-back': 0.08, 'layer-mid': 0.24, 'layer-front': 0.5 },
+    petGround: { y: 398, xRange: [190, 610] },
+    snackSlot: 'snack-slot',
+    dayNight: true,
+    ambientHz: 174,
   },
 };
 

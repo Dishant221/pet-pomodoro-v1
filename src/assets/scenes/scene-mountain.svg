@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" preserveAspectRatio="xMidYMax slice">
+  <!-- PetPomo scene: MOUNTAIN. Layers: #layer-sky #layer-back #layer-mid #layer-front. Animate #clouds x-drift, #eagle path, sway .pine -->
+  <g id="layer-sky">
+    <rect fill="#CFE6F5" width="800" height="450"/>
+    <rect fill="#9FCDEA" width="800" height="200"/>
+    <circle fill="#FBEFA8" cx="640" cy="70" r="30"/>
+    <g id="clouds" fill="#FFFFFF" opacity="0.85">
+      <g><ellipse cx="180" cy="86" rx="52" ry="17"/><ellipse cx="215" cy="78" rx="32" ry="13"/></g>
+      <g><ellipse cx="470" cy="58" rx="40" ry="14"/><ellipse cx="498" cy="52" rx="26" ry="10"/></g>
+    </g>
+    <g id="eagle" fill="none" stroke="#5A6B7A" stroke-width="3" stroke-linecap="round" opacity="0.8">
+      <path d="M300 120 q10 -8 20 0"/>
+      <path d="M320 120 q10 -8 20 0"/>
+    </g>
+  </g>
+
+  <g id="layer-back">
+    <!-- far range: hazy, blue, snow-capped -->
+    <path fill="#8FA6BE" d="M-20 300 L90 150 L150 210 L235 96 L330 240 L410 170 L470 250 L560 128 L650 236 L720 186 L820 292 L820 450 L-20 450 Z"/>
+    <path fill="#EAF2FA" opacity="0.9" d="M235 96 L268 138 L252 132 L240 146 L225 130 L206 140 Z"/>
+    <path fill="#EAF2FA" opacity="0.9" d="M560 128 L590 166 L576 160 L563 174 L549 158 L532 168 Z"/>
+    <path fill="#EAF2FA" opacity="0.8" d="M90 150 L114 186 L102 180 L92 192 L80 178 L66 188 Z"/>
+    <!-- near range: warmer rock, deeper caps -->
+    <path fill="#6E7A82" d="M-20 330 L60 232 L128 288 L210 196 L300 300 L372 244 L455 316 L540 214 L630 306 L710 258 L820 338 L820 450 L-20 450 Z"/>
+    <path fill="#5B666E" opacity="0.65" d="M210 196 L300 300 L255 300 Z"/>
+    <path fill="#5B666E" opacity="0.65" d="M540 214 L630 306 L586 306 Z"/>
+    <path fill="#F4F9FD" d="M210 196 L238 232 L226 227 L216 240 L204 226 L188 236 Z"/>
+    <path fill="#F4F9FD" d="M540 214 L566 248 L554 243 L545 256 L533 242 L518 251 Z"/>
+    <path fill="#F4F9FD" opacity="0.85" d="M60 232 L82 262 L72 258 L63 268 L53 257 L40 265 Z"/>
+  </g>
+
+  <g id="layer-mid">
+    <!-- alpine treeline: conifers only, thinning towards the back -->
+    <g fill="#3F6B52">
+      <g class="pine"><path d="M92 356 L112 306 L132 356 Z"/><path d="M96 338 L112 296 L128 338 Z"/><rect x="109" y="352" width="6" height="14"/></g>
+      <g class="pine"><path d="M158 362 L182 300 L206 362 Z"/><path d="M163 342 L182 288 L201 342 Z"/><rect x="179" y="358" width="7" height="16"/></g>
+      <g class="pine"><path d="M246 358 L266 310 L286 358 Z"/><path d="M250 340 L266 300 L282 340 Z"/><rect x="263" y="354" width="6" height="14"/></g>
+      <g class="pine"><path d="M520 360 L544 298 L568 360 Z"/><path d="M525 340 L544 286 L563 340 Z"/><rect x="541" y="356" width="7" height="16"/></g>
+      <g class="pine"><path d="M612 356 L632 308 L652 356 Z"/><path d="M616 338 L632 298 L648 338 Z"/><rect x="629" y="352" width="6" height="14"/></g>
+      <g class="pine"><path d="M690 362 L714 302 L738 362 Z"/><path d="M695 342 L714 290 L733 342 Z"/><rect x="711" y="358" width="7" height="16"/></g>
+    </g>
+    <g fill="#57876A" opacity="0.55">
+      <path d="M40 344 L54 312 L68 344 Z"/>
+      <path d="M320 342 L334 310 L348 342 Z"/>
+      <path d="M420 346 L436 312 L452 346 Z"/>
+      <path d="M760 344 L774 312 L788 344 Z"/>
+    </g>
+    <!-- boulders on the meadow -->
+    <ellipse fill="#7C8288" cx="330" cy="378" rx="34" ry="15"/>
+    <ellipse fill="#949AA0" cx="324" cy="374" rx="24" ry="10"/>
+    <ellipse fill="#7C8288" cx="606" cy="386" rx="26" ry="12"/>
+  </g>
+
+  <g id="layer-front">
+    <path fill="#8FBF6B" d="M-20 366 q200 -22 400 -6 q210 16 440 -8 L820 450 L-20 450 Z"/>
+    <path fill="#7BAE5B" opacity="0.85" d="M-20 404 q220 -18 420 -4 q200 14 420 -6 L820 450 L-20 450 Z"/>
+    <g id="snack-slot">
+      <ellipse fill="#8C8F94" cx="86" cy="414" rx="30" ry="10"/>
+      <path fill="#E8894A" d="M72 402 q10 -14 24 0 q6 8 -2 12 h-20 q-8 -4 -2 -12 z"/>
+    </g>
+    <g fill="none" stroke="#5F8F45" stroke-width="4" stroke-linecap="round" opacity="0.9">
+      <path d="M40 450 q10 -46 4 -74"/>
+      <path d="M78 450 q-8 -40 -2 -66"/>
+      <path d="M726 450 q10 -50 2 -78"/>
+      <path d="M764 450 q-8 -42 -2 -64"/>
+    </g>
+    <g fill="#F3E27C" opacity="0.9">
+      <circle cx="130" cy="424" r="4"/>
+      <circle cx="288" cy="438" r="4"/>
+      <circle cx="512" cy="428" r="4"/>
+      <circle cx="668" cy="440" r="4"/>
+    </g>
+  </g>
+</svg>

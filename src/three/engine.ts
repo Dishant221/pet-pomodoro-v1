@@ -271,10 +271,16 @@ export class Engine {
    * The living room has windows, not weather — running it at full strength put
    * a sunset inside the lounge and it read as a house fire. The treehouse is
    * partly sheltered; the garden and jungle are wide open.
+   *
+   * The two alpine scenes are over 1: there is no canopy at altitude, and a
+   * snowfield is a mirror, so it throws a good deal of the sky back up at
+   * whatever is standing on it.
    */
   private static readonly EXPOSURE: Partial<Record<SceneId, number>> = {
     livingroom: 0.35,
     treehouse: 0.8,
+    mountain: 1.1,
+    snow: 1.2,
   };
 
   /**
