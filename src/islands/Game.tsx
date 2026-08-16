@@ -445,7 +445,10 @@ export default function Game() {
         </span>
       </div>
 
-      <div class="pp-metrics-row">
+      {/* The three bars share one pill. Without the panel behind them they
+          would be thin marks laid straight on the painting, and a 2px track
+          over grass is not a readout. */}
+      <div class="pp-chip pp-metrics-bars">
         <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
         <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
         <Meter label="Condition" value={profile.vitals.health} tone={mood.tone} glyph="❤️‍🩹" />

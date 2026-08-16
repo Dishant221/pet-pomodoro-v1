@@ -437,7 +437,13 @@ body {
    Everything about the animal, pinned to the top right of the stage and staying
    there. The timer is a tool you set and then ignore; this is a readout you
    glance at, and it should be in the same place every time you glance. It is
-   deliberately not draggable — the clock is the thing that moves. */
+   deliberately not draggable — the clock is the thing that moves.
+
+   No card behind it. The panel is just its own items stuck in the corner, so
+   the painting runs all the way up to them — a white slab in the corner of a
+   hand-painted world reads as a browser dialog someone forgot to close. Each
+   item keeps its own pill, which is what carries legibility over whatever
+   happens to be behind it. */
 .pp-metrics {
   position: absolute;
   top: 0.6rem;
@@ -447,13 +453,13 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.4rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-card);
   max-width: min(46vw, 20rem);
+  pointer-events: none;
+}
+/* The container ignores the pointer so the scene behind the gaps stays
+   clickable; the controls inside take it back. */
+.pp-metrics > * {
+  pointer-events: auto;
 }
 .pp-metrics-row {
   display: flex;
@@ -461,6 +467,9 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: 0.4rem 0.55rem;
+}
+.pp-metrics-bars {
+  gap: 0.6rem;
 }
 /* Narrow screens: the panel would eat the stage, so it sheds the labels and
    keeps the glyphs, which is all a glance needs anyway. */
