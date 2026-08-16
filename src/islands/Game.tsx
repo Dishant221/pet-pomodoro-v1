@@ -709,7 +709,7 @@ function Meter({ label, value, tone, glyph }: { label: string; value: number; to
       <span aria-hidden="true" class="text-xs">
         {glyph}
       </span>
-      <span class="block h-1.5 w-10 overflow-hidden rounded-full sm:w-14" style="background: var(--ring-track)">
+      <span class="pp-track block h-1.5 w-10 overflow-hidden rounded-full sm:w-14" style="background: var(--ring-track)">
         <span
           class="block h-full rounded-full transition-[width] duration-500"
           style={`width: ${v}%; background: ${tone}`}

@@ -147,6 +147,24 @@ Only the objects the cat physically touches — the bowl and the cushion — sta
 as geometry. Everything else is paint. The art is generated in code for now;
 `paintScene` returning real paintings instead changes nothing downstream.
 
+**And on the player's season.** Weather is what the sky is doing this hour; a
+season is what the year is doing, and they compose — a rainy day in autumn is a
+grey wash over rust-coloured trees, not the same grey over the same green. Like
+the weather wash, a season is a *transform* of the existing palettes rather than
+a new set of them: thirty-six palettes times four seasons is unmaintainable, and
+autumn is the same afternoon with the greens pushed towards amber.
+
+Only the living things move. Sky, sun, cloud and rock are the same in April as
+in October — tinting those along with the leaves is what makes seasonal filters
+look like a colour wash instead of a year passing. Winter is grey-green and
+bare, not white: snow is weather, and painting the season white would mean a
+snowfield in every mild coastal January.
+
+The hemisphere comes from `/api/weather`, reduced server-side from the latitude
+Cloudflare already has to a single bit, because December is midsummer in Sydney
+and a world that paints snow on a Sydney Christmas was built by someone who only
+checked their own window. A hemisphere is not a location.
+
 **The world runs on the player's clock and the player's weather.** `world.ts`
 takes the time of day straight from the browser, so it is already in their
 timezone and stays right when they travel. Weather comes from `/api/weather`,

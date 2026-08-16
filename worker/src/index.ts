@@ -271,6 +271,16 @@ interface WeatherPayload {
   isDay: boolean | null;
   /** IANA zone, so the client can sanity-check its own clock. */
   timezone: string | null;
+  /**
+   * Which half of the planet, and nothing finer.
+   *
+   * The world paints a season, and a season runs backwards below the equator —
+   * December is midsummer in Sydney. Deriving that on the client would mean
+   * shipping it a latitude, so it is reduced here to the one bit that actually
+   * decides the answer. A hemisphere is not a location: it narrows a visitor to
+   * roughly half the world's population, which is the point.
+   */
+  hemisphere: 'north' | 'south' | null;
 }
 
 const FAIR: WeatherPayload = {
@@ -280,6 +290,7 @@ const FAIR: WeatherPayload = {
   windKph: null,
   isDay: null,
   timezone: null,
+  hemisphere: null,
 };
 
 /** How long a rounded location's weather is reused. Weather is not fast. */
@@ -346,6 +357,7 @@ app.get('/api/weather', async (c) => {
       windKph: typeof cur.wind_speed_10m === 'number' ? Math.round(cur.wind_speed_10m) : null,
       isDay: typeof cur.is_day === 'number' ? cur.is_day === 1 : null,
       timezone: data.timezone ?? timezone,
+      hemisphere: lat >= 0 ? 'north' : 'south',
     };
   } catch {
     // Deliberately silent. There is nothing an operator could act on, and the

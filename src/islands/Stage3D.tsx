@@ -230,11 +230,13 @@ export default function Stage3D(props: Stage3DProps) {
          it to decide whether the world is there. */
       data-webgl={live ? 'true' : 'pending'}
       data-phase={world.phase}
+      data-season={world.season}
       data-weather={world.weather.condition}
     >
       <PaintedBackdrop
         scene={props.scene}
         phase={world.phase}
+        season={world.season}
         condition={world.weather.condition}
         reduced={props.reduced}
         shift={readShift}
@@ -244,7 +246,7 @@ export default function Stage3D(props: Stage3DProps) {
           class="absolute inset-0 block h-full w-full"
           style={`touch-action: none; cursor: ${grabbing ? 'grab' : 'default'}`}
           role="img"
-          aria-label={`${SCENES[props.scene].label} at ${world.phase}${weatherNote} — the ${SPECIES[speciesOf(props.pet)].label.toLowerCase()} is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke it to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
+          aria-label={`${SCENES[props.scene].label} in ${world.season}, at ${world.phase}${weatherNote} — the ${SPECIES[speciesOf(props.pet)].label.toLowerCase()} is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke it to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
         />
       </PaintedBackdrop>
       <p class="sr-only" role="status" aria-live="polite">

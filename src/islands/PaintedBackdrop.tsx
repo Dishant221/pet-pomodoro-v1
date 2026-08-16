@@ -4,6 +4,7 @@ import type { SceneId } from '../game/manifest';
 import type { Condition, PhaseId } from '../game/world';
 import { PHASES, washFor } from '../world/palette';
 import { OVERSCAN, paintScene, type SceneLayers } from '../world/paint';
+import { seasonalise, type SeasonId } from '../world/season';
 
 /**
  * The painted half of the stage: everything that is not the pet.
@@ -41,6 +42,7 @@ const LAYER_ORDER: Array<keyof SceneLayers> = ['sky', 'hills', 'trees', 'ground'
 export interface PaintedBackdropProps {
   scene: SceneId;
   phase: PhaseId;
+  season: SeasonId;
   condition: Condition;
   reduced: boolean;
   /** Reads the engine's current lateral pan, as a fraction of canvas width. */
@@ -55,13 +57,19 @@ interface Painted {
 }
 
 export default function PaintedBackdrop(props: PaintedBackdropProps) {
-  const { scene, phase, condition, reduced, shift } = props;
+  const { scene, phase, season, condition, reduced, shift } = props;
   const wash = washFor(condition);
 
-  const key = `${scene}:${phase}`;
-  // Painting is a few hundred SVG nodes, so it happens on a scene or phase
-  // change and never on a render.
-  const layers = useMemo<Painted>(() => ({ key, layers: paintScene(scene, PHASES[phase]) }), [key]);
+  // The season is part of the cache key because it is part of the painting: it
+  // shifts the foliage and the ground before a single node is generated, rather
+  // than being a filter laid over the finished picture.
+  const key = `${scene}:${phase}:${season}`;
+  // Painting is a few hundred SVG nodes, so it happens on a scene, phase or
+  // season change and never on a render.
+  const layers = useMemo<Painted>(
+    () => ({ key, layers: paintScene(scene, seasonalise(PHASES[phase], season)) }),
+    [key],
+  );
 
   /**
    * The outgoing painting, kept mounted so a phase change can cross-fade.

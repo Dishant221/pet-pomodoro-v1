@@ -98,6 +98,8 @@ export function sunAzimuth(f: number): number {
 
 // --- weather -----------------------------------------------------------------
 
+import { seasonFor, type SeasonId } from '../world/season';
+
 export type Condition = 'clear' | 'cloudy' | 'overcast' | 'fog' | 'rain' | 'snow' | 'storm';
 
 export interface Weather {
@@ -108,6 +110,14 @@ export interface Weather {
   windKph: number | null;
   isDay: boolean | null;
   timezone: string | null;
+  /**
+   * Which half of the planet the visitor is on, and nothing finer.
+   *
+   * It only exists to get the season the right way round: December is
+   * midsummer in Sydney. The server reduces the latitude it already has to this
+   * one bit, so no coordinate ever reaches the browser.
+   */
+  hemisphere: 'north' | 'south' | null;
 }
 
 export const FAIR_WEATHER: Weather = {
@@ -117,6 +127,7 @@ export const FAIR_WEATHER: Weather = {
   windKph: null,
   isDay: null,
   timezone: null,
+  hemisphere: null,
 };
 
 const WEATHER_KEY = 'petpomo.weather.v1';
@@ -161,6 +172,7 @@ function parseWeather(raw: unknown): Weather {
     windKph: num(r.windKph),
     isDay: typeof r.isDay === 'boolean' ? r.isDay : null,
     timezone: typeof r.timezone === 'string' ? r.timezone : null,
+    hemisphere: r.hemisphere === 'north' || r.hemisphere === 'south' ? r.hemisphere : null,
   };
 }
 
@@ -200,17 +212,32 @@ export interface WorldState {
   /** 0..1 through the local day. */
   fraction: number;
   phase: PhaseId;
+  /**
+   * The season, from the local date and the hemisphere.
+   *
+   * Derived here rather than stored so it cannot go stale, and defaulting to
+   * the northern reading until the hemisphere is known — which is right for
+   * most visitors and self-corrects within a second of the first weather
+   * response, at a point where the only visible consequence is a foliage tint.
+   */
+  season: SeasonId;
   weather: Weather;
+}
+
+function seasonNow(weather: Weather): SeasonId {
+  return seasonFor(new Date(), weather.hemisphere ?? 'north');
 }
 
 function initialState(): WorldState {
   const f = dayFraction();
+  // A cached reading, however stale, beats fair weather on first paint — it is
+  // almost certainly still right, and it carries the hemisphere with it.
+  const weather = cachedWeather()?.weather ?? FAIR_WEATHER;
   return {
     fraction: f,
     phase: phaseForFraction(f),
-    // A cached reading, however stale, beats fair weather on first paint —
-    // it is almost certainly still right.
-    weather: cachedWeather()?.weather ?? FAIR_WEATHER,
+    season: seasonNow(weather),
+    weather,
   };
 }
 
@@ -233,24 +260,32 @@ export function startWorld(): () => void {
     const f = dayFraction();
     const prev = $world.get();
     const phase = phaseForFraction(f);
-    if (prev.fraction !== f || prev.phase !== phase) {
-      $world.set({ ...prev, fraction: f, phase });
+    // The season is checked on the same tick as the clock, so a session running
+    // across midnight on the 1st of March wakes up in spring rather than
+    // holding February's palette until the tab is reloaded.
+    const season = seasonNow(prev.weather);
+    if (prev.fraction !== f || prev.phase !== phase || prev.season !== season) {
+      $world.set({ ...prev, fraction: f, phase, season });
     }
+  };
+
+  const apply = (weather: Weather) => {
+    // The hemisphere arrives with the weather, so the season is recomputed with
+    // it — otherwise a southern visitor keeps a northern season until midnight.
+    $world.set({ ...$world.get(), weather, season: seasonNow(weather) });
   };
 
   const refreshWeather = async (force = false) => {
     if (stopped) return;
     const cached = cachedWeather();
     if (!force && cached && Date.now() - cached.at < WEATHER_MAX_AGE_MS) {
-      $world.set({ ...$world.get(), weather: cached.weather });
+      apply(cached.weather);
       return;
     }
     const weather = await fetchWeather();
     if (stopped) return;
     // Never downgrade a good reading to the fallback on a transient failure.
-    if (weather.ok || !$world.get().weather.ok) {
-      $world.set({ ...$world.get(), weather });
-    }
+    if (weather.ok || !$world.get().weather.ok) apply(weather);
   };
 
   tickClock();

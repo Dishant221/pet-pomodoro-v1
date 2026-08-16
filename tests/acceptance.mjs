@@ -651,6 +651,46 @@ check(
   `${typeSet.font} at ${Math.round(typeSet.px)}px`,
 );
 
+// ------------------------------------------------------- 17e. seasons
+//
+// The season is derived from the date and the hemisphere, and the hemisphere is
+// the half worth testing: December is midsummer in Sydney, and getting it
+// backwards is the kind of bug that is invisible to everyone who built it.
+await page.clock.setFixedTime(new Date('2026-12-15T12:00:00'));
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await stageReady(page);
+check(
+  'December reads as winter in the north',
+  (await page.getAttribute('.pp-stage', 'data-season')) === 'winter',
+  await page.getAttribute('.pp-stage', 'data-season'),
+);
+
+// Same date, southern hemisphere: the server sends the one bit that decides it.
+await page.route('**/api/weather', (route) =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ ok: true, condition: 'clear', temperature: 28, windKph: 8, isDay: true, timezone: 'Australia/Sydney', hemisphere: 'south' }),
+  }),
+);
+await page.evaluate(() => {
+  localStorage.removeItem('petpomo.weather.v1');
+  localStorage.removeItem('petpomo.weather.absent.v1');
+});
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+await page.waitForFunction(() => document.querySelector('.pp-stage')?.dataset.season === 'summer', null, {
+  timeout: 8000,
+  polling: 100,
+}).catch(() => {});
+check(
+  'the same December is midsummer in the south',
+  (await page.getAttribute('.pp-stage', 'data-season')) === 'summer',
+  await page.getAttribute('.pp-stage', 'data-season'),
+);
+await page.unroute('**/api/weather');
+await page.clock.setFixedTime(new Date());
+
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load
