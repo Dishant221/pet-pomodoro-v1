@@ -4,7 +4,12 @@ Two Playwright scripts that drive the real app in Edge with real pointer input.
 They assert behaviour, not implementation — the pet's state is read from the
 stage's `aria-label`, which is also what a screen reader announces.
 
-## `acceptance.mjs` — 94 checks
+## `acceptance.mjs` — 97 checks
+
+Two of these deliberately wait tens of seconds: lightning is scheduled minutes
+apart, so proving it strikes — and proving reduced motion means it never does —
+costs real time. Both are worth it. A flash is the one effect here that can
+harm someone, and "we think it's disabled" is not the same as knowing.
 
 ```bash
 npm run build

@@ -15,13 +15,29 @@
  * code path. See `setVoice`.
  */
 import { SPECIES, type SpeciesId, type VoiceSpec } from '../three/species';
+import type { Condition } from './world';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
+/**
+ * The weather bed, on its own bus.
+ *
+ * This file used to say there was no ambient layer, and that every sound was a
+ * short cue tied to something the player did. That was the right call while the
+ * only candidate was generic "room tone", which is noise for its own sake. Rain
+ * you can hear while it is visibly raining is a different thing: it is the same
+ * reading as the sky, arriving through the other sense, and it is most of what
+ * makes the world feel like a place rather than a backdrop.
+ *
+ * It gets its own bus and its own slider because it is the one sound that plays
+ * continuously while someone is trying to concentrate. Anyone who wants the
+ * cues but not the weather can have exactly that, without muting the bell.
+ */
+let ambientBus: GainNode | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 
-let volumes = { master: 0.7, sfx: 0.8 };
+let volumes = { master: 0.7, sfx: 0.8, ambient: 0.45 };
 let muted = true;
 
 let purrNode: { stop: () => void } | null = null;
@@ -90,7 +106,9 @@ export async function unlock(): Promise<void> {
     ctx = new Ctor();
     master = ctx.createGain();
     sfxBus = ctx.createGain();
+    ambientBus = ctx.createGain();
     sfxBus.connect(master);
+    ambientBus.connect(master);
     master.connect(ctx.destination);
     noiseBuffer = makeNoise(ctx, 2);
     applyVolumes();
@@ -101,15 +119,18 @@ export async function unlock(): Promise<void> {
   if (ctx.state === 'suspended') await ctx.resume();
 }
 
-export function setVolumes(v: { master: number; sfx: number }): void {
-  volumes = v;
+export function setVolumes(v: { master: number; sfx: number; ambient?: number }): void {
+  volumes = { ...volumes, ...v };
   applyVolumes();
 }
 
 export function setMuted(m: boolean): void {
   muted = m;
   applyVolumes();
-  if (m) stopPurr();
+  if (m) {
+    stopPurr();
+    stopAmbience();
+  }
 }
 
 export function isMuted(): boolean {
@@ -121,6 +142,9 @@ function applyVolumes(): void {
   const t = ctx.currentTime;
   master.gain.setTargetAtTime(muted ? 0 : volumes.master, t, 0.02);
   sfxBus.gain.setTargetAtTime(volumes.sfx, t, 0.02);
+  // A slower constant on the bed: a continuous sound that jumps when a slider
+  // moves is far more noticeable than a cue that does.
+  ambientBus?.gain.setTargetAtTime(volumes.ambient, t, 0.12);
 }
 
 function makeNoise(c: AudioContext, seconds: number): AudioBuffer {
@@ -454,6 +478,170 @@ export function playBell(): void {
   });
 }
 
+// --- weather bed -------------------------------------------------------------
+
+/**
+ * What each condition sounds like, as a filter shape over the same noise.
+ *
+ * All of it is one brown-noise loop bent into different weather, because that
+ * is genuinely what these sounds are: rain is noise with the low end rolled off
+ * and a lot of top, wind is noise with a narrow band swept slowly through it,
+ * and snow is wind with almost everything taken away. Sampling four weather
+ * loops would cost more than the whole audio layer and sound less alive, since
+ * a loop repeats and a filter sweep does not.
+ *
+ * `gain` values are deliberately small. This plays while someone is trying to
+ * concentrate; it should be the sound of a room with the window open, not a
+ * rain machine.
+ */
+interface BedSpec {
+  /** Lowpass corner, Hz. */
+  cutoff: number;
+  /** Highpass corner — what stops rain turning into rumble. */
+  floor: number;
+  /** Resonance of the swept band, 0 to skip the sweep entirely. */
+  sweepQ: number;
+  /** How far the sweep travels, as a fraction of `cutoff`. */
+  sweepDepth: number;
+  /** Seconds per sweep. Slow: this is weather, not a synth patch. */
+  sweepPeriod: number;
+  gain: number;
+}
+
+const BEDS: Partial<Record<Condition, BedSpec>> = {
+  clear: { cutoff: 900, floor: 220, sweepQ: 0.6, sweepDepth: 0.45, sweepPeriod: 19, gain: 0.035 },
+  cloudy: { cutoff: 1000, floor: 200, sweepQ: 0.7, sweepDepth: 0.5, sweepPeriod: 16, gain: 0.05 },
+  overcast: { cutoff: 800, floor: 180, sweepQ: 0.7, sweepDepth: 0.5, sweepPeriod: 15, gain: 0.06 },
+  fog: { cutoff: 600, floor: 150, sweepQ: 0.5, sweepDepth: 0.3, sweepPeriod: 24, gain: 0.045 },
+  rain: { cutoff: 5200, floor: 700, sweepQ: 0, sweepDepth: 0, sweepPeriod: 0, gain: 0.1 },
+  snow: { cutoff: 700, floor: 160, sweepQ: 0.6, sweepDepth: 0.55, sweepPeriod: 21, gain: 0.04 },
+  storm: { cutoff: 6000, floor: 600, sweepQ: 0, sweepDepth: 0, sweepPeriod: 0, gain: 0.14 },
+};
+
+let bed: { stop: () => void; condition: Condition } | null = null;
+
+/**
+ * Start (or switch to) the bed for a condition.
+ *
+ * Crossfades rather than cuts: weather changing is a slow event and a hard
+ * switch between two noise beds is the most noticeable thing in the mix.
+ */
+export function setAmbience(condition: Condition): void {
+  if (!ready() || !ctx || !noiseBuffer || !ambientBus) return;
+  if (bed?.condition === condition) return;
+
+  const spec = BEDS[condition];
+  stopAmbience();
+  if (!spec) return;
+
+  const c = ctx;
+  const t = c.currentTime;
+
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = spec.floor;
+
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = spec.cutoff;
+  lp.Q.value = 0.7;
+
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(spec.gain, t + 2.5);
+
+  src.connect(hp);
+  hp.connect(lp);
+  lp.connect(g);
+  g.connect(ambientBus);
+
+  /**
+   * The gust. A slow sine on the filter corner, which is what turns a flat hiss
+   * into wind — the ear reads a moving spectrum as air and a static one as
+   * static.
+   */
+  let lfo: OscillatorNode | null = null;
+  let lfoGain: GainNode | null = null;
+  if (spec.sweepQ > 0) {
+    lfo = c.createOscillator();
+    lfo.frequency.value = 1 / spec.sweepPeriod;
+    lfoGain = c.createGain();
+    lfoGain.gain.value = spec.cutoff * spec.sweepDepth;
+    lfo.connect(lfoGain);
+    lfoGain.connect(lp.frequency);
+    lfo.start(t);
+  }
+
+  src.start(t);
+
+  bed = {
+    condition,
+    stop: () => {
+      const now = c.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(Math.max(0.0002, g.gain.value), now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      try {
+        src.stop(now + 1.4);
+        lfo?.stop(now + 1.4);
+      } catch {
+        /* already stopped */
+      }
+    },
+  };
+}
+
+export function stopAmbience(): void {
+  bed?.stop();
+  bed = null;
+}
+
+/**
+ * A roll of thunder, `delay` seconds from now.
+ *
+ * Called by the lightning, not alongside it: light arrives before sound, and
+ * that gap is the only thing that makes a storm read as having a distance. A
+ * flash and a bang together sound like a switch being thrown.
+ *
+ * Built as a long low burst rather than a crack — the sharp attack of a nearby
+ * strike is exactly the kind of noise that makes someone lose their thread,
+ * which is the one thing a focus timer must not do.
+ */
+export function playThunder(delay = 1.5): void {
+  if (!ready() || !ctx || !noiseBuffer || !ambientBus) return;
+  const c = ctx;
+  const t = c.currentTime + Math.max(0, delay);
+  const dur = 2.6 + Math.random() * 1.8;
+
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  // Opens then closes: distant thunder starts dull, brightens as the front of
+  // the wave arrives, and rolls off again into the tail.
+  lp.frequency.setValueAtTime(90, t);
+  lp.frequency.linearRampToValueAtTime(320, t + 0.5);
+  lp.frequency.exponentialRampToValueAtTime(70, t + dur);
+  lp.Q.value = 0.8;
+
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.28, t + 0.45);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  src.connect(lp);
+  lp.connect(g);
+  g.connect(ambientBus);
+  src.start(t);
+  src.stop(t + dur + 0.2);
+}
+
 /** Sad descending glide for abandon / neglect. */
 export function playWhimper(): void {
   if (!ready() || !ctx) return;
@@ -484,4 +672,7 @@ export function playWhimper(): void {
 /** Tears everything down — used on unmount. */
 export function dispose(): void {
   stopPurr();
+  // The bed loops forever by design, so it is the one thing here that outlives
+  // the island unless something stops it.
+  stopAmbience();
 }

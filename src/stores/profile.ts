@@ -49,6 +49,14 @@ export interface Settings {
   autoStartBreaks: boolean;
   volMaster: number;
   volSfx: number;
+  /**
+   * The weather bed, on its own control.
+   *
+   * It is the only sound that plays continuously while someone is trying to
+   * concentrate, so it must be silenceable without also silencing the bell that
+   * ends their session.
+   */
+  volAmbient: number;
   /** Audio starts muted; the HUD speaker toggle is the gesture that unlocks it. */
   muted: boolean;
   notifications: boolean;
@@ -116,6 +124,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoStartBreaks: false,
   volMaster: 0.7,
   volSfx: 0.8,
+  volAmbient: 0.45,
   muted: true,
   notifications: false,
   reducedMotion: false,
@@ -244,6 +253,7 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       autoStartBreaks: bool(rawSettings.autoStartBreaks, d.autoStartBreaks),
       volMaster: num(rawSettings.volMaster, d.volMaster),
       volSfx: num(rawSettings.volSfx, d.volSfx),
+      volAmbient: num(rawSettings.volAmbient, d.volAmbient),
       muted: bool(rawSettings.muted, d.muted),
       notifications: bool(rawSettings.notifications, d.notifications),
       reducedMotion: bool(rawSettings.reducedMotion, d.reducedMotion),
@@ -304,6 +314,7 @@ export function clampSettings(s: Settings): Settings {
     longEvery: clamp(Math.round(s.longEvery), 2, 12),
     volMaster: clamp(s.volMaster, 0, 1),
     volSfx: clamp(s.volSfx, 0, 1),
+    volAmbient: clamp(s.volAmbient, 0, 1),
     // Clamped rather than wrapped: a fraction outside 0..1 is a card parked
     // off-screen, which is indistinguishable from having lost the clock.
     clockX: clamp(s.clockX, 0, 1),

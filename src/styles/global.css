@@ -145,6 +145,45 @@ body {
   outline-offset: 2px;
 }
 
+/* --- Lightning ---------------------------------------------------------------
+   One soft bloom per strike, not a strobe. A flashing screen can trigger
+   seizures; the accessibility guideline is a ceiling of three flashes per
+   second, and this is deliberately nowhere near it — a single rise and fall
+   over most of a second, minutes apart. `prefers-reduced-motion` removes it
+   from the DOM entirely rather than slowing it down, because a flash is not
+   decoration that can be turned down. */
+.pp-lightning {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 62% 12%, rgb(226 238 255 / 0.85), rgb(198 216 244 / 0.25) 45%, transparent 72%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: pp-strike 0.9s ease-out 1;
+}
+@keyframes pp-strike {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.75;
+  }
+  26% {
+    opacity: 0.28;
+  }
+  38% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-lightning {
+    display: none;
+  }
+}
+
 /* --- Advertising slot -------------------------------------------------------
    Reserved space at the foot of the game page. Sized to the two standard units
    it will hold — a 320x50 mobile banner and a 728x90 leaderboard — so the day

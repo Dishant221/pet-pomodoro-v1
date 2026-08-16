@@ -127,6 +127,30 @@ entirely from localStorage, so there is no correct server render — and Preact'
 shop button dead. `client:only` removes the mismatch class of bug entirely and
 avoids a flash of the wrong theme and scene.
 
+**The weather is audible, on its own bus.** This file used to say there was no
+ambient layer and that every sound was a cue tied to something the player did.
+That was right while the only candidate was generic room tone; rain you can hear
+*while it is visibly raining* is a different thing — the same reading as the sky
+arriving through the other sense. All four beds are one brown-noise loop bent by
+filters, because that is what these sounds are: rain is noise with the low end
+rolled off, wind is a narrow band swept slowly through it, snow is wind with
+almost everything removed. A filter sweep also does not repeat, and a sampled
+loop does.
+
+It has its own slider because it is the only sound that plays continuously while
+someone is concentrating, and turning the weather down must not also turn down
+the bell that ends their session.
+
+**Lightning does not strobe.** A flashing screen can trigger seizures. Each
+strike is one soft bloom over most of a second, minutes apart, nowhere near the
+three-per-second ceiling — and `prefers-reduced-motion` removes it from the DOM
+rather than slowing it down, because a flash is not decoration you can turn
+down. Thunder is scheduled a beat *after* its flash, since light outruns sound
+and that gap is the only thing that makes a storm read as being somewhere. It is
+a distant roll rather than a near crack: a sharp bang is exactly the noise that
+makes someone lose their thread, which is the one thing a focus timer must not
+do.
+
 **Audio is synthesized, not sampled.** Meows are a pitch-swept sawtooth through
 two bandpass formants; the purr is brown noise under a 26 Hz tremolo; the bell is
 five inharmonic partials. Nothing is fetched, nothing 404s, and it works offline.

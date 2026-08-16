@@ -7,6 +7,7 @@ import {
   addCoins,
   applyAppearance,
   clamp,
+  flushNow,
   prefersReducedMotion,
   recordSession,
   updateSettings,
@@ -94,6 +95,22 @@ export default function Game() {
   // --- boot -----------------------------------------------------------------
   useEffect(() => {
     applyAppearance($profile.get());
+    /**
+     * Write the normalised profile back over whatever was on disk.
+     *
+     * `hydrate` is a trust boundary, and until now it only cleaned the copy in
+     * memory: a save that arrived with an unknown id, a string where a number
+     * belongs, or a `__proto__` in an array kept sitting in localStorage and
+     * got re-parsed on every single load. The app behaved correctly each time,
+     * which is exactly why it went unnoticed.
+     *
+     * One synchronous write on boot replaces it with the sanitised form, so the
+     * bad data is dealt with once rather than survived forever. It also makes
+     * that behaviour observable, which is how the gap surfaced — the test that
+     * reads the stored save had been passing on an incidental write from an
+     * unrelated vitals tick.
+     */
+    flushNow();
     const stopTick = startTicking();
     // Real local time and real weather, feeding the stage's lighting.
     const stopWorld = startWorld();
@@ -143,10 +160,37 @@ export default function Game() {
     audio.setVolumes({
       master: profile.settings.volMaster,
       sfx: profile.settings.volSfx,
+      ambient: profile.settings.volAmbient,
     });
     audio.setMuted(profile.settings.muted);
     if (!profile.settings.muted) audio.unlock();
-  }, [profile.settings.volMaster, profile.settings.volSfx, profile.settings.muted]);
+  }, [profile.settings.volMaster, profile.settings.volSfx, profile.settings.volAmbient, profile.settings.muted]);
+
+  /**
+   * The weather bed follows the sky.
+   *
+   * Also re-run on unmute, because audio cannot start before a gesture: on a
+   * first visit the condition is known long before there is an AudioContext to
+   * play it through, so the effect that reacts to the weather would have
+   * nothing to do and never fire again.
+   */
+  useEffect(() => {
+    if (profile.settings.muted) {
+      audio.stopAmbience();
+      return;
+    }
+    // Chained off unlock rather than called beside it. Audio cannot exist
+    // before a gesture, and `setAmbience` bails silently when there is no
+    // running context — so calling it in the same tick as `unlock()` would
+    // always be a no-op on the one visit that matters, the first.
+    let cancelled = false;
+    void audio.unlock().then(() => {
+      if (!cancelled) audio.setAmbience(world.weather.condition);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [world.weather.condition, profile.settings.muted]);
 
   // --- timer completion -----------------------------------------------------
   useEffect(() => {

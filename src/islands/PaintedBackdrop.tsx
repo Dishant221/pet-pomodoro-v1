@@ -5,6 +5,7 @@ import type { Condition, PhaseId } from '../game/world';
 import { PHASES, washFor } from '../world/palette';
 import { OVERSCAN, paintScene, type SceneLayers } from '../world/paint';
 import { seasonalise, type SeasonId } from '../world/season';
+import * as audio from '../game/audio';
 
 /**
  * The painted half of the stage: everything that is not the pet.
@@ -199,6 +200,8 @@ export default function PaintedBackdrop(props: PaintedBackdropProps) {
 
       {wash.precipitation !== 'none' && <Precipitation kind={wash.precipitation} intensity={wash.intensity} reduced={reduced} />}
 
+      {condition === 'storm' && <Lightning reduced={reduced} />}
+
       {/* Every reference image is darker at the edges. */}
       <div
         aria-hidden="true"
@@ -206,6 +209,55 @@ export default function PaintedBackdrop(props: PaintedBackdropProps) {
       />
     </div>
   );
+}
+
+/**
+ * Distant lightning, and the thunder that follows it.
+ *
+ * Two rules shape this, and both of them are about not hurting anyone.
+ *
+ * The first is photosensitivity. A strobing screen can trigger seizures, and
+ * the guideline is at most three flashes a second — so this does not strobe at
+ * all. Each strike is a single soft bloom over most of a second, minutes apart,
+ * and reduced motion removes it entirely rather than slowing it down. A flash
+ * is not decoration you can turn down; either it is safe or it is absent.
+ *
+ * The second is that this runs behind a focus timer. Thunder is scheduled a
+ * beat *after* its flash, because light outruns sound and that gap is the only
+ * thing that makes a storm read as being somewhere rather than being an effect
+ * — and it is written as a distant roll rather than a near crack, since a sharp
+ * bang is exactly the noise that makes someone lose their thread.
+ */
+function Lightning({ reduced }: { reduced: boolean }) {
+  const [flash, setFlash] = useState(0);
+
+  useEffect(() => {
+    if (reduced) return;
+    let timer: ReturnType<typeof setTimeout>;
+    let alive = true;
+
+    const strike = () => {
+      if (!alive) return;
+      setFlash((n) => n + 1);
+      // Light first; the roll arrives a second or two later, as if the storm
+      // were a few kilometres off.
+      audio.playThunder(1.2 + Math.random() * 2.2);
+      // Minutes apart. A storm that flashes every few seconds is a light show.
+      timer = setTimeout(strike, 42_000 + Math.random() * 78_000);
+    };
+
+    // The first one comes soon enough to be noticed, not so soon it looks
+    // triggered by the page loading.
+    timer = setTimeout(strike, 9_000 + Math.random() * 14_000);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [reduced]);
+
+  if (reduced || flash === 0) return null;
+  // Keyed so each strike restarts the animation rather than reusing a finished one.
+  return <div key={flash} class="pp-lightning" aria-hidden="true" />;
 }
 
 /**

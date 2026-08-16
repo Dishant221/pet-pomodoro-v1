@@ -691,6 +691,54 @@ check(
 await page.unroute('**/api/weather');
 await page.clock.setFixedTime(new Date());
 
+// -------------------------------------------- 17f. storms, and who they spare
+//
+// Lightning is the one effect here that can do harm: a strobing screen can
+// trigger seizures. It is a single slow bloom minutes apart rather than a
+// strobe, and reduced motion must remove it from the DOM entirely — a flash is
+// not decoration that can be turned down.
+const stormBody = JSON.stringify({
+  ok: true,
+  condition: 'storm',
+  temperature: 14,
+  windKph: 40,
+  isDay: true,
+  timezone: 'Europe/London',
+  hemisphere: 'north',
+});
+await page.route('**/api/weather', (route) =>
+  route.fulfill({ status: 200, contentType: 'application/json', body: stormBody }),
+);
+await page.evaluate(() => {
+  localStorage.removeItem('petpomo.weather.v1');
+  localStorage.removeItem('petpomo.weather.absent.v1');
+});
+
+await seedSave(page, `s.settings.reducedMotion = false;`);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+check(
+  'a storm reaches the stage',
+  (await page.getAttribute('.pp-stage', 'data-weather')) === 'storm',
+  await page.getAttribute('.pp-stage', 'data-weather'),
+);
+// The first strike is scheduled 9-23s out, so this waits rather than guesses.
+await page
+  .waitForSelector('.pp-lightning', { timeout: 30_000 })
+  .catch(() => {});
+check('lightning strikes during a storm', (await page.locator('.pp-lightning').count()) === 1);
+
+await seedSave(page, `s.settings.reducedMotion = true;`);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+await sleep(26_000);
+check(
+  'reduced motion removes the lightning entirely, not just its speed',
+  (await page.locator('.pp-lightning').count()) === 0,
+);
+await seedSave(page, `s.settings.reducedMotion = false;`);
+await page.unroute('**/api/weather');
+
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load

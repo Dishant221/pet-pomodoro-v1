@@ -284,6 +284,7 @@ export default function SettingsPanel() {
           />
           <Slider label="Master" value={s.volMaster} onInput={(v) => updateSettings({ volMaster: v })} />
           <Slider label="Effects" value={s.volSfx} onInput={(v) => updateSettings({ volSfx: v })} />
+          <Slider label="Weather" value={s.volAmbient} onInput={(v) => updateSettings({ volAmbient: v })} />
           <Row label="Test">
             <div class="flex flex-wrap gap-1.5">
               <button
