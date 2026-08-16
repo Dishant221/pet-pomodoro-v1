@@ -1,0 +1,128 @@
+# PetPomo — what is done and what is not
+
+A running ledger so work can stop and restart without anything being lost or
+done twice. **Ask for "the pending list" and this file is the answer.**
+
+Last updated: 16 August 2026. Branch: `testing`.
+
+---
+
+## How to read this
+
+Items are numbered so they can be referred to by number. Status is one of:
+
+- **Done** — built, tested, on `testing`, verified by eye where it is visual.
+- **Partial** — some of it exists; the gap is stated.
+- **Pending** — not started.
+- **Blocked** — waiting on something outside the code.
+
+---
+
+## Done
+
+| # | Item | Notes |
+|---|------|-------|
+| 1 | Pomodoro timer | Absolute end-timestamp, survives refresh, sleep and a closed lid. |
+| 2 | Pet state machine | 9 states: idle, sleeping, waking, begging, eating, petted, playing, celebrating, sad. |
+| 3 | Hand-painted world | 6 scenes, generated in code as layered SVG with parallax. |
+| 4 | Real time of day | 6 phases from the device clock, in the player's own timezone. |
+| 5 | Real local weather | Clear, cloudy, overcast, fog, rain, snow, storm. No location permission asked. |
+| 6 | Seasons | Spring/summer/autumn/winter from the date, correct for both hemispheres. |
+| 7 | Weather sound | Rain, wind and snow beds, synthesized. Own volume slider. |
+| 8 | Lightning + thunder | Storms only. Slow bloom, never a strobe; removed entirely under reduced motion. |
+| 9 | 9 species / 13 characters | Cat, dog, puppy, sheep, deer, cow, horse, donkey, bear — one rig, data-driven. |
+| 10 | Species voices | Bark, meow, bleat, moo etc. from one synthesizer; frequency follows mood and hour. |
+| 11 | Mood system | Content, happy, affectionate, grumpy, sad, unwell. Derived from vitals. |
+| 12 | Condition vital | Slow-moving health behind "not feeling well". |
+| 13 | Shop, coins, stats | Buy and equip scenes, themes, characters, snacks. |
+| 14 | Cloud sync | Optional, code-based, no account. |
+| 15 | Movable + resizable clock | Drag, resize, arrow-key accessible, position and size persisted. |
+| 16 | Clock typeface + size | Rounded / mono / serif, three sizes. System fonts only. |
+| 17 | Pet panel | Pinned top-right, no card, mood + three meters + feed + mute. |
+| 18 | One nav bar | Timer floats over the stage; site nav is the only bar. |
+| 19 | Fullscreen toggle | Nav, top right. Hides itself where the API is unavailable. |
+| 20 | Full-screen stage on any device | Verified at 390×844, 820×1180, 1900×800 and 2560×1440. |
+| 21 | Landing content | ~4 screens of SEO/AEO copy under the game: what, how, why, ADHD, FAQ. |
+| 22 | Security hardening | Save treated as untrusted, CORS locked, per-IP rate limits, WAF documented. |
+| 23 | Compliance pages | Privacy, terms, cookies, copyright, contact, about. |
+| 24 | SEO plumbing | Canonicals, OG, sitemap, robots, RSS, JSON-LD (WebApplication + FAQPage). |
+| 25 | Blog | Content collection, 2 posts, RSS. |
+| 26 | Perf budget | First-load JS 84 KB gzip against a 200 KB ceiling, enforced in CI. |
+| 27 | CI/CD | Push to `testing` → preview; push to `main` → production. |
+| 28 | Test suite | 101 acceptance checks + 10 sync checks, run against the real Pages runtime. |
+
+---
+
+## Partial
+
+**29. Interiors and props** — The living room has furniture, but the outdoor
+scenes are landscape only. **Gap:** posters, carpets, lamps, shelves, and
+nothing the pet can climb, jump onto or walk along.
+
+**30. Pet framing** — The animal now sits at ~75% of the stage rather than on
+its bottom edge. **Gap:** you asked for "almost in the middle". Getting past 75%
+needs either a larger overscan (costs raster area) or moving the artwork's own
+horizon, which re-composes all six scenes.
+
+**31. Ad slot** — The markup and CSS exist and are tested; the slot claims its
+space the moment it is marked `data-filled`. **Gap:** no ad network, no
+consent flow, no ads.txt.
+
+**32. Documentation** — README covers the design decisions, DEPLOY.md the
+infrastructure, GUIDE.md the plain-language walkthrough. **Gap:** the full
+"pilot book" — a single operator runbook covering every failure mode.
+
+---
+
+## Pending
+
+**33. 12–15 pet behaviours.** Currently 9 states. Missing: sit, come, jump,
+climb, fetch, dig, stretch, groom, zoomies, beg-on-hind-legs, roll over, sniff.
+Needs the behaviour system extended and each one animated.
+
+**34. Click/tap command set.** A way to ask the pet for a specific behaviour —
+a small menu or a click on the pet. Prerequisite for #33 being usable.
+
+**35. Voice commands.** Agreed: build it, opt-in, off by default, Web Speech
+API, with the privacy policy and cookie page updated to disclose it. Works in
+Chrome and Edge; Firefox and Safari fall back to no voice.
+
+**36. Dog art pass.** Match the three reference images — the ear set, the
+muzzle, the leaner build. The dog reads as a dog but is not yet *those* dogs.
+
+**37. Animated pet previews in the shop.** You asked for GIFs. Rendering 13
+characters to animated files is the most expensive item on this list; a cheaper
+equivalent is a small live 3D preview per character reusing the engine already
+loaded. Decide which before starting.
+
+**38. Richer anime interiors.** #29's gap, done properly: posters, rugs, lamps,
+window light, shelves, with climbable geometry.
+
+**39. Accounts and login.** Not started. Sync currently uses a code, not an
+account.
+
+**40. Monetization.** Ad network integration, premium ad-removal, merchandise.
+Needs #31 finished first.
+
+**41. Analytics and error reporting.** Nothing currently reports whether the app
+is working in production. This is the largest gap for a live product.
+
+**42. Google Ads policy pass.** Cannot be completed until ads exist. Needs:
+ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
+
+---
+
+## Blocked
+
+**43. Razorpay payments.** Blocked on business KYC. Architected for, not built.
+
+---
+
+## Suggested order when work resumes
+
+1. #41 analytics/error reporting — a live product you cannot observe is a guess.
+2. #33 + #34 behaviours and commands — the biggest gap between what this is and what it promises.
+3. #38 interiors + #30 framing — they touch the same code, do them together.
+4. #36 dog art, #37 previews.
+5. #35 voice.
+6. #31 → #42 → #40 monetization, in that order.

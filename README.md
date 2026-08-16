@@ -19,7 +19,13 @@ npm run build        # -> dist/
 npm run budget       # first-load JS budget (run after build)
 ```
 
-Deploying, including the optional cloud sync: see [DEPLOY.md](./DEPLOY.md).
+- **[GUIDE.md](./GUIDE.md)** — plain-language walkthrough: run it, test it, ship it,
+  and what to do when something breaks. Start there if you are new.
+- **[BACKLOG.md](./BACKLOG.md)** — numbered list of what is done and what is not.
+- **[DEPLOY.md](./DEPLOY.md)** — infrastructure, environments and the optional
+  cloud sync.
+
+This file is the *why*: the decisions and the reasoning behind them.
 
 ## How it's put together
 

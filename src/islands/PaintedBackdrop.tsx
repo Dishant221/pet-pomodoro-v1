@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { SceneId } from '../game/manifest';
 import type { Condition, PhaseId } from '../game/world';
 import { PHASES, washFor } from '../world/palette';
-import { OVERSCAN, paintScene, type SceneLayers } from '../world/paint';
+import { backdropLift, OVERSCAN, paintScene, type SceneLayers } from '../world/paint';
 import { seasonalise, type SeasonId } from '../world/season';
 import * as audio from '../game/audio';
 
@@ -128,6 +128,28 @@ export default function PaintedBackdrop(props: PaintedBackdropProps) {
     return () => cancelAnimationFrame(raf);
   }, [shift, reduced]);
 
+  /**
+   * The vertical lift that keeps the horizon near its target.
+   *
+   * Written as a CSS variable and recomputed on resize only — it depends on the
+   * stage's shape, not on the frame. The engine derives its camera pitch from
+   * the same function, so the painted ground and the 3D ground stay the same
+   * ground.
+   */
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const apply = () => {
+      const r = host.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      host.style.setProperty('--lift', `${backdropLift(r.width, r.height).toFixed(1)}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     if (reduced) return;
     const host = hostRef.current;
@@ -155,7 +177,7 @@ export default function PaintedBackdrop(props: PaintedBackdropProps) {
   const layerStyle = (id: keyof SceneLayers) =>
     `position:absolute; inset:${(-OVERSCAN * 100).toFixed(2)}%; pointer-events:none; will-change:transform;` +
     `transform: translate3d(calc(var(--pan,0) * ${DEPTH[id] * 100}% + var(--px,0) * ${POINTER_DEPTH[id]}px),` +
-    ` calc(var(--py,0) * ${POINTER_DEPTH[id] * 0.35}px), 0);`;
+    ` calc(var(--lift,0px) + var(--py,0) * ${POINTER_DEPTH[id] * 0.35}px), 0);`;
 
   const renderSet = (p: Painted, fading: boolean) => (
     <div

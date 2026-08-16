@@ -19,7 +19,7 @@ import type { LightRecipe, World } from './stage-types';
 import { createFx, type FxSystem } from './fx';
 import { disposeTree, softenInk } from './toon';
 import { modulate } from './daylight';
-import { HORIZON, OVERSCAN, VIEW_H, VIEW_W } from '../world/paint';
+import { horizonFraction } from '../world/paint';
 import { dayFraction, FAIR_WEATHER, type Weather } from '../game/world';
 
 export interface EngineCallbacks {
@@ -591,14 +591,17 @@ export class Engine {
    * that back means the camera can follow it instead of assuming a fixed 62%,
    * which is what keeps the two ground planes agreeing at every window size.
    */
+  /**
+   * Where the painted horizon is, asked of the painter rather than recomputed.
+   *
+   * This used to derive it here from the overscan and the crop. It now also
+   * depends on the deliberate vertical lift the backdrop applies to keep the
+   * horizon near a chosen fraction, and a second copy of that arithmetic would
+   * drift from the first — the symptom being a pet lit and pitched for a ground
+   * plane a few degrees away from the one it is standing on.
+   */
   private horizonFraction(w: number, h: number): number {
-    // The layer element is overscanned on every edge, so it is larger than the
-    // stage and offset up and left. Both facts move the horizon.
-    const ew = w * (1 + 2 * OVERSCAN);
-    const eh = h * (1 + 2 * OVERSCAN);
-    const scale = Math.max(ew / VIEW_W, eh / VIEW_H);
-    const offsetY = (eh - VIEW_H * scale) / 2;
-    return (-OVERSCAN * h + offsetY + HORIZON * scale) / h;
+    return horizonFraction(w, h);
   }
 
   resize(): void {

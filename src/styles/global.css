@@ -184,26 +184,208 @@ body {
   }
 }
 
+/* --- Chrome heights ----------------------------------------------------------
+   The nav's height is declared rather than measured, because the stage sizes
+   itself against it. Every previous attempt to guess it — 3.25rem, hardcoded in
+   an island — was wrong by whatever else happened to be on the page. */
+:root {
+  --pp-nav: 3.5rem;
+}
+.pp-nav {
+  height: var(--pp-nav);
+}
+
+/* The stage: one full screen, on any device. `dvh` rather than `vh` because
+   mobile browsers change the viewport as their toolbars slide away, and `vh`
+   is the taller of the two states — which is what puts a phone's bottom bar
+   over the pet. In real fullscreen there is no chrome to subtract at all. */
+.pp-stage-screen {
+  height: calc(100dvh - var(--pp-nav));
+  min-height: 22rem;
+}
+:root:fullscreen .pp-stage-screen,
+:root:-webkit-full-screen .pp-stage-screen {
+  height: calc(100dvh - var(--pp-nav));
+}
+
+/* The fullscreen toggle swaps glyph on state, so the script owns no styling. */
+.pp-fullscreen .pp-fs-close,
+.pp-fullscreen[aria-pressed='true'] .pp-fs-open {
+  display: none;
+}
+.pp-fullscreen[aria-pressed='true'] .pp-fs-close {
+  display: inline;
+}
+
+/* --- Landing copy ------------------------------------------------------------
+   Everything under the first screenful. Ordinary prose in an ordinary measure:
+   this is the part of the page a reader, a screen reader and a search engine
+   all actually consume, and it should read like a page rather than like an
+   interface. */
+.pp-landing {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.pp-landing-inner {
+  margin-inline: auto;
+  max-width: 46rem;
+  padding: 3rem 1.25rem 3.5rem;
+}
+@media (min-width: 640px) {
+  .pp-landing-inner {
+    padding: 4.5rem 1.5rem 5rem;
+  }
+}
+.pp-landing h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.pp-landing h2 {
+  margin-top: 2.6rem;
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.5rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.pp-landing p,
+.pp-landing li,
+.pp-landing dd {
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+.pp-landing p,
+.pp-landing ul,
+.pp-landing ol,
+.pp-landing dl {
+  margin-top: 0.9rem;
+}
+.pp-lede {
+  font-size: 1.06rem;
+}
+.pp-landing a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pp-steps {
+  padding-left: 1.15rem;
+  list-style: decimal;
+}
+.pp-steps li,
+.pp-scenes li,
+.pp-cast li {
+  margin-top: 0.5rem;
+}
+.pp-scenes {
+  padding-left: 1.15rem;
+  list-style: disc;
+}
+.pp-landing strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.pp-cast {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+.pp-cast li {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(4rem, auto) 1fr;
+  gap: 0.15rem 0.75rem;
+  align-items: baseline;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 0.7);
+  background: var(--bg-elev);
+}
+@media (max-width: 560px) {
+  .pp-cast li {
+    grid-template-columns: 1fr;
+  }
+}
+.pp-cast-kind {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+.pp-cast-blurb {
+  color: var(--ink-soft);
+}
+.pp-faq dt {
+  margin-top: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pp-faq dd {
+  margin: 0.3rem 0 0;
+}
+/* The one paragraph on this page that is a disclaimer, and it should look like
+   one rather than hiding in the prose. */
+.pp-note {
+  margin-top: 1rem;
+  padding: 0.7rem 0.85rem;
+  border-left: 3px solid var(--border);
+  font-size: 0.92rem;
+}
+.pp-landing-more {
+  margin-top: 2.4rem;
+}
+
+/* A quiet nudge that there is more below — the first screenful is a canvas, and
+   nothing else on it suggests the page continues. */
+.pp-scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  color: var(--ink-soft);
+  background: var(--bg);
+  text-decoration: none;
+  font-size: 0.9rem;
+  animation: pp-nudge 2.6s ease-in-out infinite;
+}
+@keyframes pp-nudge {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(3px); opacity: 1; }
+}
+
 /* --- Advertising slot -------------------------------------------------------
-   Reserved space at the foot of the game page. Sized to the two standard units
-   it will hold — a 320x50 mobile banner and a 728x90 leaderboard — so the day
-   it is filled, nothing on the page moves. It is deliberately the page's own
-   background rather than a boxed placeholder: an empty slot should read as
-   margin, not as something that failed to load. */
+   Space at the foot of the game page for the two standard units it will hold:
+   a 320x50 mobile banner and a 728x90 leaderboard.
+
+   It reserves nothing until it holds something. An empty slot and the footer
+   are both page-background, so together they read as one tall dead band under
+   the stage — which is what it looked like: a hundred and eighty pixels of
+   nothing pushing the animal off the bottom of its own world. Reserving space
+   for an ad that does not exist yet buys protection from a layout shift that
+   also does not exist yet, and pays for it with the thing the page is for.
+
+   The sizes below are kept, so the day a banner is inserted the slot is marked
+   `data-filled` and the space is held from that moment on. */
 .pp-adslot {
   flex: none;
+  height: 0;
+}
+.pp-adslot[data-filled] {
   height: 50px;
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
 @media (min-width: 640px) {
-  .pp-adslot {
+  .pp-adslot[data-filled] {
     height: 90px;
   }
 }
 /* On a short screen the stage matters more than the slot. */
 @media (max-height: 560px) {
-  .pp-adslot {
+  .pp-adslot[data-filled] {
     display: none;
   }
 }
@@ -341,6 +523,33 @@ body {
 }
 .pp-grip:active {
   cursor: grabbing;
+}
+
+/* The resize corner. Bottom-right, where every window has put one for forty
+   years — the affordance is worth more than the novelty of putting it anywhere
+   else. */
+.pp-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 1px 1px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.6rem;
+  line-height: 1;
+  opacity: 0.55;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.pp-resize:hover,
+.pp-resize:focus-visible {
+  opacity: 1;
 }
 
 .pp-clock {
@@ -666,23 +875,72 @@ body {
 /* Rain and snow. Both are single composited layers rather than particles —
    this runs next to a WebGL loop for a full focus session, so it has to be
    nearly free. */
+/* Rain, in three passes.
+   One `repeating-linear-gradient` is a hatch, not weather: every line the same
+   width, the same brightness and the same distance apart, laid edge to edge
+   over the sky, the hills and the grass alike. On screen it read as diagonal
+   ruling across the whole interface — several people saw it as a rendering
+   fault rather than as rain, which is the correct reading of it.
+   Real rain has depth. These are three sheets at different densities, angles
+   and speeds, the near one brighter and faster than the far one, and all of
+   them far fainter than before. The eye assembles depth from the parallax
+   between them; no single sheet has to be convincing on its own. */
 .pp-rain {
   position: absolute;
-  inset: -10%;
+  inset: -12%;
   pointer-events: none;
   opacity: var(--rain-opacity, 0.3);
+}
+.pp-rain::before,
+.pp-rain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+/* Far sheet: fine, slow, barely there. */
+.pp-rain {
   background-image: repeating-linear-gradient(
-    100deg,
-    transparent 0 6px,
-    rgb(214 232 246 / 0.75) 6px 7px,
-    transparent 7px 13px
+    103deg,
+    transparent 0 17px,
+    rgb(226 240 252 / 0.16) 17px 18px,
+    transparent 18px 31px
+  );
+  background-size: 100% 300px;
+  animation: pp-rain-far calc(var(--rain-speed, 0.7s) * 2.6) linear infinite;
+}
+/* Mid sheet. */
+.pp-rain::before {
+  background-image: repeating-linear-gradient(
+    99deg,
+    transparent 0 23px,
+    rgb(232 244 255 / 0.24) 23px 24.5px,
+    transparent 24.5px 44px
+  );
+  background-size: 100% 260px;
+  animation: pp-rain-mid calc(var(--rain-speed, 0.7s) * 1.7) linear infinite;
+}
+/* Near sheet: fewer, brighter, quicker — the only one that reads as drops. */
+.pp-rain::after {
+  background-image: repeating-linear-gradient(
+    96deg,
+    transparent 0 47px,
+    rgb(244 251 255 / 0.34) 47px 49px,
+    transparent 49px 96px
   );
   background-size: 100% 220px;
-  animation: pp-rain-fall var(--rain-speed, 0.7s) linear infinite;
+  animation: pp-rain-near var(--rain-speed, 0.7s) linear infinite;
 }
-@keyframes pp-rain-fall {
+@keyframes pp-rain-far {
   from { background-position: 0 0; }
-  to { background-position: -40px 220px; }
+  to { background-position: -26px 300px; }
+}
+@keyframes pp-rain-mid {
+  from { background-position: 0 0; }
+  to { background-position: -38px 260px; }
+}
+@keyframes pp-rain-near {
+  from { background-position: 0 0; }
+  to { background-position: -54px 220px; }
 }
 
 .pp-snow {

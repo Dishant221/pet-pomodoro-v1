@@ -76,6 +76,16 @@ export interface Settings {
   clockY: number;
   clockFont: ClockFont;
   clockSize: ClockSize;
+  /**
+   * Width of the floating card in CSS pixels, or 0 for "as wide as it needs".
+   *
+   * Stored in pixels rather than as a fraction, unlike the position. A window's
+   * size is a judgement about how big you want the thing to be, and it should
+   * not halve because you moved to a smaller screen — where its *position* very
+   * much should scale, or it ends up off the edge. The two settings look alike
+   * and want opposite behaviour.
+   */
+  clockW: number;
 }
 
 export interface PetVitals {
@@ -139,6 +149,7 @@ export const DEFAULT_SETTINGS: Settings = {
   clockY: 0.04,
   clockFont: 'rounded',
   clockSize: 'md',
+  clockW: 0,
 };
 
 /**
@@ -263,6 +274,7 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       clockY: num(rawSettings.clockY, d.clockY),
       clockFont: oneOf<ClockFont>(rawSettings.clockFont, VALID_CLOCK_FONTS, d.clockFont),
       clockSize: oneOf<ClockSize>(rawSettings.clockSize, VALID_CLOCK_SIZES, d.clockSize),
+      clockW: num(rawSettings.clockW, d.clockW),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
@@ -319,8 +331,16 @@ export function clampSettings(s: Settings): Settings {
     // off-screen, which is indistinguishable from having lost the clock.
     clockX: clamp(s.clockX, 0, 1),
     clockY: clamp(s.clockY, 0, 1),
+    // 0 stays 0 — that is "natural width", not a tiny card. Anything else is
+    // held between a size the controls still fit in and one that stops the card
+    // covering the whole stage.
+    clockW: s.clockW === 0 ? 0 : clamp(Math.round(s.clockW), CLOCK_MIN_W, CLOCK_MAX_W),
   };
 }
+
+/** The floating card cannot be narrower than its controls or wider than useful. */
+export const CLOCK_MIN_W = 260;
+export const CLOCK_MAX_W = 760;
 
 // --- store -----------------------------------------------------------------
 

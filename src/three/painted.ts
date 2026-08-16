@@ -123,6 +123,34 @@ const SPECS: Record<SceneId, PaintedSpec> = {
 };
 
 /**
+ * How much further from the camera everything the pet touches now sits.
+ *
+ * The pet was standing near the bottom edge of the frame, and only part of that
+ * was the crop. The rest is that it was simply very close to the camera: on a
+ * ground plane, distance is height on screen, and the last metre before the
+ * lens is most of the bottom of the picture.
+ *
+ * Pushing the whole furnished area back moves the animal up the frame without
+ * touching the camera, the horizon or the painting — all of which are tied to
+ * each other and expensive to disturb. It moves the bed, the bowl and the gift
+ * spot with it, because they are the pet's world and it would be odd for the
+ * cushion to stay behind.
+ *
+ * Applied here rather than folded into the numbers above so each scene's
+ * layout stays readable as the thing its author wrote.
+ */
+const DEPTH_SHIFT = 0.5;
+
+for (const spec of Object.values(SPECS)) {
+  spec.bounds.minZ -= DEPTH_SHIFT;
+  spec.bounds.maxZ -= DEPTH_SHIFT;
+  spec.bed.z -= DEPTH_SHIFT;
+  spec.bowl.z -= DEPTH_SHIFT;
+  spec.gift.z -= DEPTH_SHIFT;
+  for (const s of spec.stash) s.z -= DEPTH_SHIFT;
+}
+
+/**
  * The base lighting recipe for a painted scene.
  *
  * This is only a starting point — `daylight.ts` moves it to the player's real

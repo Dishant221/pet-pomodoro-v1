@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Game from '../islands/Game';
+import FocusLanding from '../components/FocusLanding.astro';
 import { SITE, legalName } from '../site';
 
 /**
@@ -76,6 +77,30 @@ const schema = [
           text: 'Work for 25 minutes on one task, take a 5-minute break, and take a longer break after four rounds. When you get distracted, write the distraction down and carry on rather than chasing it.',
         },
       },
+      {
+        '@type': 'Question',
+        name: 'Can I use PetPomo for studying?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'That is most of what it is for. Set the focus length to match your attention rather than the default — 25 minutes is a starting point, not a rule — and use the long break to leave the desk.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does a pomodoro timer help with ADHD?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Many people with ADHD say they work better against an external clock than against their own sense of time, and a visible countdown gives a task an edge, a start you can press and a finish that arrives regardless. PetPomo is a timer, not a treatment, and nothing here is medical advice.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What happens if I abandon a session?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'It is not counted in your stats, and your pet is briefly sad about it. That is the entire penalty.',
+        },
+      },
     ],
   },
 ];
@@ -87,17 +112,28 @@ const schema = [
   schema={schema}
   wide
 >
-  <div class="min-h-0 flex-1"><Game client:only="preact" /></div>
+  {/* One full screen of game, then the page proper. */}
+  <div class="pp-stage-screen"><Game client:only="preact" /></div>
+
+  <a href="#what-is" class="pp-scroll-hint" aria-label="Read about PetPomo">
+    <span aria-hidden="true">↓</span>
+  </a>
+
+  <FocusLanding />
 
   {/*
-    The advertising slot, reserved before there is anything to put in it.
-    Holding the space from the start is the whole point: dropping a banner into
-    a laid-out page shoves everything upward, and that shift is both a ranking
-    signal and the reason people mis-tap. An empty reserved strip costs nothing
-    and means the day this fills, nothing moves.
+    The advertising slot. It takes no height until something is put in it, at
+    which point whatever inserts the banner adds `data-filled` and the space is
+    held from then on.
 
-    It is `aria-hidden` while empty so a screen reader is not told about a
-    region that contains nothing.
+    Reserving it up front was the obvious move and the wrong one: an empty slot
+    and the footer are both page-background, so together they read as one tall
+    dead band, and the animal ended up standing on the bottom edge of its own
+    world to make room for an advert that does not exist. Protection from a
+    layout shift is worth having once there is something to shift.
+
+    `aria-hidden` while empty, so a screen reader is not told about a region
+    that contains nothing.
   */}
   <aside class="pp-adslot" aria-hidden="true" data-slot="footer-leaderboard"></aside>
 </Layout>

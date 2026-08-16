@@ -123,14 +123,17 @@ const year = new Date().getFullYear();
   </head>
 
   {/*
-    The game page is exactly one viewport tall and does not scroll. It used to
-    size its own stage to `100dvh - 3.25rem`, which subtracted the header and
-    forgot the footer, so header + stage + footer came to more than the screen
-    and the whole page gained a scrollbar with the pet hanging off the bottom of
-    it. Owning the height here instead of guessing at it in the island means
-    nothing has to know how tall the chrome is.
+    On `wide`, the first screenful is the game and everything after it is
+    ordinary page. The body scrolls again — it did not for a while, which kept
+    the stage honest but also meant there was nowhere to put anything else, and
+    a page whose only content is a canvas has nothing for a reader or a search
+    engine to read.
+
+    The stage sizes itself to `100dvh - var(--pp-nav)`, and the nav's height is
+    a variable rather than a guess. An earlier version hardcoded 3.25rem, was
+    wrong by one footer, and put the pet off the bottom of a scrolling page.
   */}
-  <body class:list={['flex flex-col', wide ? 'h-dvh overflow-hidden' : 'min-h-dvh']}>
+  <body class="min-h-dvh flex flex-col">
     <a
       href="#main"
       class="pp-focus-ring sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:px-3 focus:py-2"
@@ -141,7 +144,7 @@ const year = new Date().getFullYear();
       class="sticky top-0 z-30 backdrop-blur-md"
       style="background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--border);"
     >
-      <nav class="mx-auto flex max-w-5xl items-center gap-1 px-3 py-2 sm:gap-2 sm:px-5" aria-label="Main">
+      <nav class="pp-nav mx-auto flex max-w-5xl items-center gap-1 px-3 sm:gap-2 sm:px-5" aria-label="Main">
         <a
           href="/"
           class="pp-focus-ring mr-auto flex items-center gap-2 rounded-lg font-extrabold tracking-tight"
@@ -169,13 +172,29 @@ const year = new Date().getFullYear();
             </a>
           ))
         }
+
+        {/*
+          Fullscreen. Last in the bar and set apart, because it acts on the
+          window rather than navigating anywhere. `public/fullscreen.js` hides
+          it outright where the API is unavailable — an iPhone, mainly — rather
+          than leaving a button that does nothing when pressed.
+        */}
+        <button
+          type="button"
+          data-fullscreen
+          aria-pressed="false"
+          title="Go fullscreen"
+          class="pp-focus-ring pp-fullscreen ml-1 rounded-lg px-2 py-1.5 text-sm font-semibold sm:ml-2"
+          style="color: var(--ink-soft)"
+        >
+          <span aria-hidden="true" class="pp-fs-open">⛶</span>
+          <span aria-hidden="true" class="pp-fs-close">✕</span>
+          <span class="sr-only">Go fullscreen</span>
+        </button>
       </nav>
     </header>
 
-    <main
-      id="main"
-      class={wide ? 'flex min-h-0 flex-1 flex-col' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}
-    >
+    <main id="main" class={wide ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}>
       <slot />
     </main>
 
@@ -211,5 +230,6 @@ const year = new Date().getFullYear();
     </footer>
 
     <script src="/sw-register.js" is:inline></script>
+    <script src="/fullscreen.js" is:inline defer></script>
   </body>
 </html>

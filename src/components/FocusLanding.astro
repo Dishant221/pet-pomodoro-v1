@@ -1,0 +1,179 @@
+---
+/**
+ * Everything below the first screenful of the focus page.
+ *
+ * The game is the hero, and a hero made of canvas says nothing to a reader who
+ * cannot see it, to someone deciding whether to trust the site, or to a search
+ * engine. This is the page's actual content: what the thing is, how to use it,
+ * why it works, and who it is for.
+ *
+ * Written answer-first. The heading asks the question a person would type and
+ * the first sentence answers it outright, because that is what an assistant
+ * quoting this page will lift, and it is also simply the clearest way to write.
+ *
+ * On the ADHD section: nothing here is a medical claim and nothing here is
+ * advice. It describes what a timer does and what people report finding useful,
+ * and says plainly that it is not a treatment. That is both honest and what
+ * Google's policies on health content require of a page carrying ads.
+ */
+import { SPECIES, SPECIES_IDS } from '../three/species';
+import { PET_ITEMS, SCENE_ITEMS } from '../game/economy';
+
+/** One character per species, so the roster reads as animals not as SKUs. */
+const cast = SPECIES_IDS.map((id) => ({
+  species: SPECIES[id],
+  character: PET_ITEMS.find((p) => p.species === id),
+})).filter((c) => c.character);
+---
+
+<section class="pp-landing" aria-labelledby="what-is">
+  <div class="pp-landing-inner">
+    <header>
+      <h1 id="what-is">A pomodoro timer with a pet that waits for you</h1>
+      <p class="pp-lede">
+        PetPomo is a free online pomodoro timer where a virtual pet lives in a hand-painted world
+        that follows your real time of day, your local weather and the season outside your window.
+        Start a 25-minute session and your pet curls up to sleep beside you. Finish it and it wakes,
+        stretches, and brings you something. Nothing to install, no account, and it keeps working
+        with the internet switched off.
+      </p>
+    </header>
+
+    <h2>How to use it</h2>
+    <ol class="pp-steps">
+      <li><strong>Pick one thing to work on.</strong> One task per session — the technique falls apart when a session has three.</li>
+      <li><strong>Press Start.</strong> Your pet settles down to sleep for 25 minutes. The countdown also runs in the browser tab, so you can watch it from another window.</li>
+      <li><strong>Work until the bell.</strong> If you get distracted, write the distraction on a piece of paper and carry on. Chasing it is the thing that costs you the session.</li>
+      <li><strong>Take the break properly.</strong> Stroke your pet until it purrs, drag a snack onto the ground to feed it, or tap it to play. Five minutes away from the screen is the point of the five minutes.</li>
+      <li><strong>Every fourth session, take a longer break.</strong> Fifteen minutes. Stand up.</li>
+    </ol>
+    <p>
+      Focused minutes earn coins, and coins buy scenes, themes and new animals in the{' '}
+      <a href="/shop">shop</a>. You can change the session lengths, move or resize the clock, pick its
+      typeface, and turn the weather sounds down in <a href="/settings">settings</a>.
+    </p>
+
+    <h2>What is the Pomodoro Technique?</h2>
+    <p>
+      Work for 25 minutes, rest for 5, and take a longer break after four rounds. That is the whole
+      method. It was named after a tomato-shaped kitchen timer in the late 1980s, and it survives
+      because it is small enough to actually do: it asks you to start, not to concentrate, and
+      starting is usually the hard part.
+    </p>
+    <p>
+      The 25 minutes matter less than the fact that they are <em>bounded</em>. A task with no end is
+      something to avoid; a task with a bell at the end of it is something you can begin.
+    </p>
+
+    <h2>Does a pomodoro timer help with ADHD?</h2>
+    <p>
+      Many people with ADHD say they work better against an external clock than against their own
+      sense of time, and a visible countdown is one of the most commonly suggested ways to make time
+      feel concrete. A pomodoro timer gives a task a visible edge, a start you can press, and a
+      finish that arrives whether or not the work went well.
+    </p>
+    <p>
+      A pet adds a second thing that is easy to underrate: something is waiting on the other side of
+      the session. A break with a small ritual in it — feed, stroke, play — is easier to actually
+      take than a break that is just an absence of work, and taking breaks is the half of this
+      method most people skip.
+    </p>
+    <p class="pp-note">
+      PetPomo is a timer, not a treatment. It is not medical advice and it is not a substitute for
+      speaking to a doctor or a specialist about ADHD or anything else.
+    </p>
+
+    <h2>Why a pet, and why it gets harder to abandon</h2>
+    <p>
+      A plain timer is a number going down. Nothing about it changes if you use it every day for a
+      month, and nothing about it notices when you stop.
+    </p>
+    <p>
+      Your pet does. It gets hungry while you are away and settles when you come back. It has a mood
+      you can read at a glance — content, happy, affectionate, grumpy, sad, or unwell — and that mood
+      is the sum of how you have treated it, not a random number. Look after it and it is delighted
+      to see you. Disappear for two days and it is genuinely out of sorts when you return, and
+      putting that right takes more than one biscuit.
+    </p>
+    <p>
+      None of that makes you focus. What it does is give the habit somewhere to accumulate. After a
+      few weeks the sessions stop being a thing you make yourself do and start being a thing you and
+      something else do together, and that is a much easier thing to keep.
+    </p>
+
+    <h2>An aesthetic pomodoro timer that changes with your day</h2>
+    <p>
+      The world is painted, not photographed, and it is never quite the same twice. It runs on your
+      device's clock, so dawn is dawn where you are, and it moves through six times of day into a
+      night with real stars. It reads your local weather and paints it: cloud, fog, rain you can
+      hear, snow, and storms with distant lightning. And it follows the season, the right way round
+      for your hemisphere — a December session is midwinter in London and high summer in Sydney.
+    </p>
+    <ul class="pp-scenes">
+      {SCENE_ITEMS.map((s) => (
+        <li><strong>{s.name}</strong> — {s.blurb}</li>
+      ))}
+    </ul>
+
+    <h2>The animals</h2>
+    <p>
+      Every animal is built and animated in the browser rather than drawn as a sprite, which is why
+      each one moves like itself: a horse walks on long legs and a bear does not, and a dog's tail
+      sits up where a cat's sits level. They sound like themselves too — the bark, the meow, the
+      bleat and the moo are all generated from the same synthesiser with different settings, and how
+      often you hear them depends on the animal's mood and the hour. Nothing says much at 3am.
+    </p>
+    <ul class="pp-cast">
+      {cast.map(({ species, character }) => (
+        <li>
+          <strong>{character!.name}</strong>
+          <span class="pp-cast-kind">{species.label}</span>
+          <span class="pp-cast-blurb">{character!.blurb}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2>Common questions</h2>
+    <dl class="pp-faq">
+      <dt>Is PetPomo free?</dt>
+      <dd>Yes, completely. Coins are earned by focusing and can only be spent inside the game.</dd>
+
+      <dt>Do I need an account?</dt>
+      <dd>
+        No. Your progress lives in your browser. Optional cloud sync uses a random code your own
+        browser generates, so the server stores a save without ever learning who you are.
+      </dd>
+
+      <dt>Does it work offline?</dt>
+      <dd>
+        Yes. After your first visit the whole game is cached and runs with no connection. Only the
+        live weather needs the network, and without it the world shows fair weather.
+      </dd>
+
+      <dt>How does it know my weather without asking permission?</dt>
+      <dd>
+        It uses the approximate location our host already attaches to every web request, rounded to
+        about eleven kilometres before it is used. Your device location is never requested and no
+        permission prompt appears.
+      </dd>
+
+      <dt>Can I use it for studying?</dt>
+      <dd>
+        That is most of what it is for. Set the focus length to match your attention rather than the
+        default — 25 minutes is a starting point, not a rule — and use the long break to leave the
+        desk.
+      </dd>
+
+      <dt>What happens if I abandon a session?</dt>
+      <dd>
+        It is not counted in your stats, and your pet is briefly sad about it. That is the entire
+        penalty. Abandoning a session you were never going to finish is a reasonable thing to do.
+      </dd>
+    </dl>
+
+    <p class="pp-landing-more">
+      More on the method and the thinking behind it on the <a href="/blog">blog</a>, or read about how
+      the world is built on the <a href="/about">about page</a>.
+    </p>
+  </div>
+</section>

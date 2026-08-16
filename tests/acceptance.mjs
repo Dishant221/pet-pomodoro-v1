@@ -153,21 +153,45 @@ check('starts idle', (await petState(page)) === 'idle', `state=${await petState(
 // `100dvh - 3.25rem`, which subtracted the header and forgot the footer, so the
 // page scrolled and the pet hung off the bottom of it. Nothing about that looks
 // broken in a screenshot of the top of the page, which is why it is asserted.
-const pageFits = await page.evaluate(() => ({
-  scrolls: document.documentElement.scrollHeight > document.documentElement.clientHeight + 1,
-  scrollH: document.documentElement.scrollHeight,
-  clientH: document.documentElement.clientHeight,
-}));
+const pageFits = await page.evaluate(() => {
+  const stage = document.querySelector('.pp-stage-screen').getBoundingClientRect();
+  return {
+    // The stage is exactly one screenful minus the nav, on any device.
+    stageH: Math.round(stage.height),
+    viewH: window.innerHeight,
+    navH: Math.round(document.querySelector('header').getBoundingClientRect().height),
+    // And the page continues below it, which is where the readable content is.
+    docH: document.documentElement.scrollHeight,
+    landing: !!document.querySelector('.pp-landing h1'),
+  };
+});
 check(
-  'the game page fits one viewport and does not scroll',
-  !pageFits.scrolls,
-  `scrollHeight=${pageFits.scrollH} clientHeight=${pageFits.clientH}`,
+  'the stage is exactly one screenful under the nav',
+  Math.abs(pageFits.stageH - (pageFits.viewH - pageFits.navH)) <= 2,
+  `stage=${pageFits.stageH} view=${pageFits.viewH} nav=${pageFits.navH}`,
+);
+check(
+  'the page continues below the stage with readable content',
+  pageFits.landing && pageFits.docH > pageFits.viewH * 1.5,
+  `docHeight=${pageFits.docH} viewport=${pageFits.viewH}`,
 );
 
-// The advertising slot is reserved before there is anything in it, so that
-// filling it later shifts nothing.
-const adH = await page.evaluate(() => document.querySelector('.pp-adslot')?.getBoundingClientRect().height ?? 0);
-check('the ad slot reserves its space up front', adH >= 50, `${Math.round(adH)}px`);
+// The advertising slot exists but takes no height until something fills it.
+// Reserving it up front cost the stage 90px and the pet its footing, for
+// protection against a layout shift that cannot happen while the slot is empty.
+// Marking it `data-filled` is what claims the space, and that is asserted here
+// so the mechanism does not quietly rot before there is an ad to put in it.
+const adEmpty = await page.evaluate(() => document.querySelector('.pp-adslot')?.getBoundingClientRect().height ?? -1);
+check('the empty ad slot takes no height', adEmpty === 0, `${adEmpty}px`);
+
+const adFilled = await page.evaluate(() => {
+  const el = document.querySelector('.pp-adslot');
+  el.setAttribute('data-filled', '');
+  const h = el.getBoundingClientRect().height;
+  el.removeAttribute('data-filled');
+  return h;
+});
+check('a filled ad slot claims its space', adFilled >= 50, `${Math.round(adFilled)}px`);
 
 // One bar, not two. The floating card is the command centre by default.
 const hudBox = await page.locator('.pp-hud').boundingBox();
@@ -666,29 +690,37 @@ check(
 );
 
 // Same date, southern hemisphere: the server sends the one bit that decides it.
-await page.route('**/api/weather', (route) =>
-  route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ ok: true, condition: 'clear', temperature: 28, windKph: 8, isDay: true, timezone: 'Australia/Sydney', hemisphere: 'south' }),
-  }),
-);
+//
+// Seeded into the weather cache rather than served through a mocked route. The
+// clock is frozen for this section, and a frozen clock does not run the idle
+// callback the live fetch is scheduled behind — so routing the request means
+// waiting for a fetch that never happens. The cache is also the path a returning
+// visitor actually takes, and it is read synchronously at first paint.
 await page.evaluate(() => {
-  localStorage.removeItem('petpomo.weather.v1');
-  localStorage.removeItem('petpomo.weather.absent.v1');
+  localStorage.setItem(
+    'petpomo.weather.v1',
+    JSON.stringify({
+      at: Date.now(),
+      weather: {
+        ok: true,
+        condition: 'clear',
+        temperature: 28,
+        windKph: 8,
+        isDay: true,
+        timezone: 'Australia/Sydney',
+        hemisphere: 'south',
+      },
+    }),
+  );
 });
-await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
 await stageReady(page);
-await page.waitForFunction(() => document.querySelector('.pp-stage')?.dataset.season === 'summer', null, {
-  timeout: 8000,
-  polling: 100,
-}).catch(() => {});
 check(
   'the same December is midsummer in the south',
   (await page.getAttribute('.pp-stage', 'data-season')) === 'summer',
   await page.getAttribute('.pp-stage', 'data-season'),
 );
-await page.unroute('**/api/weather');
+await page.evaluate(() => localStorage.removeItem('petpomo.weather.v1'));
 await page.clock.setFixedTime(new Date());
 
 // -------------------------------------------- 17f. storms, and who they spare
@@ -738,6 +770,39 @@ check(
 );
 await seedSave(page, `s.settings.reducedMotion = false;`);
 await page.unroute('**/api/weather');
+
+// -------------------------------------------------- 17g. the clock resizes
+//
+// A window you can move but not size is half a window. The width is stored in
+// pixels while the position is stored as a fraction, and that asymmetry is
+// deliberate: a size is a judgement that should survive a change of screen,
+// where a position has to scale or it ends up off the edge.
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const widthBefore = (await page.locator('.pp-hud').boundingBox()).width;
+const handle = await page.locator('.pp-resize').boundingBox();
+await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
+await page.mouse.down();
+await page.mouse.move(handle.x + handle.width / 2 - 200, handle.y + handle.height / 2, { steps: 14 });
+await page.mouse.up();
+await sleep(400);
+const widthAfter = (await page.locator('.pp-hud').boundingBox()).width;
+const storedW = await page.evaluate(() => JSON.parse(localStorage.getItem('petpomo.save.v1')).settings.clockW);
+check(
+  'dragging the corner resizes the clock and the size is kept',
+  widthAfter < widthBefore - 100 && Math.abs(storedW - widthAfter) < 4,
+  `${Math.round(widthBefore)} -> ${Math.round(widthAfter)}, stored ${storedW}`,
+);
+
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const widthReloaded = (await page.locator('.pp-hud').boundingBox()).width;
+check(
+  'the resized clock comes back the same size',
+  Math.abs(widthReloaded - widthAfter) < 4,
+  `${Math.round(widthReloaded)} vs ${Math.round(widthAfter)}`,
+);
+await seedSave(page, `s.settings.clockW = 0;`);
 
 // ------------------------------------ 17c. a hostile save cannot break the app
 //

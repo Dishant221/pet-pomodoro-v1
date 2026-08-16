@@ -44,6 +44,7 @@ import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../ga
 import { $world, startWorld } from '../game/world';
 import { MOODS, moodFor, voiceRateFor } from '../game/mood';
 import * as audio from '../game/audio';
+import { CLOCK_MAX_W, CLOCK_MIN_W } from '../stores/profile';
 import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
 
@@ -387,6 +388,14 @@ export default function Game() {
   const clockY = drag ? drag.y : profile.settings.clockY;
 
   /**
+   * Live width while the resize handle is held, committed on release — the same
+   * arrangement as the drag, and for the same reason: the timer re-renders every
+   * second, and reading a stale store mid-gesture would snap the card back.
+   */
+  const [liveW, setLiveW] = useState<number | null>(null);
+  const cardW = liveW ?? (profile.settings.clockW || 0);
+
+  /**
    * Fraction of the travel, expressed so CSS does the measuring.
    *
    * `left: 40%` alone would place the card's left edge 40% across and let the
@@ -395,7 +404,12 @@ export default function Game() {
    * flush-right at 1, whatever the card and the window happen to measure — the
    * same reason the stored value is a fraction and not a pixel count.
    */
-  const floatStyle = `left: ${clockX * 100}%; top: ${clockY * 100}%; transform: translate(${-clockX * 100}%, ${-clockY * 100}%)`;
+  const floatStyle =
+    `left: ${clockX * 100}%; top: ${clockY * 100}%; transform: translate(${-clockX * 100}%, ${-clockY * 100}%)` +
+    // The stylesheet caps an auto-width card at 44rem. An explicitly resized one
+    // has to be allowed past that or the handle stops moving before the maximum,
+    // but the 94% guard stays so it can never be wider than the stage.
+    (cardW ? `; width: ${cardW}px; max-width: min(94%, ${cardW}px)` : '');
 
   /** Pointer position → fraction of the room the card has to move in. */
   const toFraction = (clientX: number, clientY: number): { x: number; y: number } | null => {
@@ -433,6 +447,49 @@ export default function Game() {
     (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
     updateSettings({ clockX: drag.x, clockY: drag.y });
     setDrag(null);
+  };
+
+  // --- resize ---------------------------------------------------------------
+  //
+  // A window you can move but not size is half a window. The handle drags the
+  // right edge; the height follows from the contents, which is what you want
+  // here — nobody wants to choose how tall a clock is, they want to choose how
+  // much room its row of controls gets before it wraps.
+  const resizing = useRef<{ startX: number; startW: number } | null>(null);
+
+  const onResizeDown = (e: PointerEvent) => {
+    const card = cardRef.current?.getBoundingClientRect();
+    if (!card) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    resizing.current = { startX: e.clientX, startW: card.width };
+    setLiveW(Math.round(card.width));
+  };
+
+  const onResizeMove = (e: PointerEvent) => {
+    const r = resizing.current;
+    if (!r) return;
+    e.preventDefault();
+    setLiveW(clamp(Math.round(r.startW + (e.clientX - r.startX)), CLOCK_MIN_W, CLOCK_MAX_W));
+  };
+
+  const onResizeUp = (e: PointerEvent) => {
+    if (!resizing.current) return;
+    resizing.current = null;
+    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
+    if (liveW != null) updateSettings({ clockW: liveW });
+    setLiveW(null);
+  };
+
+  /** Arrow keys resize it too, for the same reason they move it. */
+  const onResizeKey = (e: KeyboardEvent) => {
+    const step = e.shiftKey ? 48 : 16;
+    const d = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+    if (!d) return;
+    e.preventDefault();
+    const from = cardW || cardRef.current?.getBoundingClientRect().width || CLOCK_MIN_W;
+    updateSettings({ clockW: clamp(Math.round(from + d), CLOCK_MIN_W, CLOCK_MAX_W) });
   };
 
   /** Arrow keys move it too — a drag handle only a mouse can reach isn't one. */
@@ -558,6 +615,21 @@ export default function Game() {
           title="Drag to move the clock"
         >
           <span aria-hidden="true">⠿</span>
+        </button>
+      )}
+      {floating && (
+        <button
+          type="button"
+          class="pp-resize pp-focus-ring"
+          onPointerDown={onResizeDown}
+          onPointerMove={onResizeMove}
+          onPointerUp={onResizeUp}
+          onPointerCancel={onResizeUp}
+          onKeyDown={onResizeKey}
+          aria-label="Resize the clock. Drag, or use the left and right arrow keys."
+          title="Drag to resize"
+        >
+          <span aria-hidden="true">◢</span>
         </button>
       )}
       <div class="pp-hud-inner">

@@ -38,7 +38,57 @@ export const HORIZON = 560;
  * larger than the biggest shift the camera can ask for, and the engine has to
  * know about it too, because overscanning moves where the horizon lands.
  */
-export const OVERSCAN = 0.09;
+export const OVERSCAN = 0.2;
+
+/**
+ * Where the horizon should sit on screen, as a fraction of stage height.
+ *
+ * A `slice` crop centres the artwork, and on a wide, short stage that put the
+ * horizon at about 75% — leaving the pet squeezed into the bottom quarter,
+ * standing on the very edge of the frame. Nothing was wrong with the painting
+ * or the camera; the crop simply landed somewhere unhelpful, and it lands
+ * somewhere different at every window size.
+ *
+ * Naming the target instead lets the composition hold: a little above centre,
+ * so there is sky above and enough ground below for the animal to be *in* the
+ * scene rather than balanced on its lip.
+ */
+export const HORIZON_TARGET = 0.54;
+
+/**
+ * How far the painted layers must slide vertically to hit that target, in px.
+ *
+ * Clamped to the overscan, because sliding further than the painting extends
+ * would bring a layer's own edge into view — which is exactly the rectangular
+ * hole in the meadow the overscan exists to prevent. The clamp means the target
+ * is an aim rather than a guarantee, and on an extreme aspect ratio the result
+ * is "as close as the slack allows".
+ *
+ * The engine reads this too, so the 3D horizon moves with the painted one. That
+ * is the whole reason it lives here and not in the component: two copies of
+ * this arithmetic would drift, and the symptom would be a pet standing on a
+ * ground plane that does not match the ground it is drawn on.
+ */
+export function backdropLift(w: number, h: number): number {
+  const ew = w * (1 + 2 * OVERSCAN);
+  const eh = h * (1 + 2 * OVERSCAN);
+  const scale = Math.max(ew / VIEW_W, eh / VIEW_H);
+  const offsetY = (eh - VIEW_H * scale) / 2;
+  const natural = (-OVERSCAN * h + offsetY + HORIZON * scale) / h;
+  const wanted = (HORIZON_TARGET - natural) * h;
+  const room = OVERSCAN * h;
+  return Math.max(-room, Math.min(room, wanted));
+}
+
+/** Where the horizon actually ends up, once the lift has been clamped. */
+export function horizonFraction(w: number, h: number): number {
+  const ew = w * (1 + 2 * OVERSCAN);
+  const eh = h * (1 + 2 * OVERSCAN);
+  const scale = Math.max(ew / VIEW_W, eh / VIEW_H);
+  const offsetY = (eh - VIEW_H * scale) / 2;
+  const natural = (-OVERSCAN * h + offsetY + HORIZON * scale) / h;
+  return natural + backdropLift(w, h) / h;
+}
 
 /**
  * Five depth slots, back to front. Every scene fills the same five, which is
