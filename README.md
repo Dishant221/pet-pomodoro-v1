@@ -16,6 +16,7 @@ npm install
 npm run dev          # http://localhost:4321
 npm run check        # typecheck
 npm run build        # -> dist/
+npm run budget       # first-load JS budget (run after build)
 ```
 
 Deploying, including the optional cloud sync: see [DEPLOY.md](./DEPLOY.md).
@@ -135,6 +136,20 @@ are both dim in completely different colours. Indoor scenes get a reduced
 It is all optional. No network, a blocked request, or a static deploy with no
 Function at all lands on fair weather and a correct clock; a 404 is remembered
 so the client stops asking.
+
+**The 3D engine loads after the page does.** Three.js and everything built on
+it is about 150 KB gzipped — more than the entire rest of the app — so
+`Stage3D` imports the engine for its *type* only and pulls the real thing in
+with `import()` once mounted. The timer, the HUD and the painted backdrop are
+all up and interactive first; the 3D pet arrives a moment later. The capability
+check lives in its own module for the same reason: asking whether the browser
+can do 3D must not require downloading the 3D engine.
+
+`npm run budget` measures this and fails over 200 KB, and CI runs it before
+deploying. It walks the real static-import graph from the scripts the HTML
+names, so deferring work actually shows up as deferred — and it counts
+re-exports, because a budget that can only be wrong in the optimistic direction
+is not a budget.
 
 **Three.js earns its place now.** An earlier version of this file argued
 against it, and that was correct when the world was flat SVG. It stopped being

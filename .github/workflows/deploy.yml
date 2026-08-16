@@ -55,6 +55,12 @@ jobs:
           PUBLIC_SITE_URL: >-
             ${{ github.ref_name == 'main' && 'https://petpomo.pages.dev' || 'https://preview.petpomo.pages.dev' }}
 
+      # The first-load JS budget, enforced rather than aspired to. Three.js is
+      # three quarters of the ceiling on its own, so the split that keeps it out
+      # of the critical path is one careless static import away from being
+      # undone — and nothing about the page would look broken when it was.
+      - run: npm run budget
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:

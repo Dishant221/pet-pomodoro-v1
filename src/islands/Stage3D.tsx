@@ -2,7 +2,16 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { PET_STATES, SCENES, type PetState, type SceneId } from '../game/manifest';
 import type { PetSkinId, SnackId } from '../game/economy';
-import { Engine, webglAvailable } from '../three/engine';
+/**
+ * The engine is imported for its *type* only.
+ *
+ * Three.js and everything built on it is around 200 KB gzipped — more than the
+ * whole rest of the app — and a static import puts all of it in front of first
+ * paint, including for the player who only wanted to start a timer. It is
+ * loaded with `import()` below instead, after the page is up.
+ */
+import type { Engine } from '../three/engine';
+import { webglAvailable } from '../three/webgl';
 import { paletteFor } from '../three/palette';
 import { speciesOf } from '../game/economy';
 import { SPECIES } from '../three/species';
@@ -59,6 +68,8 @@ export default function Stage3D(props: Stage3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const [supported, setSupported] = useState<boolean | null>(null);
+  /** True once the engine chunk has loaded and the render loop is running. */
+  const [live, setLive] = useState(false);
   const [grabbing, setGrabbing] = useState(false);
   // The player's real time of day and real weather. Changes about once a
   // minute, so subscribing here costs nothing.
@@ -86,68 +97,90 @@ export default function Stage3D(props: Stage3DProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    let engine: Engine;
-    try {
-      engine = new Engine({
-        canvas,
-        scene: cbRef.current.scene,
-        species: speciesOf(cbRef.current.pet),
-        palette: paletteFor(cbRef.current.pet),
-        reduced: cbRef.current.reduced,
-        callbacks: {
-          onPet: () => cbRef.current.onPet(),
-          onPoke: () => cbRef.current.onPoke(),
-          onFeed: () => cbRef.current.onFeed(),
-          onMeow: () => cbRef.current.onMeow(),
-          onPurrStart: () => cbRef.current.onPurrStart(),
-          onPurrEnd: () => cbRef.current.onPurrEnd(),
-          onGift: (p) => cbRef.current.onGift(p),
-          onHover: (over) => setGrabbing(over),
-        },
-      });
-    } catch {
-      // Context creation can still fail on a blocklisted driver.
-      setSupported(false);
-      return;
-    }
+    /**
+     * Everything the async boot might have created, so the cleanup can undo it
+     * whichever side of the `await` the unmount happens on. A component that
+     * mounts and unmounts faster than a chunk downloads is not hypothetical —
+     * it is a player clicking through to /stats immediately.
+     */
+    let cancelled = false;
+    let engine: Engine | null = null;
+    let ro: ResizeObserver | null = null;
+    let onVisibility: (() => void) | null = null;
 
-    engineRef.current = engine;
-    engine.setIntent(cbRef.current.petState);
-    engine.setMood(cbRef.current.mood);
-    // Seed the sky before the first frame, so there is no flash of midday
-    // lighting on a night visit.
-    const w = $world.get();
-    engine.setDaylight(w.fraction, w.weather);
-    engine.start();
+    void (async () => {
+      const { Engine } = await import('../three/engine');
+      if (cancelled) return;
 
-    const api: StageApi = {
-      deliverGift: () => engineRef.current?.deliverGift(),
-      beginDrag: (s) => engineRef.current?.beginDrag(s),
-      moveDrag: (x, y) => engineRef.current?.moveDrag(x, y),
-      endDrag: (commit) => engineRef.current?.endDrag(commit) ?? false,
-      catScreenPos: () => engineRef.current?.catScreenPos() ?? null,
-    };
-    cbRef.current.onReady(api);
-    if (hostRef.current) (hostRef.current as StageHost).__stage = api;
+      try {
+        engine = new Engine({
+          canvas,
+          scene: cbRef.current.scene,
+          species: speciesOf(cbRef.current.pet),
+          palette: paletteFor(cbRef.current.pet),
+          reduced: cbRef.current.reduced,
+          callbacks: {
+            onPet: () => cbRef.current.onPet(),
+            onPoke: () => cbRef.current.onPoke(),
+            onFeed: () => cbRef.current.onFeed(),
+            onMeow: () => cbRef.current.onMeow(),
+            onPurrStart: () => cbRef.current.onPurrStart(),
+            onPurrEnd: () => cbRef.current.onPurrEnd(),
+            onGift: (p) => cbRef.current.onGift(p),
+            onHover: (over) => setGrabbing(over),
+          },
+        });
+      } catch {
+        // Context creation can still fail on a blocklisted driver.
+        setSupported(false);
+        return;
+      }
 
-    const ro = new ResizeObserver(() => engine.resize());
-    if (hostRef.current) ro.observe(hostRef.current);
+      engineRef.current = engine;
+      // Read from `cbRef`, not from the props captured when the effect ran:
+      // the scene, the pet or the timer may all have changed while the chunk
+      // was in flight, and the per-prop effects below no-opped because there
+      // was no engine yet to tell.
+      engine.setIntent(cbRef.current.petState);
+      engine.setMood(cbRef.current.mood);
+      // Seed the sky before the first frame, so there is no flash of midday
+      // lighting on a night visit.
+      const w = $world.get();
+      engine.setDaylight(w.fraction, w.weather);
+      engine.start();
 
-    // Pause the loop when the tab is hidden — a background pomodoro tab should
-    // not be burning GPU for 25 minutes.
-    const onVisibility = () => {
-      if (document.hidden) engine.stop();
-      else engine.start();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
+      const api: StageApi = {
+        deliverGift: () => engineRef.current?.deliverGift(),
+        beginDrag: (s) => engineRef.current?.beginDrag(s),
+        moveDrag: (x, y) => engineRef.current?.moveDrag(x, y),
+        endDrag: (commit) => engineRef.current?.endDrag(commit) ?? false,
+        catScreenPos: () => engineRef.current?.catScreenPos() ?? null,
+      };
+      cbRef.current.onReady(api);
+      if (hostRef.current) (hostRef.current as StageHost).__stage = api;
+
+      ro = new ResizeObserver(() => engine?.resize());
+      if (hostRef.current) ro.observe(hostRef.current);
+
+      // Pause the loop when the tab is hidden — a background pomodoro tab should
+      // not be burning GPU for 25 minutes.
+      onVisibility = () => {
+        if (document.hidden) engine?.stop();
+        else engine?.start();
+      };
+      document.addEventListener('visibilitychange', onVisibility);
+
+      setLive(true);
+    })();
 
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
-      ro.disconnect();
+      cancelled = true;
+      if (onVisibility) document.removeEventListener('visibilitychange', onVisibility);
+      ro?.disconnect();
       if (hostRef.current) delete (hostRef.current as StageHost).__stage;
       cbRef.current.onReady(null);
       engineRef.current = null;
-      engine.dispose();
+      engine?.dispose();
     };
   }, []);
 
@@ -190,7 +223,12 @@ export default function Stage3D(props: Stage3DProps) {
       data-scene={props.scene}
       data-pet-state={props.petState}
       data-reduced={String(props.reduced)}
-      data-webgl={supported === true ? 'true' : 'pending'}
+      /* `true` means the 3D stage is actually running, not merely that the
+         browser could run one. The engine now arrives asynchronously, and a
+         flag that went true before it did would be a promise the DOM cannot
+         keep — for a screen reader, for a test, or for anything else reading
+         it to decide whether the world is there. */
+      data-webgl={live ? 'true' : 'pending'}
       data-phase={world.phase}
       data-weather={world.weather.condition}
     >

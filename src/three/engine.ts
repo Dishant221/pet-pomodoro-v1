@@ -1277,11 +1277,5 @@ export class Engine {
 }
 
 /** True when the browser can actually give us a WebGL context. */
-export function webglAvailable(): boolean {
-  try {
-    const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch {
-    return false;
-  }
-}
+// `webglAvailable` used to live here. It moved to `webgl.ts`, because asking
+// whether the browser can do 3D must not require downloading the 3D engine.

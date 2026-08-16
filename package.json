@@ -15,6 +15,7 @@
     "db:remote": "wrangler d1 execute petpomo --remote --file=worker/schema.sql",
     "db:preview": "wrangler d1 execute petpomo-preview --remote --file=worker/schema.sql",
     "dev:full": "astro build && wrangler pages dev dist",
+    "budget": "node scripts/budget.mjs",
     "test:e2e": "node tests/acceptance.mjs",
     "test:sync": "node tests/sync.mjs",
     "og": "node scripts/make-og.mjs",
