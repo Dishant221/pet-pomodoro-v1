@@ -4,7 +4,7 @@ Two Playwright scripts that drive the real app in Edge with real pointer input.
 They assert behaviour, not implementation — the pet's state is read from the
 stage's `aria-label`, which is also what a screen reader announces.
 
-## `acceptance.mjs` — 73 checks
+## `acceptance.mjs` — 81 checks
 
 ```bash
 npm run build

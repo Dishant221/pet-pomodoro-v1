@@ -46,6 +46,14 @@ export interface PetPalette {
   marking: string;
   markingDark: string;
   belly: string;
+  /**
+   * The muzzle, when the species wears a pale one.
+   *
+   * Separate from `belly` because they only look like the same colour on a
+   * white cat. A cow wants a pink muzzle and a cream underside, and sharing one
+   * value gave it a pink stomach.
+   */
+  muzzle?: string;
   eye: string;
   nose: string;
   line: string;
@@ -228,6 +236,7 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
   const matBelly = toon(palette.belly, { steps: 3 });
   const matMark = toon(palette.marking, { steps: 3 });
   const matMarkDark = toon(palette.markingDark, { steps: 3 });
+  const matMuzzle = toon(palette.muzzle ?? palette.belly, { steps: 3 });
   const matNose = toon(palette.nose, { steps: 2 });
   const matIris = flat(palette.eye);
   const matDark = flat('#241f33');
@@ -329,8 +338,19 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
   head.position.set(0, 0.055 + H.neck * 0.9, 0.045 + H.neck * 0.5);
   neck.add(head);
 
+  /**
+   * Facial features scale with the skull, not with the world.
+   *
+   * Everything on the face below was authored against the cat's 0.128 head, in
+   * absolute units. That is invisible until a species has a smaller head: the
+   * horse's eyes stayed the same size while its skull shrank by a fifth, and it
+   * came out looking like an alpaca. The bear, whose head is almost exactly the
+   * cat's, looked right — which is how the cause was found.
+   */
+  const hk = H.radius / 0.128;
+
   const skull = part(new THREE.SphereGeometry(H.radius, 20, 16), matCoat);
-  skull.scale.set(1, H.squash, 0.92);
+  skull.scale.set(H.narrow, H.squash, 0.92);
   head.add(skull);
 
   // Cheek floof — two spheres that widen the face into the anime shape. A long
@@ -343,14 +363,37 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
     }
   }
 
-  const muzzle = part(new THREE.SphereGeometry(H.radius * H.muzzleR, 14, 12), H.muzzleLight ? matBelly : matCoat, 0.7);
-  muzzle.position.set(0, -H.muzzleDrop, H.muzzle);
-  muzzle.scale.set(H.muzzleWide, 0.8, 0.85 + H.muzzle * 3.2);
-  head.add(muzzle);
+  /**
+   * The muzzle, as a snout growing out of the skull rather than a ball in front
+   * of it.
+   *
+   * A sphere placed at the muzzle distance works while that distance is inside
+   * the skull — a cat's nose pad. Push it out to a horse's length and it
+   * detaches: a pale ball hovering a centimetre off the face, which is exactly
+   * how the horse looked. A capsule spanning from inside the skull to the tip
+   * stays connected at any length.
+   *
+   * `snout` is how much of that length is *beyond* the skull, so a short-faced
+   * animal gets a capsule with almost no barrel and is a sphere again. The cat's
+   * comes out at 0.009 — visually the shape it always had.
+   */
+  const snout = Math.max(0, H.muzzle - H.radius * 0.62);
+  const muzzlePivot = new THREE.Group();
+  muzzlePivot.position.set(0, -H.muzzleDrop, H.radius * 0.62 + snout / 2);
+  muzzlePivot.scale.set(H.muzzleWide, 0.82, 1);
+  head.add(muzzlePivot);
 
-  const nose = part(new THREE.ConeGeometry(0.019, 0.02, 3), matNose, 0.5);
+  const muzzle = part(
+    new THREE.CapsuleGeometry(H.radius * H.muzzleR, snout, 6, 14),
+    H.muzzleLight ? matMuzzle : matCoat,
+    0.7,
+  );
+  muzzle.rotation.x = Math.PI / 2; // capsules run along Y; lay it along Z
+  muzzlePivot.add(muzzle);
+
+  const nose = part(new THREE.ConeGeometry(0.019 * hk, 0.02 * hk, 3), matNose, 0.5);
   nose.rotation.set(Math.PI / 2, 0, Math.PI);
-  nose.position.set(0, -H.muzzleDrop + 0.02, H.muzzle + H.radius * 0.32);
+  nose.position.set(0, -H.muzzleDrop + 0.02 * hk, H.muzzle + H.radius * 0.32);
   head.add(nose);
 
   // A head patch in the marking colour, so shop skins read at a glance.
@@ -363,8 +406,10 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
   // --- headgear ------------------------------------------------------------
   if (S.features.headgear !== 'none') {
     for (const sx of [-1, 1]) {
+      // Mounted on the crown, not inside it: the first pass put the base below
+      // the top of the skull and the horns were swallowed by the head patch.
       const mount = new THREE.Group();
-      mount.position.set(sx * H.radius * 0.5, H.radius * 0.72, -0.01);
+      mount.position.set(sx * H.radius * 0.42 * H.narrow, H.radius * H.squash * 0.88, -0.012);
       head.add(mount);
 
       if (S.features.headgear === 'horns') {
@@ -373,27 +418,27 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
         let parent: THREE.Object3D = mount;
         for (let i = 0; i < 3; i++) {
           const seg = new THREE.Group();
-          seg.position.y = i === 0 ? 0 : 0.032;
+          seg.position.y = i === 0 ? 0 : 0.032 * hk;
           seg.rotation.z = sx * (i === 0 ? 0.5 : 0.34);
           parent.add(seg);
-          const geo = new THREE.ConeGeometry(0.019 - i * 0.005, 0.038, 6);
+          const geo = new THREE.ConeGeometry((0.019 - i * 0.005) * hk, 0.038 * hk, 6);
           const mesh = part(geo, matMarkDark, 0.5);
-          mesh.position.y = 0.019;
+          mesh.position.y = 0.019 * hk;
           seg.add(mesh);
           parent = seg;
         }
       } else {
         // Antlers: a beam with two tines, which is enough to read as a deer.
-        const beam = part(new THREE.CylinderGeometry(0.008, 0.011, 0.11, 6), matMarkDark, 0.5);
-        beam.position.y = 0.055;
+        const beam = part(new THREE.CylinderGeometry(0.008 * hk, 0.011 * hk, 0.11 * hk, 6), matMarkDark, 0.5);
+        beam.position.y = 0.055 * hk;
         beam.rotation.z = sx * 0.32;
         mount.add(beam);
         for (const [ty, tr] of [
           [0.05, 0.8],
           [0.09, 0.6],
         ] as const) {
-          const tine = part(new THREE.CylinderGeometry(0.005, 0.007, 0.05, 5), matMarkDark, 0.4);
-          tine.position.set(sx * 0.026, ty, 0);
+          const tine = part(new THREE.CylinderGeometry(0.005 * hk, 0.007 * hk, 0.05 * hk, 5), matMarkDark, 0.4);
+          tine.position.set(sx * 0.026 * hk, ty * hk, 0);
           tine.rotation.z = sx * tr;
           mount.add(tine);
         }
@@ -417,7 +462,8 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
     head.add(ear);
     ears.push(ear);
 
-    const k = S.ears.size;
+    // Ears scale with the skull too, for the same reason the eyes do.
+    const k = S.ears.size * hk;
     switch (S.ears.shape) {
       case 'droop': {
         // Hanging flaps, mounted at the side of the head and falling past the
@@ -447,13 +493,15 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
         break;
       }
       case 'tall': {
-        const shell = part(new THREE.ConeGeometry(0.036 * k, 0.17 * k, 5), matCoat, 0.8);
-        shell.position.y = 0.082 * k;
-        shell.scale.z = 0.62;
+        const shell = part(new THREE.ConeGeometry(0.042 * k, 0.16 * k, 5), matCoat, 0.8);
+        shell.position.y = 0.078 * k;
+        shell.scale.z = 0.6;
         ear.add(shell);
-        const inner = part(new THREE.ConeGeometry(0.022 * k, 0.12 * k, 5), matMark, 0);
-        inner.position.set(0, 0.076 * k, 0.014);
-        inner.scale.z = 0.5;
+        // Kept small and pushed forward: a full-height dark inner cone swamped
+        // the coat-coloured shell and the ears read as a pair of horns.
+        const inner = part(new THREE.ConeGeometry(0.019 * k, 0.085 * k, 5), matMark, 0);
+        inner.position.set(0, 0.056 * k, 0.016 * k);
+        inner.scale.z = 0.45;
         inner.castShadow = false;
         ear.add(inner);
         break;
@@ -474,11 +522,24 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
 
   // --- eyes ----------------------------------------------------------------
   const eyes: Eye[] = [];
-  const eyeK = H.eye;
+  const eyeK = H.eye * hk;
   for (const sx of [-1, 1]) {
     const group = new THREE.Group();
-    group.position.set(sx * 0.058 * H.eyeSplay, 0.012, 0.093 - (H.eyeSplay - 1) * 0.06);
-    group.rotation.y = sx * 0.22 * H.eyeSplay;
+    /**
+     * Lateral eyes are a rotation, not an offset.
+     *
+     * Sliding a forward-facing eye sideways gives you a forward-facing eye in
+     * the wrong place. A prey animal's eye sits on the *side* of the skull
+     * looking outward, so the whole group swings round and back along the
+     * muzzle as `eyeSplay` rises. At 1 these expressions reduce exactly to the
+     * cat's original numbers, which is what keeps it the control.
+     */
+    group.position.set(
+      sx * H.radius * 0.45 * H.eyeSplay,
+      0.012 * hk,
+      H.radius * 0.73 - (H.eyeSplay - 1) * H.radius * 1.1,
+    );
+    group.rotation.y = sx * (0.22 + (H.eyeSplay - 1) * 1.6);
     head.add(group);
 
     const open = new THREE.Group();
@@ -500,18 +561,18 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
     open.add(pupil);
 
     const glint = new THREE.Mesh(keep(new THREE.SphereGeometry(0.013 * eyeK, 8, 8)), matWhite);
-    glint.position.set(sx * -0.012, 0.018, 0.033);
+    glint.position.set(sx * -0.012 * eyeK, 0.018 * eyeK, 0.033 * eyeK);
     glint.scale.z = 0.5;
     open.add(glint);
 
     const glint2 = new THREE.Mesh(keep(new THREE.SphereGeometry(0.0065 * eyeK, 8, 8)), matWhite);
-    glint2.position.set(sx * 0.014, -0.016, 0.031);
+    glint2.position.set(sx * 0.014 * eyeK, -0.016 * eyeK, 0.031 * eyeK);
     glint2.scale.z = 0.5;
     open.add(glint2);
 
     // The `⌒` closed eye — the anime shorthand for content or asleep.
-    const closed = new THREE.Mesh(keep(new THREE.TorusGeometry(0.036 * eyeK, 0.0075, 5, 12, Math.PI)), matLine);
-    closed.position.z = 0.03;
+    const closed = new THREE.Mesh(keep(new THREE.TorusGeometry(0.036 * eyeK, 0.0075 * hk, 5, 12, Math.PI)), matLine);
+    closed.position.z = 0.03 * eyeK;
     closed.visible = false;
     group.add(closed);
 
@@ -527,14 +588,14 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
   head.add(mouthClosed);
   for (const sx of [-1, 1]) {
     // Two mirrored arcs make the classic `ω` mouth.
-    const arc = new THREE.Mesh(keep(new THREE.TorusGeometry(0.016, 0.005, 5, 10, Math.PI)), matLine);
-    arc.position.x = sx * 0.016;
+    const arc = new THREE.Mesh(keep(new THREE.TorusGeometry(0.016 * hk, 0.005 * hk, 5, 10, Math.PI)), matLine);
+    arc.position.x = sx * 0.016 * hk;
     arc.rotation.z = Math.PI;
     mouthClosed.add(arc);
   }
 
-  const mouthOpen = new THREE.Mesh(keep(new THREE.SphereGeometry(0.03, 12, 10)), matDark);
-  mouthOpen.position.set(0, mouthY - 0.006, mouthZ - 0.01);
+  const mouthOpen = new THREE.Mesh(keep(new THREE.SphereGeometry(0.03 * hk, 12, 10)), matDark);
+  mouthOpen.position.set(0, mouthY - 0.006 * hk, mouthZ - 0.01 * hk);
   mouthOpen.scale.set(0.9, 0.1, 0.5);
   head.add(mouthOpen);
 
@@ -544,10 +605,10 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
     const whiskerPts: number[] = [];
     for (const sx of [-1, 1]) {
       for (let i = 0; i < 3; i++) {
-        const y = -0.028 + i * 0.017;
-        const spread = 0.16 + i * 0.012;
-        const droop = 0.02 - i * 0.018;
-        whiskerPts.push(sx * 0.045, y, 0.1, sx * spread, y + droop, 0.055);
+        const y = (-0.028 + i * 0.017) * hk;
+        const spread = (0.16 + i * 0.012) * hk;
+        const droop = (0.02 - i * 0.018) * hk;
+        whiskerPts.push(sx * 0.045 * hk, y, 0.1 * hk, sx * spread, y + droop, 0.055 * hk);
       }
     }
     const whiskerGeo = keep(new THREE.BufferGeometry());
@@ -728,6 +789,7 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
     matCoat.color.set(next.coat);
     matShade.color.set(next.coatShade);
     matBelly.color.set(next.belly);
+    matMuzzle.color.set(next.muzzle ?? next.belly);
     matMark.color.set(next.marking);
     matMarkDark.color.set(next.markingDark);
     matNose.color.set(next.nose);
@@ -744,7 +806,7 @@ export function buildAnimal(speciesId: SpeciesId = 'cat', palette: PetPalette = 
 
   const dispose = (): void => {
     owned.forEach((g) => g.dispose());
-    [matCoat, matShade, matBelly, matMark, matMarkDark, matNose, matIris, matDark, matWhite, matLine].forEach((m) =>
+    [matCoat, matShade, matBelly, matMuzzle, matMark, matMarkDark, matNose, matIris, matDark, matWhite, matLine].forEach((m) =>
       m.dispose(),
     );
     if (whiskers) (whiskers.material as THREE.Material).dispose();

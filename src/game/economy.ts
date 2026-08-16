@@ -2,7 +2,20 @@ import type { SceneId } from './manifest';
 import type { SpeciesId } from '../three/species';
 
 export type ThemeId = 'playful' | 'ghibli' | 'anime' | 'vangogh';
-export type PetSkinId = 'mochi' | 'shadow' | 'cloud' | 'inky' | 'biscuit' | 'pepper';
+export type PetSkinId =
+  | 'mochi'
+  | 'shadow'
+  | 'cloud'
+  | 'inky'
+  | 'biscuit'
+  | 'pepper'
+  | 'pip'
+  | 'clover'
+  | 'juniper'
+  | 'marigold'
+  | 'winter'
+  | 'birch'
+  | 'barley';
 export type SnackId = 'fish' | 'cookie' | 'milk' | 'sushi';
 
 export interface ShopItem {
@@ -97,6 +110,62 @@ export const PET_ITEMS: PetSkin[] = [
     price: 460,
     species: 'dog',
     colors: { fur: '#7f8794', furDark: '#5f6773', belly: '#e6eaf0', line: '#2f343d' },
+  },
+  {
+    id: 'pip',
+    name: 'Pip',
+    blurb: 'A puppy. All head and no patience.',
+    price: 300,
+    species: 'puppy',
+    colors: { fur: '#e6c08a', furDark: '#c69c62', belly: '#faeed8', line: '#4a3728' },
+  },
+  {
+    id: 'clover',
+    name: 'Clover',
+    blurb: 'A sheep in a very good coat. Unhurried.',
+    price: 540,
+    species: 'sheep',
+    colors: { fur: '#f2efe6', furDark: '#d6d1c2', belly: '#fbfaf5', line: '#3c3a33' },
+  },
+  {
+    id: 'juniper',
+    name: 'Juniper',
+    blurb: 'A deer. Antlers, long legs, ready to bolt.',
+    price: 680,
+    species: 'deer',
+    colors: { fur: '#c08a5a', furDark: '#9c6a41', belly: '#f0dcc4', line: '#4a3324' },
+  },
+  {
+    id: 'marigold',
+    name: 'Marigold',
+    blurb: 'A cow. Horns, a broad wet nose, and all the time in the world.',
+    price: 760,
+    species: 'cow',
+    colors: { fur: '#f4efe8', furDark: '#3f3a36', belly: '#fffdf8', line: '#332e2a' },
+  },
+  {
+    id: 'winter',
+    name: 'Winter',
+    blurb: 'A horse. Long neck, longer legs, a mane that catches the light.',
+    price: 900,
+    species: 'horse',
+    colors: { fur: '#d9d3cb', furDark: '#8d8378', belly: '#f2eee8', line: '#3a352f' },
+  },
+  {
+    id: 'birch',
+    name: 'Birch',
+    blurb: 'A donkey. Enormous ears, and opinions about the timer.',
+    price: 820,
+    species: 'donkey',
+    colors: { fur: '#a8a29a', furDark: '#7a746c', belly: '#e4e0da', line: '#38342f' },
+  },
+  {
+    id: 'barley',
+    name: 'Barley',
+    blurb: 'A bear. Slow, round, and surprisingly good company.',
+    price: 1100,
+    species: 'bear',
+    colors: { fur: '#8a6244', furDark: '#63452f', belly: '#c9a884', line: '#2e2119' },
   },
 ];
 

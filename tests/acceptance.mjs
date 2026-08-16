@@ -350,7 +350,24 @@ for (const id of ['livingroom', 'garden', 'jungle', 'treehouse', 'mountain', 'sn
 // have to survive being equipped, because a species change tears the animal
 // down and rebuilds it while the world and the camera stay put — the one
 // operation where "it still renders" is a real question rather than a given.
-const ALL_PETS = ['mochi', 'shadow', 'cloud', 'inky', 'biscuit', 'pepper'];
+// Every character, deliberately — each species exercises a different corner of
+// the rig (hooves, horns, antlers, fleece, a hanging ear, a long snout), and a
+// species that fails to build is a blank stage rather than a subtle glitch.
+const ALL_PETS = [
+  'mochi',
+  'shadow',
+  'cloud',
+  'inky',
+  'biscuit',
+  'pepper',
+  'pip',
+  'clover',
+  'juniper',
+  'marigold',
+  'winter',
+  'birch',
+  'barley',
+];
 for (const pet of ALL_PETS) {
   await seedSave(page, `s.owned.pets = ${JSON.stringify(ALL_PETS)}; s.equipped.pet = '${pet}';`);
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
@@ -360,6 +377,12 @@ for (const pet of ALL_PETS) {
 
 // The stage announces what animal it is showing, so that label is also the
 // cheapest honest check that a dog is actually a dog and not a recoloured cat.
+const lastLabel = await page.getAttribute('.pp-stage canvas', 'aria-label');
+check('the stage names the species it is showing', /\bbear is\b/.test(lastLabel ?? ''), lastLabel?.slice(0, 90));
+
+await seedSave(page, `s.owned.pets = ${JSON.stringify(ALL_PETS)}; s.equipped.pet = 'biscuit';`);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
 const dogLabel = await page.getAttribute('.pp-stage canvas', 'aria-label');
 check('equipping a dog builds a dog, not a repainted cat', /\bdog is\b/.test(dogLabel ?? ''), dogLabel?.slice(0, 90));
 

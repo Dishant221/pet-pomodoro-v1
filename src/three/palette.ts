@@ -75,6 +75,84 @@ export const PET_PALETTES: Record<PetSkinId, PetPalette> = {
     nose: '#3a3f47',
     line: '#2f343d',
   },
+  pip: {
+    coat: '#e6c08a',
+    coatShade: '#c69c62',
+    marking: '#b98a52',
+    markingDark: '#96693b',
+    belly: '#faeed8',
+    eye: '#5a3f26',
+    nose: '#42352c',
+    line: '#4a3728',
+  },
+  clover: {
+    // `marking` is the face and legs on a sheep, not a paw pad: the fleece is
+    // the coat colour and everything sticking out of it is the dark tone.
+    coat: '#f4f1e9',
+    coatShade: '#d8d3c4',
+    marking: '#4a453d',
+    markingDark: '#332f29',
+    belly: '#fbfaf5',
+    eye: '#3a352e',
+    nose: '#453f38',
+    line: '#3c3a33',
+  },
+  juniper: {
+    coat: '#c08a5a',
+    coatShade: '#9c6a41',
+    // The antlers wear `markingDark`, so it has to be bone rather than a tint.
+    marking: '#f0dcc4',
+    markingDark: '#8f7a5e',
+    belly: '#f0dcc4',
+    eye: '#2e2018',
+    nose: '#3a2a20',
+    line: '#4a3324',
+  },
+  marigold: {
+    coat: '#f4efe8',
+    coatShade: '#ded7cd',
+    marking: '#3f3a36',
+    // Horns, hooves and tail tuft all take this, so it is horn-coloured.
+    markingDark: '#a89880',
+    belly: '#efe7dc',
+    // The one place a cow is pink, and the reason `muzzle` is its own value.
+    muzzle: '#f0b6ad',
+    eye: '#2f2a26',
+    nose: '#d99a90',
+    line: '#332e2a',
+  },
+  winter: {
+    coat: '#d9d3cb',
+    coatShade: '#b3aca2',
+    marking: '#6e6459',
+    // The mane and the hooves share this one, which is why it is a dark grey
+    // rather than anything with a hue in it.
+    markingDark: '#4e463d',
+    belly: '#f2eee8',
+    eye: '#33302b',
+    nose: '#4a423a',
+    line: '#3a352f',
+  },
+  birch: {
+    coat: '#a8a29a',
+    coatShade: '#837d75',
+    marking: '#e4e0da',
+    markingDark: '#4c463f',
+    belly: '#e4e0da',
+    eye: '#2f2b27',
+    nose: '#403a34',
+    line: '#38342f',
+  },
+  barley: {
+    coat: '#8a6244',
+    coatShade: '#63452f',
+    marking: '#c9a884',
+    markingDark: '#4a3323',
+    belly: '#c9a884',
+    eye: '#241a12',
+    nose: '#2e2119',
+    line: '#2e2119',
+  },
 };
 
 export function paletteFor(id: PetSkinId): PetPalette {

@@ -201,7 +201,7 @@ export class Engine {
     this.setupLights();
 
     this.pet = buildAnimal(opts.species ?? 'cat', opts.palette ?? DEFAULT_PALETTE);
-    this.pet.root.scale.setScalar(PET_SCALE);
+    this.pet.root.scale.setScalar(PET_SCALE * this.pet.species.scale);
     this.scene.add(this.pet.root);
 
     this.fx = createFx(this.reduced);
@@ -415,7 +415,7 @@ export class Engine {
     this.pet.dispose();
 
     this.pet = buildAnimal(species, p);
-    this.pet.root.scale.setScalar(PET_SCALE);
+    this.pet.root.scale.setScalar(PET_SCALE * this.pet.species.scale);
     this.pet.root.position.copy(at);
     this.pet.root.rotation.y = facing;
     this.scene.add(this.pet.root);
