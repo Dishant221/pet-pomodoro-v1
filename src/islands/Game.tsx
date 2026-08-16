@@ -6,6 +6,7 @@ import {
   $profile,
   addCoins,
   applyAppearance,
+  clamp,
   prefersReducedMotion,
   recordSession,
   updateSettings,
@@ -45,6 +46,9 @@ import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
 
 const LAST_SEEN_KEY = 'petpomo.lastSeen.v1';
+
+/** The docked edges and the floating card, as one thing CSS can switch on. */
+type HudLayout = 'top' | 'left' | 'float';
 
 export default function Game() {
   const profile = useStore($profile);
@@ -285,6 +289,90 @@ export default function Game() {
     if (!next) audio.unlock();
   };
 
+  // --- clock placement ------------------------------------------------------
+  //
+  // Two modes, three arrangements. Docked reserves its own strip of the layout
+  // along the top or the left edge, so it can never cover the cat. Floating
+  // lifts it out of the flow into a card the player drags wherever they want.
+  //
+  // The three share one markup tree and differ only in CSS. Writing them as
+  // three trees would mean every future control had to be added three times,
+  // and the two that were forgotten would be the ones nobody notices.
+  const layout: HudLayout = profile.settings.clockMode === 'float' ? 'float' : profile.settings.clockDock;
+  const floating = layout === 'float';
+
+  const fieldRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  /** Where inside the card the pointer grabbed it, so it doesn't jump on grab. */
+  const grabOffset = useRef({ x: 0, y: 0 });
+  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+
+  // While dragging, the live position is the source of truth for rendering.
+  // The store is written once on release: a re-render is triggered by the timer
+  // every second regardless, and reading a stale store mid-drag would snap the
+  // card back to where it started on the next tick.
+  const clockX = drag ? drag.x : profile.settings.clockX;
+  const clockY = drag ? drag.y : profile.settings.clockY;
+
+  /**
+   * Fraction of the travel, expressed so CSS does the measuring.
+   *
+   * `left: 40%` alone would place the card's left edge 40% across and let the
+   * rest of it hang off the right of a narrow window. Pairing it with an equal
+   * negative `translate` makes the pair interpolate between flush-left at 0 and
+   * flush-right at 1, whatever the card and the window happen to measure — the
+   * same reason the stored value is a fraction and not a pixel count.
+   */
+  const floatStyle = `left: ${clockX * 100}%; top: ${clockY * 100}%; transform: translate(${-clockX * 100}%, ${-clockY * 100}%)`;
+
+  /** Pointer position → fraction of the room the card has to move in. */
+  const toFraction = (clientX: number, clientY: number): { x: number; y: number } | null => {
+    const field = fieldRef.current?.getBoundingClientRect();
+    const card = cardRef.current?.getBoundingClientRect();
+    if (!field || !card) return null;
+    const roomX = Math.max(0, field.width - card.width);
+    const roomY = Math.max(0, field.height - card.height);
+    const left = clientX - field.left - grabOffset.current.x;
+    const top = clientY - field.top - grabOffset.current.y;
+    return {
+      x: roomX > 0 ? clamp(left / roomX, 0, 1) : 0,
+      y: roomY > 0 ? clamp(top / roomY, 0, 1) : 0,
+    };
+  };
+
+  const onGripDown = (e: PointerEvent) => {
+    const card = cardRef.current?.getBoundingClientRect();
+    if (!card) return;
+    e.preventDefault();
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    grabOffset.current = { x: e.clientX - card.left, y: e.clientY - card.top };
+    setDrag({ x: clockX, y: clockY });
+  };
+
+  const onGripMove = (e: PointerEvent) => {
+    if (!drag) return;
+    e.preventDefault();
+    const next = toFraction(e.clientX, e.clientY);
+    if (next) setDrag(next);
+  };
+
+  const onGripUp = (e: PointerEvent) => {
+    if (!drag) return;
+    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
+    updateSettings({ clockX: drag.x, clockY: drag.y });
+    setDrag(null);
+  };
+
+  /** Arrow keys move it too — a drag handle only a mouse can reach isn't one. */
+  const onGripKey = (e: KeyboardEvent) => {
+    const step = e.shiftKey ? 0.2 : 0.05;
+    const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+    const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+    if (!dx && !dy) return;
+    e.preventDefault();
+    updateSettings({ clockX: clamp(clockX + dx, 0, 1), clockY: clamp(clockY + dy, 0, 1) });
+  };
+
   // --- derived --------------------------------------------------------------
   const total = durationFor(timer.mode, profile.settings);
   const progress = total > 0 ? 1 - remaining / total : 0;
@@ -297,115 +385,149 @@ export default function Game() {
       ? 'Press start. Mochi will nap while you focus.'
       : 'Break time — stroke the cat, or drag a snack onto the floor.';
 
-  return (
-    <div class="flex h-[calc(100dvh-3.25rem)] w-full flex-col">
-      {/* --- command bar: every metric and control lives up here ------------ */}
-      <div class="pp-hud relative z-20 shrink-0">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 sm:gap-x-4 sm:px-5">
-          <div class="flex items-baseline gap-2">
-            <span class="pp-clock pp-tabular" aria-live={running ? 'off' : 'polite'}>
-              {formatClock(remaining)}
-            </span>
-            <span class="pp-hud-label hidden sm:inline">{MODE_LABEL[timer.mode]}</span>
-          </div>
+  const hud = (
+    <div
+      ref={cardRef}
+      class="pp-hud relative z-20 shrink-0"
+      data-layout={layout}
+      data-moving={drag ? 'true' : 'false'}
+      style={floating ? floatStyle : undefined}
+    >
+      {floating && (
+        <button
+          type="button"
+          class="pp-grip pp-focus-ring"
+          onPointerDown={onGripDown}
+          onPointerMove={onGripMove}
+          onPointerUp={onGripUp}
+          onPointerCancel={onGripUp}
+          onKeyDown={onGripKey}
+          aria-label="Move the clock. Drag it, or nudge it with the arrow keys."
+          title="Drag to move the clock"
+        >
+          <span aria-hidden="true">⠿</span>
+        </button>
+      )}
+      <div class="pp-hud-inner">
+        <div class="pp-hud-clock flex items-baseline gap-2">
+          <span class="pp-clock pp-tabular" aria-live={running ? 'off' : 'polite'}>
+            {formatClock(remaining)}
+          </span>
+          <span class="pp-hud-label hidden sm:inline">{MODE_LABEL[timer.mode]}</span>
+        </div>
 
-          <div class="pp-seg" role="group" aria-label="Timer mode">
-            {(['focus', 'short', 'long'] as TimerMode[]).map((m) => (
-              <button
-                type="button"
-                key={m}
-                onClick={() => switchMode(m)}
-                disabled={running}
-                aria-pressed={timer.mode === m}
-                class="pp-seg-btn pp-focus-ring"
-                data-active={timer.mode === m ? 'true' : 'false'}
-              >
-                {m === 'focus' ? 'Focus' : m === 'short' ? 'Short' : 'Long'}
-              </button>
-            ))}
-          </div>
-
-          <div class="flex items-center gap-1.5">
+        <div class="pp-seg" role="group" aria-label="Timer mode">
+          {(['focus', 'short', 'long'] as TimerMode[]).map((m) => (
             <button
               type="button"
-              onClick={handlePrimary}
-              class="pp-btn pp-btn-primary pp-focus-ring px-4 py-1.5 text-sm"
+              key={m}
+              onClick={() => switchMode(m)}
+              disabled={running}
+              aria-pressed={timer.mode === m}
+              class="pp-seg-btn pp-focus-ring"
+              data-active={timer.mode === m ? 'true' : 'false'}
             >
-              {running ? 'Pause' : timer.remainingMs < total ? 'Resume' : 'Start'}
+              {m === 'focus' ? 'Focus' : m === 'short' ? 'Short' : 'Long'}
             </button>
-            <button type="button" onClick={reset} class="pp-btn pp-focus-ring px-2.5 py-1.5 text-sm" title="Reset">
-              <span aria-hidden="true">↺</span>
-              <span class="sr-only">Reset timer</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmAbandon(true)}
-              disabled={timer.status === 'idle'}
-              class="pp-btn pp-focus-ring px-2.5 py-1.5 text-sm"
-              title="Give up on this session"
-            >
-              <span aria-hidden="true">✕</span>
-              <span class="sr-only">Abandon session</span>
-            </button>
-          </div>
+          ))}
+        </div>
 
-          <SessionDots done={timer.cycle} of={profile.settings.longEvery} />
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handlePrimary}
+            class="pp-btn pp-btn-primary pp-focus-ring px-4 py-1.5 text-sm"
+          >
+            {running ? 'Pause' : timer.remainingMs < total ? 'Resume' : 'Start'}
+          </button>
+          <button type="button" onClick={reset} class="pp-btn pp-focus-ring px-2.5 py-1.5 text-sm" title="Reset">
+            <span aria-hidden="true">↺</span>
+            <span class="sr-only">Reset timer</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmAbandon(true)}
+            disabled={timer.status === 'idle'}
+            class="pp-btn pp-focus-ring px-2.5 py-1.5 text-sm"
+            title="Give up on this session"
+          >
+            <span aria-hidden="true">✕</span>
+            <span class="sr-only">Abandon session</span>
+          </button>
+        </div>
 
-          <div class="ml-auto flex items-center gap-2 sm:gap-3">
-            <span class="pp-chip pp-tabular" title="Coins">
-              <span aria-hidden="true">🪙</span>
-              <span class="font-bold">{profile.coins}</span>
-            </span>
+        {/* Readouts, not controls. The floating card drops them to stay a
+            clock rather than a dashboard parked on top of the cat — both are
+            still on /stats, and neither is the only way to do anything. */}
+        {!floating && <SessionDots done={timer.cycle} of={profile.settings.longEvery} />}
 
+        <div class="pp-hud-cluster ml-auto flex items-center gap-2 sm:gap-3">
+          <span class="pp-chip pp-tabular" title="Coins">
+            <span aria-hidden="true">🪙</span>
+            <span class="font-bold">{profile.coins}</span>
+          </span>
+
+          {!floating && (
             <span class="flex items-center gap-2.5">
               <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
               <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
             </span>
+          )}
 
-            <button
-              type="button"
-              class="pp-chip pp-snack pp-focus-ring"
-              data-dragging={dragging ? 'true' : 'false'}
-              disabled={!snackEnabled}
-              onPointerDown={onSnackDown}
-              onPointerMove={onSnackMove}
-              onPointerUp={onSnackUp}
-              onPointerCancel={onSnackUp}
-              onKeyDown={(e: KeyboardEvent) => {
-                if (!snackEnabled) return;
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleFeed();
-                }
-              }}
-              title={snackEnabled ? `Drag ${snack.name} onto the floor to feed Mochi` : 'Feeding waits for the break'}
-            >
-              <span aria-hidden="true" class="text-base leading-none">
-                {snack.glyph}
-              </span>
-              <span class="hidden text-xs font-semibold sm:inline">Drag to feed</span>
-            </button>
+          <button
+            type="button"
+            class="pp-chip pp-snack pp-focus-ring"
+            data-dragging={dragging ? 'true' : 'false'}
+            disabled={!snackEnabled}
+            onPointerDown={onSnackDown}
+            onPointerMove={onSnackMove}
+            onPointerUp={onSnackUp}
+            onPointerCancel={onSnackUp}
+            onKeyDown={(e: KeyboardEvent) => {
+              if (!snackEnabled) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleFeed();
+              }
+            }}
+            title={snackEnabled ? `Drag ${snack.name} onto the floor to feed Mochi` : 'Feeding waits for the break'}
+          >
+            <span aria-hidden="true" class="text-base leading-none">
+              {snack.glyph}
+            </span>
+            <span class="hidden text-xs font-semibold sm:inline">Drag to feed</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={toggleMute}
-              class="pp-chip pp-focus-ring"
-              aria-pressed={!profile.settings.muted}
-              title={profile.settings.muted ? 'Unmute' : 'Mute'}
-            >
-              <span aria-hidden="true">{profile.settings.muted ? '🔇' : '🔊'}</span>
-              <span class="sr-only">{profile.settings.muted ? 'Unmute audio' : 'Mute audio'}</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="pp-progress" role="presentation">
-          <span style={`transform: scaleX(${Math.min(1, Math.max(0, progress))})`} />
+          <button
+            type="button"
+            onClick={toggleMute}
+            class="pp-chip pp-focus-ring"
+            aria-pressed={!profile.settings.muted}
+            title={profile.settings.muted ? 'Unmute' : 'Mute'}
+          >
+            <span aria-hidden="true">{profile.settings.muted ? '🔇' : '🔊'}</span>
+            <span class="sr-only">{profile.settings.muted ? 'Unmute audio' : 'Mute audio'}</span>
+          </button>
         </div>
       </div>
 
+      <div class="pp-progress" role="presentation">
+        <span style={`transform: scaleX(${Math.min(1, Math.max(0, progress))})`} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      class={`flex h-[calc(100dvh-3.25rem)] w-full ${layout === 'left' ? 'flex-col sm:flex-row' : 'flex-col'}`}
+    >
+      {/* Docked: the bar owns a strip of the layout, so the stage is whatever
+          is left and the two can never overlap. Floating: it goes inside the
+          stage below, absolutely positioned over the world. */}
+      {!floating && hud}
+
       {/* --- the world ------------------------------------------------------ */}
-      <div class="relative min-h-0 flex-1">
+      <div class="relative min-h-0 flex-1" ref={fieldRef}>
         <Stage3D
           scene={profile.equipped.scene}
           pet={profile.equipped.pet}
@@ -440,7 +562,16 @@ export default function Game() {
           }
         />
 
-        <div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center gap-2 p-3">
+        {floating && hud}
+
+        {/* Toasts move out from under the floating clock, which starts at the
+            top of the stage — two things fading in and out over each other in
+            the same place is worse than either one alone. */}
+        <div
+          class={`pointer-events-none absolute inset-x-0 flex flex-col items-center gap-2 p-3 ${
+            floating ? 'bottom-0' : 'top-0'
+          }`}
+        >
           {toast && (
             <div class="pp-toast" role="status" aria-live="polite">
               {toast}

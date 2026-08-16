@@ -19,6 +19,29 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let expect429 = false;
 const isExpected = (text) => expect429 && /Failed to load resource/.test(text) && /429/.test(text);
 
+/**
+ * Wait for the settings status line to say something matching `re`, and return
+ * whatever it ended up saying.
+ *
+ * The element is long-lived — it holds the last thing the panel said, for a few
+ * seconds after it said it — so waiting for it to *exist* proves nothing beyond
+ * the first message, and a fixed sleep either reads the previous message or
+ * waits longer than the thing being timed. Polling the text is what actually
+ * ties an assertion to the click that caused it.
+ */
+async function waitForStatus(page, re, timeout = 4000) {
+  await page
+    .waitForFunction(
+      (src) => new RegExp(src).test(document.querySelector('[role="status"]')?.innerText ?? ''),
+      re.source,
+      { timeout, polling: 50 },
+    )
+    .catch(() => {
+      /* fall through — the caller reports whatever it actually said */
+    });
+  return page.locator('[role="status"]').innerText();
+}
+
 const browser = await chromium.launch({ channel: 'msedge' });
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
@@ -47,9 +70,7 @@ const code = await page.evaluate(() => localStorage.getItem('petpomo.syncCode.v1
 check('generate produces a sync code', !!code && code.length >= 16, code);
 
 await page.getByRole('button', { name: 'Upload' }).click();
-await page.waitForSelector('[role="status"]', { timeout: 10000 });
-await sleep(600);
-const upMsg = await page.locator('[role="status"]').innerText();
+const upMsg = await waitForStatus(page, /Uploaded|Upload failed/, 10000);
 check('upload succeeds', upMsg.includes('Uploaded'), upMsg);
 
 // A refusal has to arrive as a reason, not a number.
@@ -61,10 +82,15 @@ check('upload succeeds', upMsg.includes('Uploaded'), upMsg);
 // flattened into "server said 429", which tells the player nothing they can
 // act on. Clicking Upload straight after the last one trips the per-code write
 // interval, which is the cheapest refusal to provoke.
+//
+// Both waits here are polls rather than sleeps, and that is the whole trick.
+// The refusal only happens if the second click lands inside the server's
+// one-second window, so any fixed sleep has to be long enough for the response
+// to arrive and short enough to stay inside that window — a gap that closes on
+// a slow machine and takes the test with it.
 expect429 = true;
 await page.getByRole('button', { name: 'Upload' }).click();
-await sleep(600);
-const rateMsg = await page.locator('[role="status"]').innerText();
+const rateMsg = await waitForStatus(page, /too many/);
 check(
   'a rate-limited upload explains itself',
   rateMsg.includes('too many writes') && !rateMsg.includes('429'),
@@ -104,8 +130,7 @@ check('second device pulls the same save', onB === 4242, `coins=${onB}`);
 await page2.evaluate(() => localStorage.setItem('petpomo.syncCode.v1', 'wrongcodewrongcodewrong1'));
 await page2.reload({ waitUntil: 'networkidle' });
 await page2.getByRole('button', { name: 'Download' }).click();
-await sleep(1200);
-const msg2 = await page2.locator('[role="status"]').innerText();
+const msg2 = await waitForStatus(page2, /Download/);
 check('unknown code returns a clean miss', msg2.includes('nothing saved'), msg2);
 
 check('zero console errors', errs.length === 0, errs.slice(0, 4).join(' | '));

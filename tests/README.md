@@ -4,7 +4,7 @@ Two Playwright scripts that drive the real app in Edge with real pointer input.
 They assert behaviour, not implementation — the pet's state is read from the
 stage's `aria-label`, which is also what a screen reader announces.
 
-## `acceptance.mjs` — 54 checks
+## `acceptance.mjs` — 67 checks
 
 ```bash
 npm run build
@@ -32,8 +32,11 @@ sad); a full pomodoro including a mid-session refresh with the absolute end
 timestamp preserved; drag-feed; stroke-to-pet with hearts; coins → shop → equip
 → reload; all 4 scenes and 4 themes switching live; the living room following
 the real clock; settings applying instantly; reduced motion actually killing
-parallax (and parallax actually moving when it's allowed); export; offline load
-via the service worker; and a zero-console-error assertion.
+parallax (and parallax actually moving when it's allowed); all three clock
+placements including dragging the floating one and finding it in the same place
+after a reload *and* a resize; a hostile save being normalised rather than
+obeyed; export; offline load via the service worker; and a zero-console-error
+assertion.
 
 Three things worth knowing if you edit it:
 
@@ -49,7 +52,7 @@ Three things worth knowing if you edit it:
   session against a threshold of 70, so reaching `begging` "naturally" takes
   three sessions. Seed `vitals.hunger` instead.
 
-## `sync.mjs` — 9 checks
+## `sync.mjs` — 10 checks
 
 Needs the API, which only exists as a Pages Function:
 
@@ -61,5 +64,13 @@ npm run test:sync
 
 Covers the full round trip: generate code → upload → wipe the device → download
 → everything restored and the theme reapplied; a second browser context pulling
-the same save with the same code; and an unknown code returning a clean miss
-rather than leaking anything.
+the same save with the same code; a refusal arriving as a sentence rather than
+a status code; and an unknown code returning a clean miss rather than leaking
+anything.
+
+**Wait on the status text, never on a sleep.** `[role="status"]` is long-lived —
+it holds the last thing the panel said — so waiting for the element to exist
+proves nothing after the first message, and a fixed sleep either reads the
+previous one or outlasts the thing being timed. The rate-limit check is the
+sharp case: it only gets its refusal if the second upload lands inside the
+server's one-second write window, so `waitForStatus()` polls the text instead.

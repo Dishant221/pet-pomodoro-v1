@@ -394,7 +394,102 @@ await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 await stageReady(page);
 check('stage returns to full motion', (await page.getAttribute('.pp-stage', 'data-reduced')) === 'false');
 
-// ------------------------------------ 17b. a hostile save cannot break the app
+// ------------------------------------------------- 17b. clock placement
+//
+// Two modes and three arrangements, all sharing one markup tree. What is worth
+// asserting is not the CSS but the two things a player would notice: that every
+// control still works in each arrangement, and that a clock they dragged
+// somewhere is still there when they come back.
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+check(
+  'clock docks to the top by default',
+  (await page.getAttribute('.pp-hud', 'data-layout')) === 'top',
+  await page.getAttribute('.pp-hud', 'data-layout'),
+);
+
+// The rail: docked, but down the left edge.
+await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
+await page.getByRole('button', { name: 'Left', exact: true }).click();
+await sleep(300);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const railBox = await page.locator('.pp-hud').boundingBox();
+const clockStageBox = await page.locator('.pp-stage').boundingBox();
+check(
+  'clock docks to the left as a rail beside the stage',
+  (await page.getAttribute('.pp-hud', 'data-layout')) === 'left' && railBox.x + railBox.width <= clockStageBox.x + 1,
+  `rail ends at ${Math.round(railBox.x + railBox.width)}, stage starts at ${Math.round(clockStageBox.x)}`,
+);
+
+// Floating: off the layout, over the world, and movable.
+await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
+await page.getByRole('button', { name: 'Floating', exact: true }).click();
+await sleep(300);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+check(
+  'floating clock renders over the stage with a drag handle',
+  (await page.getAttribute('.pp-hud', 'data-layout')) === 'float' && (await page.locator('.pp-grip').count()) === 1,
+);
+
+const clockBefore = await page.locator('.pp-hud').boundingBox();
+const grip = await page.locator('.pp-grip').boundingBox();
+await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+await page.mouse.down();
+await page.mouse.move(grip.x + grip.width / 2 + 260, grip.y + grip.height / 2 + 190, { steps: 20 });
+await page.mouse.up();
+await sleep(300);
+const clockAfter = await page.locator('.pp-hud').boundingBox();
+check(
+  'dragging the handle moves the clock',
+  clockAfter.x > clockBefore.x + 200 && clockAfter.y > clockBefore.y + 150,
+  `moved ${Math.round(clockAfter.x - clockBefore.x)},${Math.round(clockAfter.y - clockBefore.y)}`,
+);
+
+const parked = await page.evaluate(() => JSON.parse(localStorage.getItem('petpomo.save.v1')).settings);
+check(
+  'the parked position is stored as a fraction of the travel',
+  parked.clockX > 0.5 && parked.clockX <= 1 && parked.clockY > 0.04 && parked.clockY <= 1,
+  `x=${parked.clockX.toFixed(3)} y=${parked.clockY.toFixed(3)}`,
+);
+
+// A fraction, not a pixel count: the same save opened in a narrower window puts
+// the card in the same *place*, still fully on screen, rather than off the edge.
+await page.setViewportSize({ width: 900, height: 700 });
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const narrow = await page.locator('.pp-hud').boundingBox();
+const field = await page.locator('.pp-stage').boundingBox();
+check(
+  'the parked clock survives a reload and a resize, fully on screen',
+  narrow.x >= field.x - 1 && narrow.x + narrow.width <= field.x + field.width + 1,
+  `card ${Math.round(narrow.x)}..${Math.round(narrow.x + narrow.width)} in ${Math.round(field.x)}..${Math.round(field.x + field.width)}`,
+);
+await page.setViewportSize({ width: 1280, height: 860 });
+
+// The point of the floating card is that it is still the command bar.
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+await page.getByRole('button', { name: /^(Start|Resume)$/ }).click();
+await sleep(400);
+check(
+  'the floating clock still drives the timer',
+  (await page.getByRole('button', { name: 'Pause' }).count()) === 1,
+);
+await page.getByRole('button', { name: 'Pause' }).click();
+await page.locator('.pp-btn[title="Reset"]').click();
+await sleep(200);
+
+// Back to the default so the sections after this one see the usual bar.
+await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
+await page.getByRole('button', { name: 'Docked', exact: true }).click();
+// The edge picker only exists while docked, so it appears on this click.
+await sleep(200);
+await page.getByRole('button', { name: 'Top', exact: true }).click();
+await sleep(300);
+
+// ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load
 // under a sync code that can be shared, and an imported file is one a stranger
@@ -415,7 +510,16 @@ await page.evaluate(() => {
         snacks: ['__proto__', 'constructor'],
       },
       equipped: { scene: 'not-a-scene', theme: '"><img src=x>', pet: '__proto__', snack: 7 },
-      settings: { focusMin: 'abc', volMaster: 9e99, muted: 'yes', reducedMotion: 1 },
+      settings: {
+        focusMin: 'abc',
+        volMaster: 9e99,
+        muted: 'yes',
+        reducedMotion: 1,
+        clockMode: 'off-screen',
+        clockDock: '"><img src=x>',
+        clockX: 99,
+        clockY: -3,
+      },
       vitals: { hunger: NaN, happiness: -500, ignoredBreaks: 'lots', lastInteractAt: -1 },
       sessions: [{ at: 'now', ms: {}, mode: 'evil' }, null, 5],
       __proto__: { polluted: true },
@@ -434,6 +538,13 @@ const hostile = await page.evaluate(() => {
     owned: s.owned,
     coins: s.coins,
     focusMin: s.settings.focusMin,
+    clock: {
+      mode: s.settings.clockMode,
+      dock: s.settings.clockDock,
+      x: s.settings.clockX,
+      y: s.settings.clockY,
+    },
+    layout: document.querySelector('.pp-hud')?.dataset.layout,
     sessions: s.sessions.length,
     polluted: {}.polluted === true,
   };
@@ -459,6 +570,20 @@ check(
   `coins=${hostile.coins} focusMin=${hostile.focusMin} sessions=${hostile.sessions}`,
 );
 check('hostile save does not pollute Object.prototype', hostile.polluted === false);
+// A clock placement is as untrusted as anything else in the save, and the
+// failure it would cause is particular: a card parked at x=99 is a command bar
+// the player cannot see, reach, or drag back.
+check(
+  'hostile clock placement falls back to a visible, docked bar',
+  hostile.clock.mode === 'docked' &&
+    hostile.clock.dock === 'top' &&
+    hostile.clock.x >= 0 &&
+    hostile.clock.x <= 1 &&
+    hostile.clock.y >= 0 &&
+    hostile.clock.y <= 1 &&
+    hostile.layout === 'top',
+  `${JSON.stringify(hostile.clock)} layout=${hostile.layout}`,
+);
 // The root class matters on its own: boot.js runs before hydrate can sanitise
 // anything, so it has to validate the theme itself or a hostile save gets to
 // staple arbitrary classes onto <html>.

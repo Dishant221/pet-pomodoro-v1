@@ -56,6 +56,20 @@ coordinates are still here. Those SVGs are inlined into the bundle (`?raw`)
 rather than fetched, so CSS can recolour `.fur`/`.belly`/`.line` for themes,
 GSAP can animate named groups like `#tail`, and the fallback works offline.
 
+**The clock has two modes and one markup tree.** Docked, it reserves a strip of
+the layout along the top or the left edge, so it can never cover the cat.
+Floating, it leaves the layout entirely and becomes a card the player drags
+anywhere over the stage. All three arrangements are the same HUD with a
+`data-layout` attribute on it; the differences live in CSS. Writing them as
+three components would mean every new control had to be added three times, and
+the two that got forgotten would be the ones nobody is looking at.
+
+The parked position is stored as a *fraction of the travel* rather than a pixel
+offset, and rendered as `left: X%` against an equal negative `translate`. The
+pair interpolates between flush-left at 0 and flush-right at 1 at any window
+size, which is what makes a clock parked at the right edge of a desktop window
+still on screen — and still at the right edge — on a phone.
+
 **The timer stores an absolute end timestamp**, never a countdown. Every tick,
 tab focus and page load recomputes from `Date.now()`, so a refresh, a
 backgrounded tab, or a closed laptop lid cannot drift it. If the deadline passed

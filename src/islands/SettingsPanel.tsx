@@ -10,6 +10,7 @@ import {
   resetAll,
   updateSettings,
 } from '../stores/profile';
+import type { ClockDock, ClockMode } from '../stores/profile';
 import { syncDurations } from '../stores/timer';
 import { SCENES, SCENE_IDS } from '../game/manifest';
 import { THEME_ITEMS } from '../game/economy';
@@ -137,6 +138,49 @@ export default function SettingsPanel() {
             checked={s.autoStartBreaks}
             onChange={(v) => updateSettings({ autoStartBreaks: v })}
           />
+        </Group>
+
+        <Group title="Clock">
+          <Row label="Placement">
+            <Choice
+              value={s.clockMode}
+              options={[
+                { id: 'docked', label: 'Docked' },
+                { id: 'float', label: 'Floating' },
+              ]}
+              onPick={(v) => updateSettings({ clockMode: v as ClockMode })}
+            />
+          </Row>
+          {s.clockMode === 'docked' ? (
+            <Row label="Edge">
+              <Choice
+                value={s.clockDock}
+                options={[
+                  { id: 'top', label: 'Top' },
+                  { id: 'left', label: 'Left' },
+                ]}
+                onPick={(v) => updateSettings({ clockDock: v as ClockDock })}
+              />
+            </Row>
+          ) : (
+            <Row label="Position">
+              <span class="flex items-center gap-2">
+                <span class="text-xs" style="color: var(--ink-soft)">
+                  Drag the bar at the top of the clock, or nudge it with the arrow keys.
+                </span>
+                <button
+                  type="button"
+                  class="pp-btn pp-focus-ring px-3 py-1.5 text-sm"
+                  onClick={() => {
+                    updateSettings({ clockX: 0.5, clockY: 0.04 });
+                    say('Clock recentred.');
+                  }}
+                >
+                  Recentre
+                </button>
+              </span>
+            </Row>
+          )}
         </Group>
 
         <Group title="Appearance">
@@ -344,6 +388,36 @@ function Group({ title, children }: { title: string; children: preact.ComponentC
         {title}
       </h2>
       <div class="grid gap-3">{children}</div>
+    </div>
+  );
+}
+
+/** A row of mutually exclusive buttons, styled like the theme/scene pickers. */
+function Choice({
+  value,
+  options,
+  onPick,
+}: {
+  value: string;
+  options: { id: string; label: string }[];
+  onPick: (id: string) => void;
+}) {
+  return (
+    <div class="flex flex-wrap gap-1.5">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          onClick={() => onPick(o.id)}
+          aria-pressed={value === o.id}
+          class="pp-btn pp-focus-ring px-3 py-1.5 text-sm"
+          style={
+            value === o.id ? 'background: var(--accent); color: var(--accent-ink); border-color: transparent;' : ''
+          }
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }

@@ -7,6 +7,18 @@ import { SAVE_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persi
 
 export type TimerMode = 'focus' | 'short' | 'long';
 
+/**
+ * Where the timer lives on the focus screen.
+ *
+ * `docked` keeps it in a bar pinned to an edge, which is the honest default:
+ * it reserves its own space, so it can never sit on top of the cat. `float`
+ * lifts it off the layout into a card the player parks wherever they like —
+ * over the empty sky, out of the way of the pet — at the cost of covering
+ * whatever is underneath it.
+ */
+export type ClockMode = 'docked' | 'float';
+export type ClockDock = 'top' | 'left';
+
 export interface SessionRecord {
   /** Completion timestamp, ms since epoch. */
   at: number;
@@ -29,6 +41,19 @@ export interface Settings {
   muted: boolean;
   notifications: boolean;
   reducedMotion: boolean;
+  clockMode: ClockMode;
+  /** Which edge the docked bar sits on. Meaningless while floating. */
+  clockDock: ClockDock;
+  /**
+   * Where the floating clock is parked, as a fraction of the room it has to
+   * move in: 0 is flush against the left/top edge, 1 flush against the
+   * right/bottom, 0.5 centred. Storing the fraction rather than pixels is what
+   * makes the position survive a resize, a rotation, or opening the save on a
+   * different monitor — a card parked at the right edge of a wide window is
+   * still at the right edge of a narrow one, instead of somewhere off-screen.
+   */
+  clockX: number;
+  clockY: number;
 }
 
 export interface PetVitals {
@@ -69,6 +94,11 @@ export const DEFAULT_SETTINGS: Settings = {
   muted: true,
   notifications: false,
   reducedMotion: false,
+  clockMode: 'docked',
+  clockDock: 'top',
+  // Centred near the top: clear of the cat, which stands on the ground line.
+  clockX: 0.5,
+  clockY: 0.04,
 };
 
 export function defaultProfile(): Profile {
@@ -103,6 +133,8 @@ const VALID_THEMES = new Set<string>(THEME_ITEMS.map((t) => t.id));
 const VALID_PETS = new Set<string>(PET_ITEMS.map((p) => p.id));
 const VALID_SNACKS = new Set<string>(SNACK_ITEMS.map((s) => s.id));
 const VALID_MODES = new Set<string>(['focus', 'short', 'long']);
+const VALID_CLOCK_MODES = new Set<string>(['docked', 'float']);
+const VALID_CLOCK_DOCKS = new Set<string>(['top', 'left']);
 
 /** Keep only recognised ids, plus the one that is always owned. */
 function ownedIds<T extends string>(raw: unknown, valid: Set<string>, always: T): T[] {
@@ -121,6 +153,11 @@ function num(raw: unknown, fallback: number): number {
 
 function bool(raw: unknown, fallback: boolean): boolean {
   return typeof raw === 'boolean' ? raw : fallback;
+}
+
+/** A value from a closed set, or the default. Unlike ids, nothing owns these. */
+function oneOf<T extends string>(raw: unknown, valid: Set<string>, fallback: T): T {
+  return typeof raw === 'string' && valid.has(raw) ? (raw as T) : fallback;
 }
 
 export function hydrate(raw: Partial<Profile> | null): Profile {
@@ -163,6 +200,10 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       muted: bool(rawSettings.muted, d.muted),
       notifications: bool(rawSettings.notifications, d.notifications),
       reducedMotion: bool(rawSettings.reducedMotion, d.reducedMotion),
+      clockMode: oneOf<ClockMode>(rawSettings.clockMode, VALID_CLOCK_MODES, d.clockMode),
+      clockDock: oneOf<ClockDock>(rawSettings.clockDock, VALID_CLOCK_DOCKS, d.clockDock),
+      clockX: num(rawSettings.clockX, d.clockX),
+      clockY: num(rawSettings.clockY, d.clockY),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
@@ -205,6 +246,10 @@ export function clampSettings(s: Settings): Settings {
     longEvery: clamp(Math.round(s.longEvery), 2, 12),
     volMaster: clamp(s.volMaster, 0, 1),
     volSfx: clamp(s.volSfx, 0, 1),
+    // Clamped rather than wrapped: a fraction outside 0..1 is a card parked
+    // off-screen, which is indistinguishable from having lost the clock.
+    clockX: clamp(s.clockX, 0, 1),
+    clockY: clamp(s.clockY, 0, 1),
   };
 }
 
