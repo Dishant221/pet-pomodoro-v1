@@ -4,7 +4,7 @@
  * outgoing and incoming actions each frame and lerps between them, which is how
  * a walk melts into a sit instead of snapping.
  */
-import { BL, BR, FL, FR, LEG_COUNT, TAIL_SEGS, type Pose } from './cat';
+import { BL, BR, FL, FR, LEG_COUNT, TAIL_SEGS, type Pose } from './animal';
 
 export type Action =
   | 'idle'

@@ -10,7 +10,8 @@ import * as THREE from 'three';
 import type { SceneId } from '../game/manifest';
 import type { PetState } from '../game/manifest';
 import type { SnackId } from '../game/economy';
-import { buildCat, DEFAULT_PALETTE, type CatPalette, type CatRig, copyPose, lerpPose, makePose } from './cat';
+import { buildAnimal, DEFAULT_PALETTE, type PetPalette, type PetRig, copyPose, lerpPose, makePose } from './animal';
+import type { SpeciesId } from './species';
 import { ACTION_LENGTH, MEOW_PERIOD, blendTime, evaluate, type Action, type AnimCtx } from './animations';
 import { buildProp, TOY_IDS, TOYS, type PropId, type PropSpec } from './props';
 import { buildPaintedWorld } from './painted';
@@ -41,7 +42,8 @@ export interface EngineCallbacks {
 export interface EngineOptions {
   canvas: HTMLCanvasElement;
   scene: SceneId;
-  palette?: CatPalette;
+  species?: SpeciesId;
+  palette?: PetPalette;
   reduced?: boolean;
   callbacks: EngineCallbacks;
 }
@@ -95,7 +97,7 @@ export class Engine {
   private lightAge = Infinity;
   /** Camera pitch that lands the 3D horizon on the painted one, in radians. */
   private horizonPitch = 0;
-  private cat: CatRig;
+  private pet: PetRig;
   private fx: FxSystem;
 
   // --- pose state ---
@@ -198,9 +200,9 @@ export class Engine {
 
     this.setupLights();
 
-    this.cat = buildCat(opts.palette ?? DEFAULT_PALETTE);
-    this.cat.root.scale.setScalar(PET_SCALE);
-    this.scene.add(this.cat.root);
+    this.pet = buildAnimal(opts.species ?? 'cat', opts.palette ?? DEFAULT_PALETTE);
+    this.pet.root.scale.setScalar(PET_SCALE);
+    this.scene.add(this.pet.root);
 
     this.fx = createFx(this.reduced);
     this.scene.add(this.fx.group);
@@ -250,7 +252,7 @@ export class Engine {
     // Match the ink to the scene's own darks. Re-applied per world because
     // each scene's shadows are a different colour.
     const ink = this.world.lights.fill.ground;
-    softenInk(this.cat.root, ink, 0.62);
+    softenInk(this.pet.root, ink, 0.62);
     softenInk(this.world.group, ink, 0.7);
 
     this.lightAge = Infinity;
@@ -260,7 +262,7 @@ export class Engine {
     this.clearGround();
     this.busy = false;
     this.pos.set(0, 0, 0.1);
-    this.cat.root.position.copy(this.pos);
+    this.pet.root.position.copy(this.pos);
     this.target = null;
     this.speed = 0;
   }
@@ -387,8 +389,41 @@ export class Engine {
     this.loadWorld(id);
   }
 
-  setPalette(p: CatPalette): void {
-    this.cat.setPalette(p);
+  setPalette(p: PetPalette): void {
+    this.pet.setPalette(p);
+  }
+
+  /**
+   * Equip a character: a species and a coat.
+   *
+   * A recolour is a material change and costs nothing. A different species is a
+   * different skeleton, so it has to be rebuilt — but only the rig is thrown
+   * away. The world, the lighting, the camera and the animation state all
+   * survive, and the new animal is dropped in exactly where the old one stood,
+   * facing the same way, so equipping reads as the pet changing rather than as
+   * the scene reloading.
+   */
+  setPet(species: SpeciesId, p: PetPalette): void {
+    if (species === this.pet.species.id) {
+      this.pet.setPalette(p);
+      return;
+    }
+
+    const at = this.pet.root.position.clone();
+    const facing = this.pet.root.rotation.y;
+    this.scene.remove(this.pet.root);
+    this.pet.dispose();
+
+    this.pet = buildAnimal(species, p);
+    this.pet.root.scale.setScalar(PET_SCALE);
+    this.pet.root.position.copy(at);
+    this.pet.root.rotation.y = facing;
+    this.scene.add(this.pet.root);
+
+    // The ink tint belongs to the scene, not to the animal, so a fresh rig has
+    // to be told about it or it wears default outlines in a graded world.
+    if (this.world) softenInk(this.pet.root, this.world.lights.fill.ground, 0.62);
+    this.pet.apply(this.pose);
   }
 
   setReduced(r: boolean): void {
@@ -526,7 +561,7 @@ export class Engine {
    */
   catScreenPos(): { x: number; y: number } | null {
     const v = new THREE.Vector3();
-    this.cat.hit.getWorldPosition(v);
+    this.pet.hit.getWorldPosition(v);
     v.project(this.camera);
     if (v.z > 1 || Math.abs(v.x) > 1 || Math.abs(v.y) > 1) return null;
     const r = this.canvas.getBoundingClientRect();
@@ -543,7 +578,7 @@ export class Engine {
       disposeTree(this.dragProp);
     }
     this.world.dispose();
-    this.cat.dispose();
+    this.pet.dispose();
     this.fx.dispose();
     this.renderer.dispose();
   }
@@ -635,7 +670,7 @@ export class Engine {
         this.stopMoving();
         this.faceCamera();
         this.playAction('celebrate', 3.0);
-        this.fx.burst('star', this.cat.headWorld, { count: 8, rise: 1.2, size: 0.26 });
+        this.fx.burst('star', this.pet.headWorld, { count: 8, rise: 1.2, size: 0.26 });
         break;
       case 'waking':
         this.behaviour = 'wake';
@@ -806,7 +841,7 @@ export class Engine {
     if (this.begT >= this.nextMeowAt) {
       this.nextMeowAt = this.begT + MEOW_PERIOD;
       this.cb.onMeow();
-      const at = this.cat.headWorld.clone().add(new THREE.Vector3(0, 0.12, 0));
+      const at = this.pet.headWorld.clone().add(new THREE.Vector3(0, 0.12, 0));
       this.fx.burst(Math.random() < 0.35 ? 'question' : 'note', at, { count: 1, size: 0.2, rise: 0.55, spread: 0.18 });
     }
   }
@@ -818,7 +853,7 @@ export class Engine {
       const prop = buildProp((this.giftSpec?.id ?? 'yarn') as PropId);
       prop.scale.setScalar(0.85);
       prop.position.set(0, -0.02, 0.02);
-      this.cat.carry.add(prop);
+      this.pet.carry.add(prop);
       this.giftProp = prop;
       this.playAction('carry');
       this.goTo(this.world.gift, 0.14, false, () => this.giftArrive());
@@ -833,7 +868,7 @@ export class Engine {
       if (prop) {
         const world = new THREE.Vector3();
         prop.getWorldPosition(world);
-        this.cat.carry.remove(prop);
+        this.pet.carry.remove(prop);
         this.scene.add(prop);
         prop.position.set(world.x, 0, world.z + 0.12);
         prop.rotation.set(0, Math.random() * Math.PI, 0);
@@ -843,7 +878,7 @@ export class Engine {
         this.fx.burst('sparkle', new THREE.Vector3(prop.position.x, 0.25, prop.position.z), { count: 7, size: 0.18 });
       }
       this.playAction('celebrate', 2.6);
-      this.fx.burst('star', this.cat.headWorld, { count: 6, rise: 1.1, size: 0.24 });
+      this.fx.burst('star', this.pet.headWorld, { count: 6, rise: 1.1, size: 0.24 });
       if (this.giftSpec) this.cb.onGift(this.giftSpec);
       window.setTimeout(() => {
         this.busy = false;
@@ -899,7 +934,7 @@ export class Engine {
 
   private hitsCat(): boolean {
     this.ray.setFromCamera(this.pointer, this.camera);
-    return this.ray.intersectObject(this.cat.hit, false).length > 0;
+    return this.ray.intersectObject(this.pet.hit, false).length > 0;
   }
 
   /** Ground toys are clickable — a click sends the cat off to pounce on one. */
@@ -927,7 +962,7 @@ export class Engine {
         this.startPetting();
       }
       if (this.petting && Math.random() < 0.08) {
-        this.fx.burst('heart', this.cat.headWorld, { count: 1, size: 0.2, rise: 0.7, spread: 0.22 });
+        this.fx.burst('heart', this.pet.headWorld, { count: 1, size: 0.2, rise: 0.7, spread: 0.22 });
       }
       return;
     }
@@ -978,7 +1013,7 @@ export class Engine {
     // A quick tap on the cat is a poke: it startles, then plays.
     if (wasPressing && held < 0.4 && this.pressMoved < 16 && this.hitsCat()) {
       this.cb.onPoke();
-      this.fx.burst('star', this.cat.headWorld, { count: 3, size: 0.2, rise: 0.8 });
+      this.fx.burst('star', this.pet.headWorld, { count: 3, size: 0.2, rise: 0.8 });
     }
   };
 
@@ -997,7 +1032,7 @@ export class Engine {
     this.stopMoving();
     this.playAction('petted', 999);
     this.cb.onPurrStart();
-    this.fx.burst('heart', this.cat.headWorld, { count: 3, size: 0.22, rise: 0.8 });
+    this.fx.burst('heart', this.pet.headWorld, { count: 3, size: 0.22, rise: 0.8 });
     this.creditPet();
   }
 
@@ -1045,7 +1080,7 @@ export class Engine {
 
     // Sleeping cats get Zzz, on a slow rhythm.
     if (this.action === 'sleep' && !this.reduced && Math.random() < dt * 0.55) {
-      this.fx.burst('sleep', this.cat.headWorld.clone().add(new THREE.Vector3(0.05, 0.16, 0)), {
+      this.fx.burst('sleep', this.pet.headWorld.clone().add(new THREE.Vector3(0.05, 0.16, 0)), {
         count: 1,
         size: 0.2,
         rise: 0.35,
@@ -1068,9 +1103,9 @@ export class Engine {
       const k = this.airT / this.airDur;
       if (k >= 1) {
         this.airT = -1;
-        this.cat.root.position.y = 0;
+        this.pet.root.position.y = 0;
       } else {
-        this.cat.root.position.y = Math.sin(k * Math.PI) * 0.42;
+        this.pet.root.position.y = Math.sin(k * Math.PI) * 0.42;
       }
     }
 
@@ -1121,10 +1156,10 @@ export class Engine {
       this.ray.setFromCamera(this.pointer, this.camera);
       // Aim at a point on a vertical plane through the cat, so looking "up"
       // at a pointer near the top of the screen actually raises the chin.
-      const aim = this.ray.ray.at(this.camera.position.distanceTo(this.cat.headWorld), new THREE.Vector3());
-      const dx = aim.x - this.cat.headWorld.x;
-      const dz = aim.z - this.cat.headWorld.z;
-      const dy = aim.y - this.cat.headWorld.y;
+      const aim = this.ray.ray.at(this.camera.position.distanceTo(this.pet.headWorld), new THREE.Vector3());
+      const dx = aim.x - this.pet.headWorld.x;
+      const dz = aim.z - this.pet.headWorld.z;
+      const dy = aim.y - this.pet.headWorld.y;
       const world = Math.atan2(dx, dz);
       wantYaw = clamp(angleDelta(this.facing, world), -0.75, 0.75);
       wantPitch = clamp(-dy * 0.6, -0.42, 0.34);
@@ -1173,10 +1208,10 @@ export class Engine {
     }
 
     this.applyBlink(dt);
-    this.cat.apply(this.pose);
-    this.cat.root.position.x = this.pos.x;
-    this.cat.root.position.z = this.pos.z;
-    this.cat.root.rotation.y = this.facing;
+    this.pet.apply(this.pose);
+    this.pet.root.position.x = this.pos.x;
+    this.pet.root.position.z = this.pos.z;
+    this.pet.root.rotation.y = this.facing;
   }
 
   private applyBlink(dt: number): void {

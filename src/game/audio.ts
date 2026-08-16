@@ -9,7 +9,13 @@
  *
  * There is no ambient/background bed: every sound here is a short cue tied to
  * something the player did. Cues are deliberately sparse — see MEOW_MIN_GAP_MS.
+ *
+ * The pet's own voice is the one cue that varies: it is synthesized from the
+ * equipped species' recipe, so a dog barks where a cat meows without a second
+ * code path. See `setVoice`.
  */
+import { SPECIES, type SpeciesId, type VoiceSpec } from '../three/species';
+
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
@@ -158,88 +164,157 @@ function env(g: GainNode, peak: number, attack: number, decay: number, at: numbe
 const MEOW_MIN_GAP_MS = 45_000;
 const MEOW_CHANCE = 0.35;
 
-let lastMeowAt = 0;
+let lastVoiceAt = 0;
 
 /**
- * Three distinct meows, chosen by index (0..2) or at random. Uses a real
- * recording from `public/assets/audio/sfx/meow-{1,2,3}.wav` when one is
- * present, otherwise synthesizes it.
+ * Whose voice to use.
+ *
+ * The species owns its call, and the synthesizer is general enough to say any
+ * of them: a meow and a bark differ in the sweep, the formants, the roughness
+ * and how many times the animal repeats itself. Holding it in a module variable
+ * rather than threading it through every call site keeps `playVoice()` callable
+ * from the places that just want the pet to make a noise.
+ */
+let voice: VoiceSpec = SPECIES.cat.voice;
+let voiceIsCat = true;
+
+export function setVoice(id: SpeciesId): void {
+  voice = SPECIES[id]?.voice ?? SPECIES.cat.voice;
+  voiceIsCat = id === 'cat';
+}
+
+/**
+ * The pet's call: a meow, a bark, whatever this animal says.
+ *
+ * `variant` (0..2) picks one of three shadings of the same voice, so repeats
+ * don't sound identical. A real recording is used when one is present, but only
+ * for the cat — the sample files are meows, and playing one for a dog would be
+ * a worse bug than having no sample at all.
  *
  * Rate-limited by default — most calls are deliberately silent. Pass
  * `{ force: true }` for the Settings preview buttons, where the player asked
  * to hear it right now and a no-op would read as a bug.
  */
-export function playMeow(variant = Math.floor(Math.random() * 3), opts: { force?: boolean } = {}): void {
+export function playVoice(variant = Math.floor(Math.random() * 3), opts: { force?: boolean } = {}): void {
   if (!ready() || !ctx) return;
 
   if (!opts.force) {
     const now = Date.now();
-    if (now - lastMeowAt < MEOW_MIN_GAP_MS) return;
+    if (now - lastVoiceAt < MEOW_MIN_GAP_MS) return;
     if (Math.random() > MEOW_CHANCE) return;
-    lastMeowAt = now;
+    lastVoiceAt = now;
   }
 
-  const file = MEOW_SAMPLES[variant % MEOW_SAMPLES.length];
-  const sample = samples.get(file);
-  if (sample) {
-    // Slight pitch variation keeps repeated meows from sounding mechanical.
-    playSample(sample, 0.9, 0.94 + Math.random() * 0.12);
-    return;
+  if (voiceIsCat) {
+    const file = MEOW_SAMPLES[variant % MEOW_SAMPLES.length];
+    const sample = samples.get(file);
+    if (sample) {
+      // Slight pitch variation keeps repeated meows from sounding mechanical.
+      playSample(sample, 0.9, 0.94 + Math.random() * 0.12);
+      return;
+    }
+    // Not decoded yet (first call raced the prefetch) — start it for next time.
+    if (sample === undefined) void loadSample(file);
   }
-  // Not decoded yet (first call raced the prefetch) — start it for next time.
-  if (sample === undefined) void loadSample(file);
-  synthMeow(variant);
+  synthVoice(voice, variant);
 }
 
-function synthMeow(variant: number): void {
+/**
+ * One call, built from a species' voice recipe.
+ *
+ * The shape is the same for every animal: a sawtooth swept through two parallel
+ * bandpass formants, plus a little dry signal so the note has body. What the
+ * species changes is where the sweep goes, where the formants sit, how rough
+ * the source is, and how many syllables it repeats — which is enough distance
+ * to get from a meow to a bark to a bleat.
+ */
+function synthVoice(spec: VoiceSpec, variant: number): void {
   if (!ctx) return;
   const c = ctx;
-  const t = c.currentTime;
-  const base = [560, 640, 490][variant % 3];
-  const dur = [0.42, 0.34, 0.5][variant % 3];
+  // Three shadings of the same voice: a little higher, a little shorter.
+  const tune = [1, 1.12, 0.9][variant % 3];
+  const stretch = [1, 0.82, 1.18][variant % 3];
 
-  const osc = c.createOscillator();
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(base * 0.75, t);
-  osc.frequency.exponentialRampToValueAtTime(base * 1.18, t + dur * 0.28);
-  osc.frequency.exponentialRampToValueAtTime(base * 0.62, t + dur);
+  for (let r = 0; r < Math.max(1, spec.repeats); r++) {
+    const t = c.currentTime + r * spec.gap;
+    const dur = spec.duration * stretch;
+    const from = spec.from * tune;
+    const to = spec.to * tune;
 
-  const g = c.createGain();
-  env(g, 0.45, 0.05, dur, t);
-  g.connect(bus()!);
+    const osc = c.createOscillator();
+    osc.type = 'sawtooth';
+    // Up into the call and back down out of it — the arc every animal call has.
+    osc.frequency.setValueAtTime(from * 0.75, t);
+    osc.frequency.exponentialRampToValueAtTime(from * 1.18, t + dur * 0.28);
+    osc.frequency.exponentialRampToValueAtTime(to * 0.85, t + dur);
 
-  // Two formants give the vowel its "meow" character. They must run in
-  // PARALLEL and be summed: chained in series, a Q=6 band at ~760 Hz and a Q=4
-  // band at 2400 Hz have almost no overlap, so the second filter throws away
-  // what the first one passed and the meow is inaudible.
-  const f1 = c.createBiquadFilter();
-  f1.type = 'bandpass';
-  f1.frequency.setValueAtTime(760, t);
-  f1.frequency.linearRampToValueAtTime(1180, t + dur * 0.3);
-  f1.frequency.linearRampToValueAtTime(620, t + dur);
-  f1.Q.value = 6;
+    const g = c.createGain();
+    env(g, 0.45, 0.05 * stretch, dur, t);
+    g.connect(bus()!);
 
-  const f2 = c.createBiquadFilter();
-  f2.type = 'bandpass';
-  f2.frequency.value = 2400;
-  f2.Q.value = 4;
-  const f2Gain = c.createGain();
-  f2Gain.gain.value = 0.35; // upper formant sits behind the lower one
+    // The two formants must run in PARALLEL and be summed. Chained in series, a
+    // Q=6 band at ~760 Hz and a Q=4 band at 2400 Hz have almost no overlap, so
+    // the second filter throws away what the first passed and the call is
+    // inaudible. This cost an evening the first time.
+    const f1 = c.createBiquadFilter();
+    f1.type = 'bandpass';
+    f1.frequency.setValueAtTime(spec.formants[0], t);
+    f1.frequency.linearRampToValueAtTime(spec.formants[0] * 1.55, t + dur * 0.3);
+    f1.frequency.linearRampToValueAtTime(spec.formants[0] * 0.82, t + dur);
+    f1.Q.value = 6;
 
-  // A little unfiltered saw underneath keeps the body of the note audible.
-  const dry = c.createGain();
-  dry.gain.value = 0.18;
+    const f2 = c.createBiquadFilter();
+    f2.type = 'bandpass';
+    f2.frequency.value = spec.formants[1];
+    f2.Q.value = 4;
+    const f2Gain = c.createGain();
+    f2Gain.gain.value = 0.35; // upper formant sits behind the lower one
 
-  osc.connect(f1);
-  f1.connect(g);
-  osc.connect(f2);
-  f2.connect(f2Gain);
-  f2Gain.connect(g);
-  osc.connect(dry);
-  dry.connect(g);
+    // A little unfiltered saw underneath keeps the body of the note audible.
+    const dry = c.createGain();
+    dry.gain.value = 0.18;
 
-  osc.start(t);
-  osc.stop(t + dur + 0.1);
+    osc.connect(f1);
+    f1.connect(g);
+    osc.connect(f2);
+    f2.connect(f2Gain);
+    f2Gain.connect(g);
+    osc.connect(dry);
+    dry.connect(g);
+
+    // Roughness: a detuned twin beating against the fundamental. Cheaper than a
+    // noise layer and it stays pitched, which is what a growl or a bray is.
+    if (spec.rasp > 0.01) {
+      const rough = c.createOscillator();
+      rough.type = 'sawtooth';
+      rough.frequency.setValueAtTime(from * 0.75, t);
+      rough.frequency.exponentialRampToValueAtTime(to * 0.85, t + dur);
+      rough.detune.value = 18 + spec.rasp * 55;
+      const rg = c.createGain();
+      rg.gain.value = spec.rasp * 0.5;
+      rough.connect(rg);
+      rg.connect(f1);
+      rough.start(t);
+      rough.stop(t + dur + 0.1);
+    }
+
+    // Weight below the fundamental. A moo is mostly this.
+    if (spec.body > 0.01) {
+      const sub = c.createOscillator();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(from * 0.5, t);
+      sub.frequency.exponentialRampToValueAtTime(to * 0.45, t + dur);
+      const sg = c.createGain();
+      env(sg, spec.body * 0.5, 0.04 * stretch, dur, t);
+      sub.connect(sg);
+      sg.connect(bus()!);
+      sub.start(t);
+      sub.stop(t + dur + 0.1);
+    }
+
+    osc.start(t);
+    osc.stop(t + dur + 0.1);
+  }
 }
 
 /** Looping purr. Call `stopPurr()` when the petting ends. */

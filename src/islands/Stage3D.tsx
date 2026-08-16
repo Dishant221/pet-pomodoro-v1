@@ -4,6 +4,8 @@ import { PET_STATES, SCENES, type PetState, type SceneId } from '../game/manifes
 import type { PetSkinId, SnackId } from '../game/economy';
 import { Engine, webglAvailable } from '../three/engine';
 import { paletteFor } from '../three/palette';
+import { speciesOf } from '../game/economy';
+import { SPECIES } from '../three/species';
 import type { PropSpec } from '../three/props';
 import { $world } from '../game/world';
 import { useStore } from '@nanostores/preact';
@@ -89,6 +91,7 @@ export default function Stage3D(props: Stage3DProps) {
       engine = new Engine({
         canvas,
         scene: cbRef.current.scene,
+        species: speciesOf(cbRef.current.pet),
         palette: paletteFor(cbRef.current.pet),
         reduced: cbRef.current.reduced,
         callbacks: {
@@ -153,7 +156,7 @@ export default function Stage3D(props: Stage3DProps) {
   }, [props.scene]);
 
   useEffect(() => {
-    engineRef.current?.setPalette(paletteFor(props.pet));
+    engineRef.current?.setPet(speciesOf(props.pet), paletteFor(props.pet));
   }, [props.pet]);
 
   useEffect(() => {
@@ -203,7 +206,7 @@ export default function Stage3D(props: Stage3DProps) {
           class="absolute inset-0 block h-full w-full"
           style={`touch-action: none; cursor: ${grabbing ? 'grab' : 'default'}`}
           role="img"
-          aria-label={`${SCENES[props.scene].label} at ${world.phase}${weatherNote} — the cat is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke the cat to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
+          aria-label={`${SCENES[props.scene].label} at ${world.phase}${weatherNote} — the ${SPECIES[speciesOf(props.pet)].label.toLowerCase()} is ${PET_STATES[props.petState].label.toLowerCase()}. Stroke it to pet it, tap it to play, and drag a snack onto the floor to feed it.`}
         />
       </PaintedBackdrop>
       <p class="sr-only" role="status" aria-live="polite">

@@ -344,13 +344,42 @@ for (const id of ['livingroom', 'garden', 'jungle', 'treehouse', 'mountain', 'sn
   check(`scene ${id} builds and frames the cat`, mounted && visible, `mounted=${mounted} catVisible=${visible}`);
 }
 
-// -------------------------------------------------------- 14. cat skins
-for (const pet of ['mochi', 'shadow', 'cloud', 'inky']) {
-  await seedSave(page, `s.owned.pets = ['mochi','shadow','cloud','inky']; s.equipped.pet = '${pet}';`);
+// ------------------------------------------------ 14. characters and species
+//
+// The four cats are recolours of one rig; the dogs are a different rig. Both
+// have to survive being equipped, because a species change tears the animal
+// down and rebuilds it while the world and the camera stay put — the one
+// operation where "it still renders" is a real question rather than a given.
+const ALL_PETS = ['mochi', 'shadow', 'cloud', 'inky', 'biscuit', 'pepper'];
+for (const pet of ALL_PETS) {
+  await seedSave(page, `s.owned.pets = ${JSON.stringify(ALL_PETS)}; s.equipped.pet = '${pet}';`);
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
   await stageReady(page);
-  check(`skin ${pet} equips without tearing down the stage`, (await catPoint(page)) != null);
+  check(`character ${pet} equips without tearing down the stage`, (await catPoint(page)) != null);
 }
+
+// The stage announces what animal it is showing, so that label is also the
+// cheapest honest check that a dog is actually a dog and not a recoloured cat.
+const dogLabel = await page.getAttribute('.pp-stage canvas', 'aria-label');
+check('equipping a dog builds a dog, not a repainted cat', /\bdog is\b/.test(dogLabel ?? ''), dogLabel?.slice(0, 90));
+
+// Swapping species mid-session must not drop the stage or the WebGL context.
+await page.goto(BASE + '/shop', { waitUntil: 'networkidle' });
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+await page.evaluate(() => {
+  const save = JSON.parse(localStorage.getItem('petpomo.save.v1'));
+  save.equipped.pet = 'mochi';
+  localStorage.setItem('petpomo.save.v1', JSON.stringify(save));
+});
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const backToCat = await page.getAttribute('.pp-stage canvas', 'aria-label');
+check(
+  'switching back to a cat rebuilds the cat',
+  /\bcat is\b/.test(backToCat ?? '') && (await catPoint(page)) != null,
+  backToCat?.slice(0, 90),
+);
 
 // --------------------------------------------------------- 15. stats page
 await page.goto(BASE + '/stats', { waitUntil: 'networkidle' });

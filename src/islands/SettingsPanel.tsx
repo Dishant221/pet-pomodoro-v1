@@ -267,7 +267,7 @@ export default function SettingsPanel() {
               <button
                 type="button"
                 class="pp-btn pp-focus-ring px-3 py-1.5 text-sm"
-                onClick={() => audio.unlock().then(() => audio.playMeow(undefined, { force: true }))}
+                onClick={() => audio.unlock().then(() => audio.playVoice(undefined, { force: true }))}
               >
                 Meow
               </button>

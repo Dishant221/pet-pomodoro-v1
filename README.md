@@ -37,6 +37,8 @@ src/world/
   palette.ts             six time-of-day palettes + the weather wash
   paint.ts               the painted scenes, generated as layered SVG
 src/three/
+  species.ts             what makes one animal a different animal — pure data
+  animal.ts              the one quadruped rig every species is built from
   daylight.ts            bends a scene's lighting to that time and weather
   painted.ts             the gameplay objects that stay 3D on a painted stage
   stage-types.ts         the World contract the engine renders against
@@ -55,6 +57,24 @@ which is why `src/assets/` and the manifest's `petGround` / `#snack-slot`
 coordinates are still here. Those SVGs are inlined into the bundle (`?raw`)
 rather than fetched, so CSS can recolour `.fur`/`.belly`/`.line` for themes,
 GSAP can animate named groups like `#tail`, and the fallback works offline.
+
+**One rig, many animals.** A cat and a dog are the same hierarchy — spine, neck,
+head, two ears, four legs of three joints, a tail of N segments — and that is
+not a simplification, it is what quadrupeds are. It is also why one library of
+animations drives all of them: a walk cycle is a pattern of hip, knee and ankle
+angles, and that pattern belongs to having four legs rather than to being a cat.
+
+So a species is data (`species.ts`): proportions, a few silhouette choices from
+a closed set (ear shape, tail shape, headgear), and a voice recipe the audio
+synthesizer plays instead of a sample. Adding an animal is describing one. The
+cat's numbers were lifted from the original hand-tuned rig unchanged, so it acts
+as the control — anything that looks different on the cat is a bug in the
+generalisation rather than a new art direction.
+
+A shop character is a species *and* a coat, not one or the other: Mochi is a
+ginger cat, Biscuit is a tan dog. Keeping that on the existing pet item means
+ownership, equipping, the shop tab and the save's trust boundary all work for
+species with no new machinery.
 
 **The clock has two modes and one markup tree.** Docked, it reserves a strip of
 the layout along the top or the left edge, so it can never cover the cat.

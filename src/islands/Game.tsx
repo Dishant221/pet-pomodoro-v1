@@ -39,7 +39,7 @@ import {
   settle,
   tickVitals,
 } from '../stores/pet';
-import { REWARDS, SNACK_BY_ID, coinsForFocus } from '../game/economy';
+import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../game/economy';
 import { startWorld } from '../game/world';
 import * as audio from '../game/audio';
 import type { TimerMode } from '../stores/profile';
@@ -61,7 +61,15 @@ export default function Game() {
   const [dragging, setDragging] = useState(false);
   const reduced = prefersReducedMotion(profile);
 
-  /** Did the player interact with the cat during the current break? */
+  /**
+   * The equipped character's name, which every message about the pet uses.
+   *
+   * Hardcoding "Mochi" was fine while there was one animal. It stops being fine
+   * the moment a player equips a dog and is told their cat is sad.
+   */
+  const petName = PET_BY_ID[profile.equipped.pet]?.name ?? 'Mochi';
+
+  /** Did the player interact with the pet during the current break? */
   const interactedThisBreak = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const stage = useRef<StageApi | null>(null);
@@ -105,9 +113,12 @@ export default function Game() {
     };
   }, []);
 
-  // Re-apply theme/skin whenever the profile changes (shop equips, settings).
+  // Re-apply theme/skin whenever the profile changes (shop equips, settings),
+  // and hand the mixer the voice of whichever animal is now equipped — a dog
+  // that meows would undo the whole point of having species.
   useEffect(() => {
     applyAppearance(profile);
+    audio.setVoice(speciesOf(profile.equipped.pet));
   }, [profile.equipped.theme, profile.equipped.pet, profile.settings.reducedMotion]);
 
   // Mixer follows the sliders live.
@@ -132,7 +143,7 @@ export default function Game() {
         onFocusComplete();
         audio.playCoin();
         flash(`Focus complete — +${earned} coins`);
-        notify('Focus complete', 'Time for a break. Mochi is waking up.');
+        notify('Focus complete', `Time for a break. ${petName} is waking up.`);
         interactedThisBreak.current = false;
         // The reward for finishing: the cat runs off and fetches you something.
         setTimeout(() => stage.current?.deliverGift(), 3400);
@@ -149,7 +160,7 @@ export default function Game() {
       if (mode === 'focus') {
         petAbandon();
         audio.playWhimper();
-        flash('Session abandoned. Mochi is sad.');
+        flash(`Session abandoned. ${petName} is sad.`);
       } else {
         settle();
       }
@@ -159,7 +170,7 @@ export default function Game() {
       off();
       offAbandon();
     };
-  }, [flash]);
+  }, [flash, petName]);
 
   // Pet reacts when a focus run begins.
   const prevStatus = useRef(timer.status);
@@ -200,10 +211,10 @@ export default function Game() {
     onFed(snack.restores, snack.joy);
     addCoins(REWARDS.feeding);
     audio.playMunch();
-    audio.playMeow(1);
+    audio.playVoice(1);
     interactedThisBreak.current = true;
-    flash(`${snack.name} — Mochi is delighted`);
-  }, [snack, flash]);
+    flash(`${snack.name} — ${petName} is delighted`);
+  }, [snack, flash, petName]);
 
   const handlePet = useCallback(() => {
     audio.unlock();
@@ -216,12 +227,12 @@ export default function Game() {
     audio.unlock();
     onPlay();
     addCoins(REWARDS.play);
-    audio.playMeow(0);
+    audio.playVoice(0);
     interactedThisBreak.current = true;
   }, []);
 
   const handleMeow = useCallback(() => {
-    audio.playMeow();
+    audio.playVoice();
   }, []);
 
   const handleGift = useCallback(
@@ -229,11 +240,11 @@ export default function Game() {
       audio.playCoin();
       flash(
         prop.kind === 'toy'
-          ? `${prop.glyph} Mochi brought you a ${prop.label.toLowerCase()} — click it to play!`
-          : `${prop.glyph} Mochi brought you a ${prop.label.toLowerCase()}`,
+          ? `${prop.glyph} ${petName} brought you a ${prop.label.toLowerCase()} — click it to play!`
+          : `${prop.glyph} ${petName} brought you a ${prop.label.toLowerCase()}`,
       );
     },
-    [flash],
+    [flash, petName],
   );
 
   const handlePurrStart = useCallback(() => {
@@ -377,13 +388,14 @@ export default function Game() {
   const total = durationFor(timer.mode, profile.settings);
   const progress = total > 0 ? 1 - remaining / total : 0;
 
+  const breakHint = `Break time — stroke ${petName}, or drag a snack onto the floor.`;
   const hint = running
     ? timer.mode === 'focus'
-      ? 'Mochi is curled up asleep. Go do the work.'
-      : 'Break time — stroke the cat, or drag a snack onto the floor.'
+      ? `${petName} is curled up asleep. Go do the work.`
+      : breakHint
     : timer.mode === 'focus'
-      ? 'Press start. Mochi will nap while you focus.'
-      : 'Break time — stroke the cat, or drag a snack onto the floor.';
+      ? `Press start. ${petName} will nap while you focus.`
+      : breakHint;
 
   const hud = (
     <div
@@ -490,7 +502,7 @@ export default function Game() {
                 handleFeed();
               }
             }}
-            title={snackEnabled ? `Drag ${snack.name} onto the floor to feed Mochi` : 'Feeding waits for the break'}
+            title={snackEnabled ? `Drag ${snack.name} onto the floor to feed ${petName}` : 'Feeding waits for the break'}
           >
             <span aria-hidden="true" class="text-base leading-none">
               {snack.glyph}
@@ -588,7 +600,7 @@ export default function Game() {
               Give up this session?
             </h2>
             <p class="mb-4 text-sm" style="color: var(--ink-soft)">
-              Mochi will be sad… It won't count toward your stats either.
+              {petName} will be sad… It won't count toward your stats either.
             </p>
             <div class="flex gap-2">
               <button

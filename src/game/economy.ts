@@ -1,7 +1,8 @@
 import type { SceneId } from './manifest';
+import type { SpeciesId } from '../three/species';
 
 export type ThemeId = 'playful' | 'ghibli' | 'anime' | 'vangogh';
-export type PetSkinId = 'mochi' | 'shadow' | 'cloud' | 'inky';
+export type PetSkinId = 'mochi' | 'shadow' | 'cloud' | 'inky' | 'biscuit' | 'pepper';
 export type SnackId = 'fish' | 'cookie' | 'milk' | 'sushi';
 
 export interface ShopItem {
@@ -15,6 +16,16 @@ export interface ShopItem {
 
 export interface PetSkin extends ShopItem {
   id: PetSkinId;
+  /**
+   * Which animal this is.
+   *
+   * A shop entry is a species plus a coat, not a species *or* a coat: "Mochi"
+   * is a ginger cat and "Biscuit" is a tan dog, and the player picks a
+   * character rather than assembling one. Keeping it on the existing pet item
+   * means ownership, equipping, the shop tab and the save's trust boundary all
+   * work for species with no new machinery.
+   */
+  species: SpeciesId;
   /** Overrides the theme's fur variables when equipped. */
   colors: { fur: string; furDark: string; belly: string; line: string } | null;
 }
@@ -46,12 +57,13 @@ export const THEME_ITEMS: (ShopItem & { id: ThemeId })[] = [
 ];
 
 export const PET_ITEMS: PetSkin[] = [
-  { id: 'mochi', name: 'Mochi', blurb: 'Ginger tabby. The original.', price: 0, free: true, colors: null },
+  { id: 'mochi', name: 'Mochi', blurb: 'Ginger tabby. The original.', price: 0, free: true, species: 'cat', colors: null },
   {
     id: 'shadow',
     name: 'Shadow',
     blurb: 'Charcoal coat, moonlit belly.',
     price: 180,
+    species: 'cat',
     colors: { fur: '#5c5f6e', furDark: '#43465a', belly: '#c9cddb', line: '#23252f' },
   },
   {
@@ -59,6 +71,7 @@ export const PET_ITEMS: PetSkin[] = [
     name: 'Cloud',
     blurb: 'Snow-white with silver stripes.',
     price: 260,
+    species: 'cat',
     colors: { fur: '#f0f1f5', furDark: '#d3d7e2', belly: '#ffffff', line: '#5b5f70' },
   },
   {
@@ -66,7 +79,24 @@ export const PET_ITEMS: PetSkin[] = [
     name: 'Inky',
     blurb: 'Deep teal, the colour of a good idea.',
     price: 380,
+    species: 'cat',
     colors: { fur: '#3f8a86', furDark: '#2d6a67', belly: '#d6f0ec', line: '#1d3b3a' },
+  },
+  {
+    id: 'biscuit',
+    name: 'Biscuit',
+    blurb: 'A dog. Ears down, tail up, barks at the bell.',
+    price: 340,
+    species: 'dog',
+    colors: { fur: '#d8a765', furDark: '#b8834a', belly: '#f6e6cd', line: '#4a3728' },
+  },
+  {
+    id: 'pepper',
+    name: 'Pepper',
+    blurb: 'Slate-grey dog with white socks. Endlessly pleased.',
+    price: 460,
+    species: 'dog',
+    colors: { fur: '#7f8794', furDark: '#5f6773', belly: '#e6eaf0', line: '#2f343d' },
   },
 ];
 
@@ -94,3 +124,15 @@ export function coinsForFocus(durationMs: number): number {
 
 export const SNACK_BY_ID = Object.fromEntries(SNACK_ITEMS.map((s) => [s.id, s])) as Record<SnackId, Snack>;
 export const PET_BY_ID = Object.fromEntries(PET_ITEMS.map((p) => [p.id, p])) as Record<PetSkinId, PetSkin>;
+
+/**
+ * Which animal a shop character is.
+ *
+ * Falls back to the cat rather than throwing: this is reached from the render
+ * path with whatever id the save holds, and a save that survived `hydrate` with
+ * an id this build no longer ships — an older device, a rolled-back deploy —
+ * should get Mochi rather than a blank stage.
+ */
+export function speciesOf(id: PetSkinId): SpeciesId {
+  return PET_BY_ID[id]?.species ?? 'cat';
+}
