@@ -19,6 +19,18 @@ export type TimerMode = 'focus' | 'short' | 'long';
 export type ClockMode = 'docked' | 'float';
 export type ClockDock = 'top' | 'left';
 
+/**
+ * The typeface the countdown is set in.
+ *
+ * System stacks only — no web fonts. The page has a strict content policy that
+ * blocks external hosts, and self-hosting a font to restyle four digits would
+ * cost more than the entire first-load budget has to spare. Every option here
+ * resolves to something already on the machine.
+ */
+export type ClockFont = 'rounded' | 'mono' | 'serif';
+/** Countdown size. The floating clock is read from across a desk. */
+export type ClockSize = 'sm' | 'md' | 'lg';
+
 export interface SessionRecord {
   /** Completion timestamp, ms since epoch. */
   at: number;
@@ -54,6 +66,8 @@ export interface Settings {
    */
   clockX: number;
   clockY: number;
+  clockFont: ClockFont;
+  clockSize: ClockSize;
 }
 
 export interface PetVitals {
@@ -114,6 +128,8 @@ export const DEFAULT_SETTINGS: Settings = {
   // Centred near the top: clear of the cat, which stands on the ground line.
   clockX: 0.5,
   clockY: 0.04,
+  clockFont: 'rounded',
+  clockSize: 'md',
 };
 
 /**
@@ -162,6 +178,8 @@ const VALID_SNACKS = new Set<string>(SNACK_ITEMS.map((s) => s.id));
 const VALID_MODES = new Set<string>(['focus', 'short', 'long']);
 const VALID_CLOCK_MODES = new Set<string>(['docked', 'float']);
 const VALID_CLOCK_DOCKS = new Set<string>(['top', 'left']);
+const VALID_CLOCK_FONTS = new Set<string>(['rounded', 'mono', 'serif']);
+const VALID_CLOCK_SIZES = new Set<string>(['sm', 'md', 'lg']);
 
 /** Keep only recognised ids, plus the one that is always owned. */
 function ownedIds<T extends string>(raw: unknown, valid: Set<string>, always: T): T[] {
@@ -233,6 +251,8 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       clockDock: oneOf<ClockDock>(rawSettings.clockDock, VALID_CLOCK_DOCKS, d.clockDock),
       clockX: num(rawSettings.clockX, d.clockX),
       clockY: num(rawSettings.clockY, d.clockY),
+      clockFont: oneOf<ClockFont>(rawSettings.clockFont, VALID_CLOCK_FONTS, d.clockFont),
+      clockSize: oneOf<ClockSize>(rawSettings.clockSize, VALID_CLOCK_SIZES, d.clockSize),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),

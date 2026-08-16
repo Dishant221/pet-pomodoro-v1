@@ -50,9 +50,14 @@ async function waitForPetState(page, wanted, timeout = 8000) {
   return petState(page);
 }
 
+/**
+ * Coins, read from `data-coins` rather than from the chip's text or tooltip.
+ *
+ * Both of those are user-facing copy. Keying a test to them means rewording a
+ * tooltip breaks the suite somewhere unrelated, which is exactly what happened.
+ */
 async function coins(page) {
-  const t = await page.locator('.pp-chip[title="Coins"] span').last().innerText();
-  return Number(t.trim());
+  return Number(await page.getAttribute('[data-coins]', 'data-coins'));
 }
 
 /** Waits for the WebGL stage to come up and the first frames to be drawn. */
@@ -132,7 +137,14 @@ const canvasSized = await page.evaluate(() => {
 });
 check('canvas is sized to its host', canvasSized);
 check('cat is reachable on screen', (await catPoint(page)) != null);
-check('snack handle lives in the top bar', (await page.locator('.pp-hud .pp-snack').count()) === 1);
+// Everything about the animal lives in the pet panel, and nothing about the
+// animal lives in the timer card. Asserting both directions, because the split
+// only means anything if it holds on both sides.
+check('snack handle lives in the pet panel', (await page.locator('.pp-metrics .pp-snack').count()) === 1);
+check(
+  'the timer card carries no pet readouts',
+  (await page.locator('.pp-hud .pp-mood, .pp-hud .pp-snack').count()) === 0,
+);
 check('starts idle', (await petState(page)) === 'idle', `state=${await petState(page)}`);
 
 // ------------------------- 2b. the page is exactly one screen and does not scroll
@@ -610,6 +622,34 @@ await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 await stageReady(page);
 const affection = await moodOf(page);
 check('mood: recently stroked reads as affection', (affection ?? '').startsWith('Affectionate'), affection);
+
+// The pet panel is pinned to the top right of the stage and stays there — it is
+// the readout you glance at, so it must be where it was last time you looked.
+const panelAt = await page.evaluate(() => {
+  const p = document.querySelector('.pp-metrics')?.getBoundingClientRect();
+  const s = document.querySelector('.pp-stage')?.getBoundingClientRect();
+  return p && s ? { right: Math.round(s.right - p.right), top: Math.round(p.top - s.top) } : null;
+});
+check(
+  'the pet panel is pinned to the top right of the stage',
+  !!panelAt && panelAt.right >= 0 && panelAt.right < 40 && panelAt.top >= 0 && panelAt.top < 40,
+  JSON.stringify(panelAt),
+);
+
+// The countdown font and size are settings, and both have to survive the trip
+// through the save — a typeface that resets on reload is worse than none.
+await seedSave(page, `Object.assign(s.settings, { clockFont: 'mono', clockSize: 'lg' });`);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const typeSet = await page.evaluate(() => {
+  const c = document.querySelector('.pp-clock');
+  return { font: getComputedStyle(c).fontFamily.split(',')[0].trim(), px: parseFloat(getComputedStyle(c).fontSize) };
+});
+check(
+  'the countdown typeface and size are applied from the save',
+  /mono/i.test(typeSet.font) && typeSet.px > 60,
+  `${typeSet.font} at ${Math.round(typeSet.px)}px`,
+);
 
 // ------------------------------------ 17c. a hostile save cannot break the app
 //

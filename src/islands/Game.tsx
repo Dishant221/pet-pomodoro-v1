@@ -414,6 +414,82 @@ export default function Game() {
       ? `Press start. ${petName} will nap while you focus.`
       : breakHint;
 
+  /**
+   * Everything about the animal, pinned to the top right of the stage.
+   *
+   * Kept apart from the timer on purpose. The timer is a tool you set and then
+   * ignore; the pet's condition is a readout you glance at. Mixing them meant
+   * the card you drag around the screen to get it out of the way was also the
+   * only place to see whether the animal was hungry — so moving one moved the
+   * other. This panel does not move, and the clock is free to.
+   */
+  const metrics = (
+    <div class="pp-metrics" role="group" aria-label={`${petName}: condition and care`}>
+      <div class="pp-metrics-row">
+        {/* `data-coins` rather than the tooltip: the title is user-facing copy
+            and rewording it should not break anything that reads this. */}
+        <span class="pp-chip pp-tabular" data-coins={profile.coins} title="Coins earned by focusing">
+          <span aria-hidden="true">🪙</span>
+          <span class="font-bold">{profile.coins}</span>
+        </span>
+
+        {/* Mood leads, then the three numbers it is read from. The mood is what
+            a player acts on — "grumpy" tells you to feed it, where a happiness
+            bar at 54 tells you nothing. */}
+        <span class="pp-chip pp-mood" title={`${mood.label} — ${mood.blurb}`} style={`--mood: ${mood.tone}`}>
+          <span aria-hidden="true">{mood.glyph}</span>
+          <span class="text-xs font-bold">{mood.label}</span>
+          <span class="sr-only">
+            {petName} is {mood.label.toLowerCase()}. {mood.blurb}
+          </span>
+        </span>
+      </div>
+
+      <div class="pp-metrics-row">
+        <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
+        <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
+        <Meter label="Condition" value={profile.vitals.health} tone={mood.tone} glyph="❤️‍🩹" />
+      </div>
+
+      <div class="pp-metrics-row">
+        <button
+          type="button"
+          class="pp-chip pp-snack pp-focus-ring"
+          data-dragging={dragging ? 'true' : 'false'}
+          disabled={!snackEnabled}
+          onPointerDown={onSnackDown}
+          onPointerMove={onSnackMove}
+          onPointerUp={onSnackUp}
+          onPointerCancel={onSnackUp}
+          onKeyDown={(e: KeyboardEvent) => {
+            if (!snackEnabled) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleFeed();
+            }
+          }}
+          title={snackEnabled ? `Drag ${snack.name} onto the floor to feed ${petName}` : 'Feeding waits for the break'}
+        >
+          <span aria-hidden="true" class="text-base leading-none">
+            {snack.glyph}
+          </span>
+          <span class="text-xs font-semibold">Drag to feed</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleMute}
+          class="pp-chip pp-focus-ring"
+          aria-pressed={!profile.settings.muted}
+          title={profile.settings.muted ? 'Unmute' : 'Mute'}
+        >
+          <span aria-hidden="true">{profile.settings.muted ? '🔇' : '🔊'}</span>
+          <span class="sr-only">{profile.settings.muted ? 'Unmute audio' : 'Mute audio'}</span>
+        </button>
+      </div>
+    </div>
+  );
+
   const hud = (
     <div
       ref={cardRef}
@@ -439,7 +515,12 @@ export default function Game() {
       )}
       <div class="pp-hud-inner">
         <div class="pp-hud-clock flex items-baseline gap-2">
-          <span class="pp-clock pp-tabular" aria-live={running ? 'off' : 'polite'}>
+          <span
+            class="pp-clock pp-tabular"
+            data-font={profile.settings.clockFont}
+            data-size={profile.settings.clockSize}
+            aria-live={running ? 'off' : 'polite'}
+          >
             {formatClock(remaining)}
           </span>
           <span class="pp-hud-label hidden sm:inline">{MODE_LABEL[timer.mode]}</span>
@@ -485,71 +566,10 @@ export default function Game() {
           </button>
         </div>
 
-        {/* Every layout carries every control and every readout. An earlier
-            pass had the floating card drop the readouts to stay "a clock",
-            which stopped being right the moment floating became the default:
-            there is no second bar for them to fall back to, so dropping them
-            here means losing them. */}
+        {/* Session dots stay: they are the timer's own progress, not the
+            animal's. Everything about the pet lives in the panel instead — see
+            `metrics` below. */}
         <SessionDots done={timer.cycle} of={profile.settings.longEvery} />
-
-        <div class="pp-hud-cluster ml-auto flex items-center gap-2 sm:gap-3">
-          <span class="pp-chip pp-tabular" title="Coins">
-            <span aria-hidden="true">🪙</span>
-            <span class="font-bold">{profile.coins}</span>
-          </span>
-
-          {/* Mood first, then the three numbers it is read from. The mood is
-              what a player actually acts on — "grumpy" tells you to feed it,
-              where a happiness bar at 54 tells you nothing. */}
-          <span class="pp-chip pp-mood" title={`${mood.label} — ${mood.blurb}`} style={`--mood: ${mood.tone}`}>
-            <span aria-hidden="true">{mood.glyph}</span>
-            <span class="hidden text-xs font-bold md:inline">{mood.label}</span>
-            <span class="sr-only">
-              {petName} is {mood.label.toLowerCase()}. {mood.blurb}
-            </span>
-          </span>
-
-          <span class="flex items-center gap-2.5">
-            <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
-            <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
-            <Meter label="Condition" value={profile.vitals.health} tone={mood.tone} glyph="❤️‍🩹" />
-          </span>
-
-          <button
-            type="button"
-            class="pp-chip pp-snack pp-focus-ring"
-            data-dragging={dragging ? 'true' : 'false'}
-            disabled={!snackEnabled}
-            onPointerDown={onSnackDown}
-            onPointerMove={onSnackMove}
-            onPointerUp={onSnackUp}
-            onPointerCancel={onSnackUp}
-            onKeyDown={(e: KeyboardEvent) => {
-              if (!snackEnabled) return;
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleFeed();
-              }
-            }}
-            title={snackEnabled ? `Drag ${snack.name} onto the floor to feed ${petName}` : 'Feeding waits for the break'}
-          >
-            <span aria-hidden="true" class="text-base leading-none">
-              {snack.glyph}
-            </span>
-            <span class="hidden text-xs font-semibold sm:inline">Drag to feed</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleMute}
-            class="pp-chip pp-focus-ring"
-            aria-pressed={!profile.settings.muted}
-            title={profile.settings.muted ? 'Unmute' : 'Mute'}
-          >
-            <span aria-hidden="true">{profile.settings.muted ? '🔇' : '🔊'}</span>
-            <span class="sr-only">{profile.settings.muted ? 'Unmute audio' : 'Mute audio'}</span>
-          </button>
-        </div>
       </div>
 
       <div class="pp-progress" role="presentation">
@@ -605,6 +625,8 @@ export default function Game() {
             />
           }
         />
+
+        {metrics}
 
         {floating && hud}
 

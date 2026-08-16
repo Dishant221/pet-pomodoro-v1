@@ -91,6 +91,16 @@ ginger cat, Biscuit is a tan dog. Keeping that on the existing pet item means
 ownership, equipping, the shop tab and the save's trust boundary all work for
 species with no new machinery.
 
+**The timer moves; the pet panel does not.** They are two separate pieces of
+chrome because they are two different jobs. The timer is a tool you set and then
+ignore, so it is a card you can drag anywhere — with its own typeface and size,
+from system font stacks, since the content policy blocks external fonts and
+self-hosting one to restyle four digits would cost more than the first-load
+budget has spare. The pet's mood, fullness, happiness, condition, coins, feed
+and mute are a readout you glance at, so they are pinned to the top right and
+stay there. Putting them together meant dragging the clock out of the way also
+moved the only place you could see whether the animal was hungry.
+
 **The clock has two modes and one markup tree.** Docked, it reserves a strip of
 the layout along the top or the left edge, so it can never cover the cat.
 Floating, it leaves the layout entirely and becomes a card the player drags

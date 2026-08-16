@@ -10,7 +10,7 @@ import {
   resetAll,
   updateSettings,
 } from '../stores/profile';
-import type { ClockDock, ClockMode } from '../stores/profile';
+import type { ClockDock, ClockFont, ClockMode, ClockSize } from '../stores/profile';
 import { syncDurations } from '../stores/timer';
 import { SCENES, SCENE_IDS } from '../game/manifest';
 import { THEME_ITEMS } from '../game/economy';
@@ -149,6 +149,28 @@ export default function SettingsPanel() {
                 { id: 'float', label: 'Floating' },
               ]}
               onPick={(v) => updateSettings({ clockMode: v as ClockMode })}
+            />
+          </Row>
+          <Row label="Countdown font">
+            <Choice
+              value={s.clockFont}
+              options={[
+                { id: 'rounded', label: 'Rounded' },
+                { id: 'mono', label: 'Mono' },
+                { id: 'serif', label: 'Serif' },
+              ]}
+              onPick={(v) => updateSettings({ clockFont: v as ClockFont })}
+            />
+          </Row>
+          <Row label="Countdown size">
+            <Choice
+              value={s.clockSize}
+              options={[
+                { id: 'sm', label: 'Small' },
+                { id: 'md', label: 'Medium' },
+                { id: 'lg', label: 'Large' },
+              ]}
+              onPick={(v) => updateSettings({ clockSize: v as ClockSize })}
             />
           </Row>
           {s.clockMode === 'docked' ? (
