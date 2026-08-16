@@ -145,6 +145,30 @@ body {
   outline-offset: 2px;
 }
 
+/* --- Advertising slot -------------------------------------------------------
+   Reserved space at the foot of the game page. Sized to the two standard units
+   it will hold — a 320x50 mobile banner and a 728x90 leaderboard — so the day
+   it is filled, nothing on the page moves. It is deliberately the page's own
+   background rather than a boxed placeholder: an empty slot should read as
+   margin, not as something that failed to load. */
+.pp-adslot {
+  flex: none;
+  height: 50px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .pp-adslot {
+    height: 90px;
+  }
+}
+/* On a short screen the stage matters more than the slot. */
+@media (max-height: 560px) {
+  .pp-adslot {
+    display: none;
+  }
+}
+
 /* --- Command bar ----------------------------------------------------------
    Every metric and control lives in one bar, in one markup tree, and the three
    placements below are the only thing that differs between them: docked along

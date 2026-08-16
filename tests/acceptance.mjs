@@ -135,13 +135,38 @@ check('cat is reachable on screen', (await catPoint(page)) != null);
 check('snack handle lives in the top bar', (await page.locator('.pp-hud .pp-snack').count()) === 1);
 check('starts idle', (await petState(page)) === 'idle', `state=${await petState(page)}`);
 
-// -------------------- 2b. every control sits above the stage, not over it
+// ------------------------- 2b. the page is exactly one screen and does not scroll
+//
+// The game page owns the whole viewport. It used to size its own stage to
+// `100dvh - 3.25rem`, which subtracted the header and forgot the footer, so the
+// page scrolled and the pet hung off the bottom of it. Nothing about that looks
+// broken in a screenshot of the top of the page, which is why it is asserted.
+const pageFits = await page.evaluate(() => ({
+  scrolls: document.documentElement.scrollHeight > document.documentElement.clientHeight + 1,
+  scrollH: document.documentElement.scrollHeight,
+  clientH: document.documentElement.clientHeight,
+}));
+check(
+  'the game page fits one viewport and does not scroll',
+  !pageFits.scrolls,
+  `scrollHeight=${pageFits.scrollH} clientHeight=${pageFits.clientH}`,
+);
+
+// The advertising slot is reserved before there is anything in it, so that
+// filling it later shifts nothing.
+const adH = await page.evaluate(() => document.querySelector('.pp-adslot')?.getBoundingClientRect().height ?? 0);
+check('the ad slot reserves its space up front', adH >= 50, `${Math.round(adH)}px`);
+
+// One bar, not two. The floating card is the command centre by default.
 const hudBox = await page.locator('.pp-hud').boundingBox();
 const stageBox = await page.locator('.pp-stage').boundingBox();
 check(
-  'HUD sits entirely above the stage',
-  hudBox.y + hudBox.height <= stageBox.y + 1,
-  `hud ends ${Math.round(hudBox.y + hudBox.height)}, stage starts ${Math.round(stageBox.y)}`,
+  'there is one command bar, floating over the stage',
+  (await page.locator('.pp-hud').count()) === 1 &&
+    (await page.getAttribute('.pp-hud', 'data-layout')) === 'float' &&
+    hudBox.y >= stageBox.y - 1 &&
+    hudBox.y + hudBox.height <= stageBox.y + stageBox.height + 1,
+  `hud ${Math.round(hudBox.y)}..${Math.round(hudBox.y + hudBox.height)} inside stage ${Math.round(stageBox.y)}..${Math.round(stageBox.y + stageBox.height)}`,
 );
 
 // ------------------------------------------------- 3. focus -> sleeping
@@ -455,9 +480,26 @@ check('stage returns to full motion', (await page.getAttribute('.pp-stage', 'dat
 await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 await stageReady(page);
 check(
-  'clock docks to the top by default',
-  (await page.getAttribute('.pp-hud', 'data-layout')) === 'top',
+  'clock floats by default',
+  (await page.getAttribute('.pp-hud', 'data-layout')) === 'float',
   await page.getAttribute('.pp-hud', 'data-layout'),
+);
+
+// Docked to the top: a strip of the layout, never over the stage. That
+// separation is the whole reason the docked mode still exists.
+await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
+await page.getByRole('button', { name: 'Docked', exact: true }).click();
+await sleep(250); // the edge picker only exists while docked
+await page.getByRole('button', { name: 'Top', exact: true }).click();
+await sleep(300);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const topBox = await page.locator('.pp-hud').boundingBox();
+const topStageBox = await page.locator('.pp-stage').boundingBox();
+check(
+  'docked to the top, the bar sits entirely above the stage',
+  (await page.getAttribute('.pp-hud', 'data-layout')) === 'top' && topBox.y + topBox.height <= topStageBox.y + 1,
+  `bar ends ${Math.round(topBox.y + topBox.height)}, stage starts ${Math.round(topStageBox.y)}`,
 );
 
 // The rail: docked, but down the left edge.
@@ -533,13 +575,7 @@ await page.getByRole('button', { name: 'Pause' }).click();
 await page.locator('.pp-btn[title="Reset"]').click();
 await sleep(200);
 
-// Back to the default so the sections after this one see the usual bar.
-await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
-await page.getByRole('button', { name: 'Docked', exact: true }).click();
-// The edge picker only exists while docked, so it appears on this click.
-await sleep(200);
-await page.getByRole('button', { name: 'Top', exact: true }).click();
-await sleep(300);
+// Already floating, which is the default — nothing to restore.
 
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
@@ -626,14 +662,14 @@ check('hostile save does not pollute Object.prototype', hostile.polluted === fal
 // failure it would cause is particular: a card parked at x=99 is a command bar
 // the player cannot see, reach, or drag back.
 check(
-  'hostile clock placement falls back to a visible, docked bar',
-  hostile.clock.mode === 'docked' &&
+  'hostile clock placement falls back to a visible default',
+  hostile.clock.mode === 'float' &&
     hostile.clock.dock === 'top' &&
     hostile.clock.x >= 0 &&
     hostile.clock.x <= 1 &&
     hostile.clock.y >= 0 &&
     hostile.clock.y <= 1 &&
-    hostile.layout === 'top',
+    hostile.layout === 'float',
   `${JSON.stringify(hostile.clock)} layout=${hostile.layout}`,
 );
 // The root class matters on its own: boot.js runs before hydrate can sanitise

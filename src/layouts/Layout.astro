@@ -122,7 +122,15 @@ const year = new Date().getFullYear();
     <script src="/boot.js" is:inline></script>
   </head>
 
-  <body class="min-h-dvh flex flex-col">
+  {/*
+    The game page is exactly one viewport tall and does not scroll. It used to
+    size its own stage to `100dvh - 3.25rem`, which subtracted the header and
+    forgot the footer, so header + stage + footer came to more than the screen
+    and the whole page gained a scrollbar with the pet hanging off the bottom of
+    it. Owning the height here instead of guessing at it in the island means
+    nothing has to know how tall the chrome is.
+  */}
+  <body class:list={['flex flex-col', wide ? 'h-dvh overflow-hidden' : 'min-h-dvh']}>
     <a
       href="#main"
       class="pp-focus-ring sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:px-3 focus:py-2"
@@ -164,7 +172,10 @@ const year = new Date().getFullYear();
       </nav>
     </header>
 
-    <main id="main" class={wide ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}>
+    <main
+      id="main"
+      class={wide ? 'flex min-h-0 flex-1 flex-col' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-5 sm:py-10'}
+    >
       <slot />
     </main>
 

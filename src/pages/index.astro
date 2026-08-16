@@ -87,5 +87,17 @@ const schema = [
   schema={schema}
   wide
 >
-  <Game client:only="preact" />
+  <div class="min-h-0 flex-1"><Game client:only="preact" /></div>
+
+  {/*
+    The advertising slot, reserved before there is anything to put in it.
+    Holding the space from the start is the whole point: dropping a banner into
+    a laid-out page shoves everything upward, and that shift is both a ranking
+    signal and the reason people mis-tap. An empty reserved strip costs nothing
+    and means the day this fills, nothing moves.
+
+    It is `aria-hidden` while empty so a screen reader is not told about a
+    region that contains nothing.
+  */}
+  <aside class="pp-adslot" aria-hidden="true" data-slot="footer-leaderboard"></aside>
 </Layout>

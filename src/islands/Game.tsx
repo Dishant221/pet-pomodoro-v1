@@ -468,10 +468,12 @@ export default function Game() {
           </button>
         </div>
 
-        {/* Readouts, not controls. The floating card drops them to stay a
-            clock rather than a dashboard parked on top of the cat — both are
-            still on /stats, and neither is the only way to do anything. */}
-        {!floating && <SessionDots done={timer.cycle} of={profile.settings.longEvery} />}
+        {/* Every layout carries every control and every readout. An earlier
+            pass had the floating card drop the readouts to stay "a clock",
+            which stopped being right the moment floating became the default:
+            there is no second bar for them to fall back to, so dropping them
+            here means losing them. */}
+        <SessionDots done={timer.cycle} of={profile.settings.longEvery} />
 
         <div class="pp-hud-cluster ml-auto flex items-center gap-2 sm:gap-3">
           <span class="pp-chip pp-tabular" title="Coins">
@@ -479,12 +481,10 @@ export default function Game() {
             <span class="font-bold">{profile.coins}</span>
           </span>
 
-          {!floating && (
-            <span class="flex items-center gap-2.5">
-              <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
-              <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
-            </span>
-          )}
+          <span class="flex items-center gap-2.5">
+            <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
+            <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
+          </span>
 
           <button
             type="button"
@@ -531,7 +531,10 @@ export default function Game() {
 
   return (
     <div
-      class={`flex h-[calc(100dvh-3.25rem)] w-full ${layout === 'left' ? 'flex-col sm:flex-row' : 'flex-col'}`}
+      /* Fills whatever the page gives it. The old `calc(100dvh - 3.25rem)`
+         guessed at the chrome's height, got it wrong by one footer, and pushed
+         the pet off the bottom of a scrolling page. */
+      class={`flex h-full w-full ${layout === 'left' ? 'flex-col sm:flex-row' : 'flex-col'}`}
     >
       {/* Docked: the bar owns a strip of the layout, so the stage is whatever
           is left and the two can never overlap. Floating: it goes inside the

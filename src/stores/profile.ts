@@ -94,16 +94,32 @@ export const DEFAULT_SETTINGS: Settings = {
   muted: true,
   notifications: false,
   reducedMotion: false,
-  clockMode: 'docked',
+  // Floating by default. Docked put a second full-width bar directly under the
+  // site nav, and two stacked bars read as two navigations — the timer looked
+  // like page chrome instead of like the thing you came for. Docked is still
+  // there in Settings for anyone who wants the stage kept clear.
+  clockMode: 'float',
   clockDock: 'top',
   // Centred near the top: clear of the cat, which stands on the ground line.
   clockX: 0.5,
   clockY: 0.04,
 };
 
+/**
+ * Save format version.
+ *
+ * Bumped when a *default* changes in a way that an existing save would
+ * otherwise carry the old value of forever. A field the player has actually
+ * chosen is never touched; the version only lets `hydrate` tell "they picked
+ * docked" apart from "this save predates the question being asked".
+ *
+ * 2 — the timer moved off the page chrome into a floating card.
+ */
+export const PROFILE_VERSION = 2;
+
 export function defaultProfile(): Profile {
   return {
-    v: 1,
+    v: PROFILE_VERSION,
     coins: 0,
     owned: { scenes: ['livingroom'], themes: ['playful'], pets: ['mochi'], snacks: ['fish'] },
     equipped: { scene: 'livingroom', theme: 'playful', pet: 'mochi', snack: 'fish' },
@@ -177,8 +193,10 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
   const rawVitals = (raw.vitals ?? {}) as Record<string, unknown>;
   const d = base.settings;
 
+  const savedVersion = num(raw.v, 0);
+
   const merged: Profile = {
-    v: 1,
+    v: PROFILE_VERSION,
     coins: Math.max(0, Math.floor(num(raw.coins, 0))),
     owned,
     // Equipping is resolved against what is owned, so this cannot end up
@@ -217,6 +235,14 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
   };
 
   merged.settings = clampSettings(merged.settings);
+
+  // A save from before v2 carries `clockMode: 'docked'` as a default nobody
+  // chose — the setting did not exist when most of those saves were written.
+  // Upgrading it is the difference between the change shipping and every
+  // existing player still seeing the old two-bar layout. Anything saved from
+  // v2 onward is a real choice and is left alone.
+  if (savedVersion < 2) merged.settings.clockMode = DEFAULT_SETTINGS.clockMode;
+
   return merged;
 }
 
