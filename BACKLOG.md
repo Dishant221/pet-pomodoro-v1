@@ -50,7 +50,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 23 | Compliance pages | Privacy, terms, cookies, copyright, contact, about. |
 | 24 | SEO plumbing | Canonicals, OG, sitemap, robots, RSS, JSON-LD (WebApplication + FAQPage). |
 | 25 | Blog | Content collection, 2 posts, RSS. |
-| 26 | Perf budget | First-load JS 84 KB gzip against a 200 KB ceiling, enforced in CI. |
+| 26 | Perf budget | First-load JS 89 KB gzip against a 200 KB ceiling, enforced in CI. |
 | 27 | CI/CD | Push to `testing` → preview; push to `main` → production. |
 | 28 | Test suite | 115 acceptance checks + 10 sync checks, run against the real Pages runtime. |
 | 44 | Pinnable world | Time of day, weather and season each switchable off `auto` in Settings. Derived view over reality, never a write into it; the readout says when it is pinned. |
@@ -74,16 +74,17 @@ horizon, which re-composes all six scenes.
 space the moment it is marked `data-filled`. **Gap:** no ad network, no
 consent flow, no ads.txt.
 
-**45. Two flaky acceptance checks** — `drag-feed reaches eating state` and
-`stroking >=1s reaches petted` fail intermittently, on `main` as well as on
-`testing`, and were reproduced failing on an unmodified build. Both aim the
-mouse at a point sampled from a pet that keeps walking, so the drop or the
-stroke can land on empty floor. **Gap:** the pet needs holding still for the
-duration of those two interactions, or the helpers need to re-aim mid-gesture.
-
 **32. Documentation** — README covers the design decisions, DEPLOY.md the
 infrastructure, GUIDE.md the plain-language walkthrough. **Gap:** the full
 "pilot book" — a single operator runbook covering every failure mode.
+
+**45. Two flaky acceptance checks** — `drag-feed reaches eating state` and
+`stroking >=1s reaches petted` fail intermittently, on `main` as well as on
+`testing`, and were reproduced failing on an unmodified build (16 Aug 2026:
+one baseline run passed 102/102, the next failed the same two). Both aim the
+mouse at a point sampled from a pet that keeps walking, so the drop or the
+stroke can land on empty floor. **Gap:** the pet needs holding still for the
+duration of those two interactions, or the helpers need to re-aim mid-gesture.
 
 ---
 
@@ -133,9 +134,12 @@ ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 
 ## Suggested order when work resumes
 
-1. #41 analytics/error reporting — a live product you cannot observe is a guess.
-2. #33 + #34 behaviours and commands — the biggest gap between what this is and what it promises.
-3. #38 interiors + #30 framing — they touch the same code, do them together.
-4. #36 dog art, #37 previews.
-5. #35 voice.
-6. #31 → #42 → #40 monetization, in that order.
+1. #45 the two flaky checks — cheap, and until they are fixed every future run
+   reports failures that have to be re-diagnosed by hand before anything else
+   can be trusted.
+2. #41 analytics/error reporting — a live product you cannot observe is a guess.
+3. #33 + #34 behaviours and commands — the biggest gap between what this is and what it promises.
+4. #38 interiors + #30 framing — they touch the same code, do them together.
+5. #36 dog art, #37 previews.
+6. #35 voice.
+7. #31 → #42 → #40 monetization, in that order.
