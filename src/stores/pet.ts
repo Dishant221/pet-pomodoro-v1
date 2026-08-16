@@ -141,6 +141,9 @@ export function onFed(restores: number, joy: number): void {
   updateVitals({
     hunger: vitals.hunger - restores,
     happiness: vitals.happiness + joy,
+    // A meal helps, but only a little: getting an ill animal well again is
+    // meant to take a stretch of being looked after, not one good dinner.
+    health: vitals.health + 3,
     ignoredBreaks: 0,
     lastInteractAt: Date.now(),
   });
@@ -172,14 +175,31 @@ export function onPlay(): void {
   playState('playing', { force: true });
 }
 
-/** Slow drift: gets hungrier and a little sadder as real time passes. */
+/** Hunger this high for long enough is what actually makes the animal ill. */
+export const HUNGER_HARMS_ABOVE = 70;
+
+/**
+ * Slow drift: gets hungrier and a little sadder as real time passes.
+ *
+ * Condition moves on a slower loop than the other two and only in response to
+ * them: it falls while the animal is genuinely hungry, and recovers only once
+ * it is both fed and not miserable. Recovery is deliberately slower than decay,
+ * so a day of neglect is not undone by one biscuit — otherwise "unwell" is a
+ * label that flickers rather than a state you have to look after.
+ */
 export function tickVitals(elapsedMs: number): void {
   const { vitals } = $profile.get();
   const hours = elapsedMs / 3_600_000;
   if (hours <= 0) return;
+
+  const hungry = vitals.hunger >= HUNGER_HARMS_ABOVE;
+  const cared = vitals.hunger < 45 && vitals.happiness > 50;
+  const health = vitals.health + (hungry ? -hours * 9 : cared ? hours * 5 : 0);
+
   updateVitals({
     hunger: vitals.hunger + hours * 6,
     happiness: vitals.happiness - hours * 3,
+    health,
   });
 }
 

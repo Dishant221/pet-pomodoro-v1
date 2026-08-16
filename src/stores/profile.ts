@@ -59,6 +59,17 @@ export interface Settings {
 export interface PetVitals {
   hunger: number; // 0 full .. 100 starving
   happiness: number; // 0 .. 100
+  /**
+   * Condition, 0 ill .. 100 well.
+   *
+   * Slower than the other two and harder to move: it only falls after hunger
+   * has been high for a sustained stretch, and it only recovers while the
+   * animal is both fed and reasonably content. That inertia is the point —
+   * "not feeling well" should be something you let happen over a day of
+   * neglect, and something that takes real care to put right, rather than
+   * another bar that swings with every biscuit.
+   */
+  health: number;
   ignoredBreaks: number;
   lastInteractAt: number;
 }
@@ -124,7 +135,7 @@ export function defaultProfile(): Profile {
     owned: { scenes: ['livingroom'], themes: ['playful'], pets: ['mochi'], snacks: ['fish'] },
     equipped: { scene: 'livingroom', theme: 'playful', pet: 'mochi', snack: 'fish' },
     settings: { ...DEFAULT_SETTINGS },
-    vitals: { hunger: 20, happiness: 70, ignoredBreaks: 0, lastInteractAt: 0 },
+    vitals: { hunger: 20, happiness: 70, health: 100, ignoredBreaks: 0, lastInteractAt: 0 },
     sessions: [],
   };
 }
@@ -226,6 +237,7 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
       happiness: clamp(num(rawVitals.happiness, base.vitals.happiness), 0, 100),
+      health: clamp(num(rawVitals.health, base.vitals.health), 0, 100),
       ignoredBreaks: clamp(Math.floor(num(rawVitals.ignoredBreaks, 0)), 0, 999),
       lastInteractAt: Math.max(0, Math.floor(num(rawVitals.lastInteractAt, 0))),
     },
@@ -350,6 +362,7 @@ export function updateVitals(patch: Partial<PetVitals>): void {
       ...patch,
       hunger: clamp(patch.hunger ?? p.vitals.hunger, 0, 100),
       happiness: clamp(patch.happiness ?? p.vitals.happiness, 0, 100),
+      health: clamp(patch.health ?? p.vitals.health, 0, 100),
     },
   }));
 }

@@ -40,7 +40,8 @@ import {
   tickVitals,
 } from '../stores/pet';
 import { PET_BY_ID, REWARDS, SNACK_BY_ID, coinsForFocus, speciesOf } from '../game/economy';
-import { startWorld } from '../game/world';
+import { $world, startWorld } from '../game/world';
+import { MOODS, moodFor, voiceRateFor } from '../game/mood';
 import * as audio from '../game/audio';
 import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
@@ -55,6 +56,7 @@ export default function Game() {
   const timer = useStore($timer);
   const remaining = useStore($remaining);
   const petState = useStore($petState);
+  const world = useStore($world);
 
   const [confirmAbandon, setConfirmAbandon] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -68,6 +70,15 @@ export default function Game() {
    * the moment a player equips a dog and is told their cat is sad.
    */
   const petName = PET_BY_ID[profile.equipped.pet]?.name ?? 'Mochi';
+
+  /**
+   * How the animal feels, derived rather than stored — see game/mood.ts.
+   *
+   * Recomputed on every render, which sounds wasteful and is not: it reads five
+   * numbers already in hand, and the alternative is a cached mood that can
+   * disagree with the vitals it came from.
+   */
+  const mood = MOODS[moodFor(profile.vitals)];
 
   /** Did the player interact with the pet during the current break? */
   const interactedThisBreak = useRef(false);
@@ -120,6 +131,12 @@ export default function Game() {
     applyAppearance(profile);
     audio.setVoice(speciesOf(profile.equipped.pet));
   }, [profile.equipped.theme, profile.equipped.pet, profile.settings.reducedMotion]);
+
+  // How often the animal speaks follows its mood and the hour. A cat that meows
+  // at the same rate at 3am as at noon is a sound effect on a timer.
+  useEffect(() => {
+    audio.setVoiceRate(voiceRateFor(mood.id, world.phase));
+  }, [mood.id, world.phase]);
 
   // Mixer follows the sliders live.
   useEffect(() => {
@@ -481,9 +498,21 @@ export default function Game() {
             <span class="font-bold">{profile.coins}</span>
           </span>
 
+          {/* Mood first, then the three numbers it is read from. The mood is
+              what a player actually acts on — "grumpy" tells you to feed it,
+              where a happiness bar at 54 tells you nothing. */}
+          <span class="pp-chip pp-mood" title={`${mood.label} — ${mood.blurb}`} style={`--mood: ${mood.tone}`}>
+            <span aria-hidden="true">{mood.glyph}</span>
+            <span class="hidden text-xs font-bold md:inline">{mood.label}</span>
+            <span class="sr-only">
+              {petName} is {mood.label.toLowerCase()}. {mood.blurb}
+            </span>
+          </span>
+
           <span class="flex items-center gap-2.5">
             <Meter label="Fullness" value={100 - profile.vitals.hunger} tone="var(--accent)" glyph="🍽️" />
             <Meter label="Happiness" value={profile.vitals.happiness} tone="#F5788F" glyph="💗" />
+            <Meter label="Condition" value={profile.vitals.health} tone={mood.tone} glyph="❤️‍🩹" />
           </span>
 
           <button

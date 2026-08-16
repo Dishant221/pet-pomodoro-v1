@@ -32,6 +32,7 @@ src/game/
   anim.ts                every GSAP timeline: poses, parallax, ambient, day/night
   audio.ts               all SFX + ambient beds, synthesized in Web Audio
   economy.ts             shop catalog and coin rewards
+  mood.ts                how the animal feels, derived from its vitals
   world.ts               the player's real local time + real weather
   sync.ts                optional cloud-sync client
 src/world/
@@ -58,6 +59,19 @@ which is why `src/assets/` and the manifest's `petGround` / `#snack-slot`
 coordinates are still here. Those SVGs are inlined into the bundle (`?raw`)
 rather than fetched, so CSS can recolour `.fur`/`.belly`/`.line` for themes,
 GSAP can animate named groups like `#tail`, and the fallback works offline.
+
+**Mood is derived, not stored.** `PetState` is a pose and changes several times
+a minute; mood is slower and decides *how* those poses play, how often the
+animal speaks, and what the meter says. It is read from the vitals on every
+render — a stored mood is one more thing that can disagree with the numbers it
+came from. The reading is worst-first, so an animal that is both ill and hungry
+reads as ill: "grumpy" there would bury the one state that needs you to act.
+
+Condition is a third vital behind "not feeling well". It only falls after hunger
+has been high for a sustained stretch, only recovers while the animal is both
+fed and reasonably content, and recovers slower than it falls — so illness is
+something you let happen over a day of neglect and have to actually nurse back,
+rather than a bar that flickers with every biscuit.
 
 **One rig, many animals.** A cat and a dog are the same hierarchy — spine, neck,
 head, two ears, four legs of three joints, a tail of N segments — and that is

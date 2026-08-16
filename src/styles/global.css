@@ -387,6 +387,14 @@ body {
   cursor: not-allowed;
 }
 
+/* The mood chip. Tinted from the mood itself, so the colour carries the reading
+   even at the sizes where the label is hidden. */
+.pp-mood {
+  border-color: color-mix(in srgb, var(--mood) 55%, var(--border));
+  background: color-mix(in srgb, var(--mood) 16%, var(--bg-elev));
+  color: var(--ink);
+}
+
 /* Hairline session progress along the bottom edge of the bar. */
 .pp-progress {
   height: 3px;

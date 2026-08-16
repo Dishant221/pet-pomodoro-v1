@@ -577,6 +577,40 @@ await sleep(200);
 
 // Already floating, which is the default — nothing to restore.
 
+// --------------------------------------------------------- 17d. mood
+//
+// Mood is derived from the vitals, never stored, and the ordering is the part
+// worth asserting: it returns worst-first, so an animal that is both ill and
+// hungry reads as ill. Telling the player "grumpy" there would bury the one
+// state that actually needs them to do something.
+async function moodOf(page) {
+  return page.getAttribute('.pp-mood', 'title');
+}
+
+for (const [name, vitals, want] of [
+  ['illness outranks hunger', { health: 18, hunger: 95, happiness: 40 }, 'Unwell'],
+  ['hungry and unimpressed', { health: 100, hunger: 88, happiness: 45 }, 'Grumpy'],
+  ['neglected', { health: 100, hunger: 20, happiness: 10 }, 'Sad'],
+  ['well looked after', { health: 100, hunger: 15, happiness: 90, lastInteractAt: 0 }, 'Happy'],
+]) {
+  await seedSave(page, `Object.assign(s.vitals, ${JSON.stringify(vitals)}); s.vitals.ignoredBreaks = 0;`);
+  await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await stageReady(page);
+  const title = await moodOf(page);
+  check(`mood: ${name}`, (title ?? '').startsWith(want), title);
+}
+
+// Recent contact reads as affection — the one mood driven by *when* rather than
+// by a level, so it is the one a purely threshold-based reading would miss.
+await seedSave(
+  page,
+  `Object.assign(s.vitals, { health: 100, hunger: 20, happiness: 70, ignoredBreaks: 0 }); s.vitals.lastInteractAt = Date.now();`,
+);
+await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+await stageReady(page);
+const affection = await moodOf(page);
+check('mood: recently stroked reads as affection', (affection ?? '').startsWith('Affectionate'), affection);
+
 // ------------------------------------ 17c. a hostile save cannot break the app
 //
 // A save is not always something this player wrote. It arrives from /api/load
@@ -608,7 +642,7 @@ await page.evaluate(() => {
         clockX: 99,
         clockY: -3,
       },
-      vitals: { hunger: NaN, happiness: -500, ignoredBreaks: 'lots', lastInteractAt: -1 },
+      vitals: { hunger: NaN, happiness: -500, health: 'sick', ignoredBreaks: 'lots', lastInteractAt: -1 },
       sessions: [{ at: 'now', ms: {}, mode: 'evil' }, null, 5],
       __proto__: { polluted: true },
     }),

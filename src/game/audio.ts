@@ -184,6 +184,21 @@ export function setVoice(id: SpeciesId): void {
 }
 
 /**
+ * How talkative the animal is right now, as a multiplier on the rate limit.
+ *
+ * Above 1 speaks more often and with a shorter minimum gap; below 1, less. The
+ * caller derives it from mood and time of day — a hungry animal nags, a sick
+ * one goes quiet, and everything goes quiet at night. Applied to *both* the
+ * chance and the gap, because raising the chance alone just makes the animal
+ * hit the same ceiling more often.
+ */
+let voiceRate = 1;
+
+export function setVoiceRate(rate: number): void {
+  voiceRate = Math.min(4, Math.max(0.05, Number.isFinite(rate) ? rate : 1));
+}
+
+/**
  * The pet's call: a meow, a bark, whatever this animal says.
  *
  * `variant` (0..2) picks one of three shadings of the same voice, so repeats
@@ -200,8 +215,8 @@ export function playVoice(variant = Math.floor(Math.random() * 3), opts: { force
 
   if (!opts.force) {
     const now = Date.now();
-    if (now - lastVoiceAt < MEOW_MIN_GAP_MS) return;
-    if (Math.random() > MEOW_CHANCE) return;
+    if (now - lastVoiceAt < MEOW_MIN_GAP_MS / voiceRate) return;
+    if (Math.random() > MEOW_CHANCE * voiceRate) return;
     lastVoiceAt = now;
   }
 
