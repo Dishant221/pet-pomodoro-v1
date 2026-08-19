@@ -544,11 +544,18 @@ app.post('/api/ask', async (c) => {
       max_tokens: 120,
     });
 
-    // The response shape is `{ response: string }` for text generation, and the
-    // string is a model's best effort at JSON — it may arrive fenced, prefixed,
-    // or with a trailing apology. Pull the first object out rather than trusting
-    // the whole body to parse.
-    const out = (raw as { response?: unknown }).response;
+    // Two response shapes are in play and the model decides which one you get.
+    // The older text-generation shape is `{ response: string }`; llama-3.2 now
+    // answers in the OpenAI chat shape, `{ choices: [{ message: { content } }] }`.
+    // Reading only `.response` against a model that returns `choices` yields
+    // undefined, throws below, and is swallowed by the catch — which looks
+    // exactly like "AI is not bound" from outside. Accept either.
+    const r = raw as { response?: unknown; choices?: { message?: { content?: unknown } }[] };
+    const out = typeof r.response === 'string' ? r.response : r.choices?.[0]?.message?.content;
+
+    // Whichever shape it came in, the string is a model's best effort at JSON —
+    // it may arrive fenced, prefixed, or with a trailing apology. Pull the first
+    // object out rather than trusting the whole body to parse.
     const s = typeof out === 'string' ? out : '';
     const start = s.indexOf('{');
     const end = s.lastIndexOf('}');
