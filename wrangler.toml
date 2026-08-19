@@ -16,11 +16,22 @@ database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 
 # Workers AI, for /api/ask — the endpoint that decides how the pet reacts to
 # being spoken to. It is the only thing in this project that costs money per
-# call, so the endpoint rate-limits per address and caps per day, and it falls
-# back to a local reaction table when the binding is missing. That fallback is
-# why a deploy without AI enabled on the account still works.
-[ai]
-binding = "AI"
+# call, so the endpoint rate-limits per address and caps per day.
+#
+# DELIBERATELY NOT DECLARED HERE. Bind it on the Pages project instead:
+#   Cloudflare dashboard → Workers & Pages → petpomo → Settings → Bindings
+#   → Add → Workers AI → variable name `AI`, for Production and Preview.
+#
+# The reason is that an `[ai]` block in this file is not a local binding. Unlike
+# D1, Workers AI has no local emulation: wrangler opens a *remote* connection
+# for it at startup, so declaring it here makes `wrangler pages dev` — and with
+# it `npm run test:sync`, which drives the real Pages runtime — depend on being
+# logged in, online, and entitled to Workers AI. It was measured hanging every
+# request on this machine for exactly that reason.
+#
+# Binding it in the dashboard gives production and preview the model while
+# leaving local dev clean, where /api/ask falls back to its own reaction table.
+# That fallback is tested and is what a deploy without AI enabled does too.
 
 # The burst limit on /api/ask. Cloudflare's own limiter rather than the edge
 # cache counter used elsewhere in the Worker, because that one is not atomic
@@ -56,11 +67,8 @@ binding = "DB"
 database_name = "petpomo-preview"
 database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
 
-# Restated, not inherited — see the note above about non-inheritable keys. A
-# binding declared only at the top level silently vanishes on preview, and the
-# first sign of it would be the pet answering from the fallback table.
-[env.preview.ai]
-binding = "AI"
+# No `[env.preview.ai]` either — same reason as above. Preview gets its AI
+# binding from the dashboard, where it is set per environment.
 
 # A separate namespace id, so a load test against preview cannot spend
 # production's limiter budget or lock real players out of talking to their pet.

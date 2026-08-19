@@ -558,8 +558,13 @@ export default function Companion() {
       {/* What the animal just did, in words, for anyone who cannot hear the
           meow — and because a reaction you can read is a reaction you can be
           sure landed. `polite`, so it never interrupts. */}
+      {/* `aria-live` without `role="status"`, deliberately. The role adds
+          nothing here — it only implies the same polite live region — and it
+          would put a second `[role="status"]` on any page the pet is on, which
+          is the selector the stage and the settings panel already use for their
+          own announcements. */}
       {bubble && (
-        <p class="pp-companion-bubble" role="status" aria-live="polite">
+        <p class="pp-companion-bubble" aria-live="polite">
           {bubble}
         </p>
       )}
