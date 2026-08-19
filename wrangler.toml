@@ -18,32 +18,48 @@ database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 # being spoken to. It is the only thing in this project that costs money per
 # call, so the endpoint rate-limits per address and caps per day.
 #
-# DELIBERATELY NOT DECLARED HERE. Bind it on the Pages project instead:
-#   Cloudflare dashboard → Workers & Pages → petpomo → Settings → Bindings
-#   → Add → Workers AI → variable name `AI`, for Production and Preview.
+# DELIBERATELY NOT DECLARED AT THIS LEVEL, because top-level is also what
+# `wrangler pages dev` uses. An `[ai]` block here is not a local binding: unlike
+# D1, Workers AI has no local emulation, so wrangler opens a *remote* connection
+# for it at startup, making `wrangler pages dev` — and with it `npm run
+# test:sync`, which drives the real Pages runtime — depend on being logged in,
+# online, and entitled to Workers AI. It was measured hanging every request on
+# this machine for exactly that reason.
 #
-# The reason is that an `[ai]` block in this file is not a local binding. Unlike
-# D1, Workers AI has no local emulation: wrangler opens a *remote* connection
-# for it at startup, so declaring it here makes `wrangler pages dev` — and with
-# it `npm run test:sync`, which drives the real Pages runtime — depend on being
-# logged in, online, and entitled to Workers AI. It was measured hanging every
-# request on this machine for exactly that reason.
+# It is declared per-environment instead, under `[env.preview.ai]` below, which
+# deploys reach but local dev never loads. Local dev therefore stays clean and
+# /api/ask falls back to its own reaction table there — a tested path, and the
+# same one a deploy without AI takes.
 #
-# Binding it in the dashboard gives production and preview the model while
-# leaving local dev clean, where /api/ask falls back to its own reaction table.
-# That fallback is tested and is what a deploy without AI enabled does too.
+# DO NOT go back to binding it only in the dashboard. That was the previous
+# advice here and it does not hold: for a Pages project with a config file,
+# `wrangler pages deploy` replaces the whole deployment config for the target
+# environment with what this file says. A dashboard-added AI binding survives
+# until the next deploy and is then silently dropped — observed exactly that
+# way, with /api/ask answering `"model": false` from a preview that had been
+# bound by hand minutes earlier.
 
-# The burst limit on /api/ask. Cloudflare's own limiter rather than the edge
-# cache counter used elsewhere in the Worker, because that one is not atomic
-# and every call past this limit is a billed inference. `period` accepts only
-# 10 or 60 seconds; the daily budget cap stays in the Worker.
-[[ratelimits]]
-name = "ASK_LIMIT"
-namespace_id = "1001"
-
-  [ratelimits.simple]
-  limit = 6
-  period = 60
+# The burst limit on /api/ask was going to be Cloudflare's own rate limiter,
+# bound as ASK_LIMIT, because it is atomic where the edge cache counter is not
+# and every call past the limit is a billed inference.
+#
+# IT CANNOT LIVE HERE. Pages rejects the key outright, and not just the binding
+# — the whole deploy fails validation before a single asset is uploaded:
+#
+#   X [ERROR] Running configuration file validation for Pages:
+#       - Configuration file for Pages projects does not support "ratelimits"
+#
+# So /api/ask runs on the fallback the endpoint already had: the same
+# best-effort edge-cache counter used elsewhere in the Worker, with the daily
+# budget cap unchanged behind it. `c.env.ASK_LIMIT` being undefined is a
+# supported path in worker/src/index.ts, not an accident.
+#
+# The atomic limit belongs in a WAF rule instead, alongside the /api/save one
+# in DEPLOY.md — it runs before the Worker is invoked, so it costs nothing when
+# it fires:
+#   Security → WAF → Rate limiting rules → Create
+#   Expression: http.request.uri.path eq "/api/ask"
+#   Rate: 6 requests per 1 minute, per IP · Action: Block, 1 minute
 
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API onto
@@ -67,18 +83,15 @@ binding = "DB"
 database_name = "petpomo-preview"
 database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
 
-# No `[env.preview.ai]` either — same reason as above. Preview gets its AI
-# binding from the dashboard, where it is set per environment.
+# Workers AI for /api/ask. Safe to declare here, unlike at the top level:
+# `wrangler pages dev` reads the top-level config only, so this binding reaches
+# deployed preview without dragging a remote AI connection into local dev.
+[env.preview.ai]
+binding = "AI"
 
-# A separate namespace id, so a load test against preview cannot spend
-# production's limiter budget or lock real players out of talking to their pet.
-[[env.preview.ratelimits]]
-name = "ASK_LIMIT"
-namespace_id = "1002"
-
-  [env.preview.ratelimits.simple]
-  limit = 6
-  period = 60
+# No `[env.preview.ratelimits]` either — Pages rejects it in any environment,
+# for the reason spelled out above. Preview falls back to the same edge-cache
+# counter, against its own separate database.
 
 [env.preview.vars]
 ALLOWED_ORIGINS = ""
