@@ -53,7 +53,33 @@ curl https://petpomo.pages.dev/api/health
 # {"ok":true}
 ```
 
-## 3. Weather (no setup)
+## 3. Talking to the pet (no setup)
+
+`POST /api/ask` decides how the animal reacts to what you said. It uses Workers
+AI, which is bound in `wrangler.toml` per environment — `[env.preview.ai]` and
+`[env.production.ai]`, both named `AI`.
+
+**Do not move that binding to the top level and do not add it in the dashboard.**
+Top level is also what `wrangler pages dev` loads, and Workers AI has no local
+emulation, so wrangler opens a remote connection at startup and hangs every
+local request. Adding it in the dashboard instead looks like it works and then
+silently stops: `wrangler pages deploy` replaces the target environment's entire
+config with this file, so a hand-added binding disappears on the next deploy and
+`/api/ask` quietly starts answering `"model": false`.
+
+Verify which one you are getting — the flag is in the response:
+
+```bash
+curl -s https://petpomo.pages.dev/api/ask \
+  -H 'content-type: application/json' -d '{"text":"good girl"}'
+# {"ok":true,"model":true,...}   <- inference ran
+# {"ok":true,"model":false,...}  <- fell back to the local reaction table
+```
+
+`"model": false` is a working deploy, not a broken one: the endpoint has its own
+reaction table and uses it whenever AI is absent, capped, or slow.
+
+## 4. Weather (no setup)
 
 `GET /api/weather` needs nothing configured — no key, no account, no binding.
 It reads the approximate location Cloudflare puts on `request.cf`, rounds it to
@@ -147,17 +173,38 @@ npx wrangler d1 execute petpomo-preview --remote --command "DELETE FROM saves"
 
 ## Infrastructure hardening (dashboard, not code)
 
-None of these can be done from the repository. Do them once.
-
-**1. Rate-limit `/api/save` at the edge.** The Worker limits writes per IP
-using the edge cache, which is per-colo and not atomic — enough to stop casual
-abuse, not enough to stop someone who means it. The real control is a
-Cloudflare rate-limiting rule, which runs before the Worker is even invoked and
-therefore costs nothing when it fires:
+**1. Rate-limit `/api/save` at the edge — once there is a zone to do it on.**
+The Worker limits writes per IP using the edge cache, which is per-colo and not
+atomic: enough to stop casual abuse, not enough to stop someone who means it.
+The usual answer is a Cloudflare rate-limiting rule, which runs before the
+Worker is invoked and costs nothing when it fires:
 
 > **Security → WAF → Rate limiting rules → Create**
 > Expression: `http.request.uri.path eq "/api/save"`
 > Rate: 60 requests per 1 minute, per IP · Action: Block, 1 minute
+
+**That is not available to this project today, and it is worth knowing why
+before you go looking for it.** WAF rules are configured per *zone*, and this
+account has none: the site is served from `*.pages.dev`, which is Cloudflare's
+domain, not ours. There is nothing to attach a rule to. It becomes possible the
+day a custom domain is added, and until then the Worker's own limits are the
+only ones there are.
+
+That is also why `/api/ask` — the one endpoint that spends money per call —
+does not rely on the edge-cache counter. Its burst and daily limits are atomic
+upserts into the `rate` table in D1 (`bumpLimit` in `worker/src/index.ts`),
+because a per-colo cap is really that cap once per datacentre the caller can
+reach. Rows are keyed by a truncated hash of the address, never the address
+itself, and are swept once their window passes.
+
+**If you add the `rate` table late**, re-run the schema against both databases
+or every call falls open — the limiter is deliberately fail-open, so a missing
+table shows up as no limiting rather than as an error:
+
+```bash
+npm run db:remote     # production
+npm run db:preview    # preview
+```
 
 The attack this exists for is not reading saves — a sync code is 24 random
 characters and cannot be guessed. It is a script inventing a new code per

@@ -32,14 +32,17 @@ type Bindings = {
   /** Turnstile secret. Unset skips the check; the rate limits still apply. */
   TURNSTILE_SECRET?: string;
   /**
-   * Cloudflare's own rate limiter, used for the burst limit on /api/ask.
+   * Cloudflare's own rate limiter for /api/ask.
    *
-   * The `overLimit` helper below counts in the edge cache, which its own
-   * comment admits is neither atomic nor shared between colos. That is a fine
-   * trade for defending a free save file. It is not a fine trade for the one
-   * endpoint in this project that spends money per call, so that one uses a
-   * real limiter and falls back to the cache counter only if the binding is
-   * missing.
+   * Unreachable on Pages, which is how this project is deployed: a
+   * `[[ratelimits]]` block fails Pages config validation and kills the whole
+   * deploy, so the binding can never be provisioned there. It stays declared
+   * because the same Hono app also runs as a standalone Worker (see DEPLOY.md),
+   * where the binding does exist and is strictly better than counting by hand.
+   *
+   * On Pages the burst limit is an atomic D1 upsert instead — see `bumpLimit`.
+   * Do not "simplify" that back to `overLimit`: the edge-cache counter is
+   * per-colo and read-then-write, and this is the endpoint that spends money.
    */
   ASK_LIMIT?: RateLimiter;
 };
@@ -153,6 +156,95 @@ async function overLimit(bucket: string, limit: number, ttlSeconds: number): Pro
 /** Caller identity for rate limiting only. Never stored, never logged. */
 function clientKey(c: { req: { header(name: string): string | undefined } }): string {
   return c.req.header('cf-connecting-ip') ?? 'unknown';
+}
+
+/**
+ * The key a rate-limit row is stored under.
+ *
+ * Deliberately not the address itself. The edge-cache counter can hold a raw IP
+ * because that cache is ephemeral and colo-local; a D1 row is a database write,
+ * and this project's whole claim is that it stores nothing about who you are.
+ * So what lands in the table is a truncated SHA-256 of the address plus the
+ * scope and window.
+ *
+ * Be honest about what that does and does not buy. Rows are counters, they are
+ * deleted once their window passes, and nothing else in the schema can be joined
+ * to them — there is no identity in this system to join *to*. But IPv4 is a
+ * small space, so this is not proof against someone who already has the database
+ * and wants to test whether one specific address was seen. It stops the table
+ * from being a readable list of visitors, which is the actual risk.
+ */
+async function rateKey(scope: string, ip: string, window: number): Promise<string> {
+  const data = new TextEncoder().encode(`${scope}|${ip}|${window}`);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const bytes = new Uint8Array(digest).subarray(0, 12);
+  let out = `${scope}:`;
+  for (const b of bytes) out += b.toString(16).padStart(2, '0');
+  return out;
+}
+
+/**
+ * Count one event against a bucket in D1, atomically, and say whether it is
+ * over the limit.
+ *
+ * The difference from `overLimit` above is the whole point of this function.
+ * That one counts in the edge cache, which is per-colo and read-then-write: two
+ * requests in the same millisecond both read the same number and are both
+ * allowed, and a "150 a day" cap is really 150 a day *per colo*, so the true
+ * ceiling is that number multiplied by however many datacentres the caller can
+ * reach. For a save file that is a fine trade. For /api/ask it is not: every
+ * call past the limit is a billed inference.
+ *
+ * This is a single upsert, so the read and the write cannot be interleaved, and
+ * D1 is one database rather than one per colo. The same statement also rolls
+ * the window over when it has expired, so there is no separate reset path that
+ * could race with a bump.
+ *
+ * Fails *open*, like the edge-cache limiter: a limiter that takes the feature
+ * down when the database has a bad second is a worse outcome than a few extra
+ * inferences. The daily cap behind it is the backstop.
+ */
+async function bumpLimit(
+  db: D1Database | undefined,
+  bucket: string,
+  limit: number,
+  windowSeconds: number,
+  now: number,
+): Promise<boolean> {
+  if (!db) return false;
+  const resetAt = now + windowSeconds * 1000;
+  try {
+    const row = await db
+      .prepare(
+        `INSERT INTO rate (bucket, n, reset_at) VALUES (?1, 1, ?2)
+         ON CONFLICT(bucket) DO UPDATE SET
+           n        = CASE WHEN rate.reset_at <= ?3 THEN 1   ELSE rate.n + 1     END,
+           reset_at = CASE WHEN rate.reset_at <= ?3 THEN ?2  ELSE rate.reset_at  END
+         RETURNING n`,
+      )
+      .bind(bucket, resetAt, now)
+      .first<{ n: number }>();
+    return (row?.n ?? 0) > limit;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Drop windows that have already expired.
+ *
+ * Rows here are counters, not records, and a bucket nobody has touched since
+ * its window closed is dead weight — left alone the table would grow by one row
+ * per address per day forever. Run rarely and after the response has been
+ * handed back, so no player ever waits for housekeeping.
+ */
+function sweepRates(db: D1Database | undefined, now: number): Promise<unknown> | null {
+  if (!db || Math.random() > 0.02) return null;
+  return db
+    .prepare('DELETE FROM rate WHERE reset_at <= ?1')
+    .bind(now)
+    .run()
+    .catch(() => undefined);
 }
 
 /**
@@ -500,17 +592,35 @@ app.post('/api/ask', async (c) => {
 
   // Checked before the body is read, so a flood costs as little as possible.
   //
-  // Two limits with different jobs. The burst limit stops a script hammering
-  // the endpoint and uses Cloudflare's real limiter, which is atomic — this is
-  // the one that has to actually hold, because every call past it is billed.
-  // The daily cap is a budget guard rather than a defence, so it can live in
-  // the edge cache with the same best-effort caveat as everything else here.
+  // Two limits with different jobs, and *both* are atomic here. The burst limit
+  // stops a script hammering the endpoint; the daily cap is the budget guard
+  // that decides the worst case on the bill. Neither may use `overLimit`: that
+  // counter is per-colo, so a "150 a day" cap enforced with it is really 150 a
+  // day per datacentre the caller can reach, which is not a cap at all on the
+  // one endpoint that spends money per call.
+  //
+  // Cloudflare's own limiter is still preferred for the burst when it exists,
+  // which on Pages it never does — see the note on ASK_LIMIT above.
+  const db = c.env.DB;
+  const minute = Math.floor(now / 60_000);
   const burstOk = c.env.ASK_LIMIT
     ? (await c.env.ASK_LIMIT.limit({ key: who })).success
-    : !(await overLimit(`ask/${who}/${Math.floor(now / 60_000)}`, ASK_PER_MINUTE, 120));
+    : !(await bumpLimit(db, await rateKey('ask', who, minute), ASK_PER_MINUTE, 120, now));
+
+  // Housekeeping runs after the response, never in front of it — and never at
+  // the cost of one. `executionCtx` is absent outside the Workers runtime and
+  // Hono throws rather than returning undefined for it, so this is guarded.
+  const sweep = sweepRates(db, now);
+  if (sweep) {
+    try {
+      c.executionCtx.waitUntil(sweep);
+    } catch {
+      /* no execution context — let it run unawaited */
+    }
+  }
 
   const day = Math.floor(now / 86_400_000);
-  if (!burstOk || (await overLimit(`askd/${who}/${day}`, ASK_PER_DAY, 90_000))) {
+  if (!burstOk || (await bumpLimit(db, await rateKey('askd', who, day), ASK_PER_DAY, 90_000, now))) {
     // Not an error to the player: the cat simply reacts on its own.
     return c.json({ ok: false, capped: true, ...localReaction('') }, 200, { 'retry-after': '60' });
   }
