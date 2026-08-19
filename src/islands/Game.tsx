@@ -109,20 +109,25 @@ const SEASON_GLYPH: Record<SeasonId, string> = {
  * A spoken-to behaviour, as the stage's smaller vocabulary.
  *
  * The rig the on-screen companion drives has fifteen actions; the stage has nine
- * intents, and they are not the same set. Anything without a real equivalent
- * lands on `idle` rather than being dropped, so the pet always acknowledges that
- * it was spoken to even when it cannot act out the exact reply.
+ * intents, and they are not the same set.
+ *
+ * The calm behaviours — idle, sit, groom, walk — deliberately land on `petted`
+ * rather than `idle`. Mapping them to `idle` is the more literal translation and
+ * it is the wrong one: the stage pet is *already* idle most of the time, so a
+ * gentle reply produced no visible change at all and the pet looked like it had
+ * ignored you. `petted` is a one-shot that plays for a couple of seconds and
+ * returns, which is exactly the shape of "it heard you and settled".
  */
 const TALK_TO_PET_STATE: Record<string, PetState> = {
-  idle: 'idle',
-  walk: 'idle',
+  idle: 'petted',
+  sit: 'petted',
+  groom: 'petted',
+  walk: 'petted',
   stretch: 'waking',
-  sit: 'idle',
   sleep: 'sleeping',
   play: 'playing',
   jump: 'playing',
   celebrate: 'celebrating',
-  groom: 'petted',
   beg: 'begging',
 };
 
