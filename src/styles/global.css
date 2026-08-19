@@ -1146,9 +1146,14 @@ html[data-reduced-motion='true'] .pp-snow {
   /* The box is only ever moved by transform, so the browser can keep it on its
      own layer instead of repainting the page under it. */
   will-change: transform;
-  /* Its own stacking and paint context: the canvas inside must never be able
-     to bleed over a dropdown that opens next to it. */
-  contain: layout paint;
+  /* Layout containment only.
+     `paint` used to be here as well, to stop the canvas bleeding over a
+     dropdown opening next to it. It also clipped every absolutely-positioned
+     child to this box — and the speech bubble sat *above* the box, so the pet's
+     reply was painted and then thrown away. Talking to the pet looked like it
+     did nothing at all. The chrome now lives in `.pp-talk`, outside this
+     element, so nothing needs to escape the clip and the clip is not needed. */
+  contain: layout;
 }
 
 .pp-companion:active { cursor: grabbing; }
@@ -1197,58 +1202,128 @@ html[data-reduced-motion='true'] .pp-snow {
 /* Parked rather than pacing. The pet is still there and still strokeable. */
 html[data-reduced-motion='true'] .pp-companion { cursor: default; }
 
-/* The speech bubble, the microphone, and the typed fallback. */
-.pp-companion-bubble {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 6px);
-  transform: translateX(-50%);
-  max-width: 22ch;
-  width: max-content;
-  margin: 0;
-  padding: 0.3rem 0.55rem;
-  border-radius: 10px;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  text-align: center;
-  text-wrap: balance;
-  background: var(--card);
-  color: var(--ink);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+/*
+   Talking to the pet.
+
+   Fixed to a corner of the window rather than attached to the animal. The
+   previous controls were children of `.pp-companion`, which moves every frame
+   and was clipped — so the microphone slid away from the pointer and the reply
+   was never painted. Anchoring here costs the visual charm of a bubble over the
+   cat's head and buys a control that can actually be used.
+
+   Bottom-*right*, because the pet parks bottom-left by default and a control
+   sitting on top of the animal it talks to is its own kind of broken.
+*/
+.pp-talk {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  /* Clear of the iOS home indicator and any on-screen keyboard inset. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* The box is a layout container stretched over the corner of the stage, and
+     it must not be a pointer trap: everything under it — the floor the snack is
+     dragged onto, the cat itself — has to stay reachable. Only the controls take
+     the pointer back. Without this, dragging a snack to the bottom-right of the
+     stage silently hit this element instead of the floor. */
   pointer-events: none;
 }
 
-.pp-companion-mic {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  font-size: 11px;
-  line-height: 1;
-  border: none;
-  border-radius: 50%;
+.pp-talk-bubble,
+.pp-talk-row {
+  pointer-events: auto;
+}
+
+.pp-talk-bubble {
+  max-width: min(30ch, calc(100vw - 40px));
+  width: max-content;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: right;
+  text-wrap: balance;
   cursor: pointer;
   background: var(--card);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.14);
 }
 
-.pp-companion:hover .pp-companion-mic,
-.pp-companion:focus-within .pp-companion-mic,
-/* While it is listening the control stays visible whatever the pointer is
-   doing. A microphone that is open and invisible is the whole thing people
-   are right to be afraid of. */
-.pp-companion-mic[data-on='true'] {
-  opacity: 1;
+.pp-talk-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.pp-companion-mic[data-on='true'] {
+.pp-talk-mic,
+.pp-talk-open,
+.pp-talk-send {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.14);
+}
+
+/* A real target, not a 22px dot: this is the control the whole feature is
+   reached through, and it is used by a pointer, a thumb and a keyboard. */
+.pp-talk-mic {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  border-radius: 50%;
+}
+
+.pp-talk-open,
+.pp-talk-send {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  border-radius: 999px;
+}
+
+.pp-talk-send[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pp-talk-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-talk-form input {
+  width: min(22ch, calc(100vw - 120px));
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.pp-talk-mic:focus-visible,
+.pp-talk-open:focus-visible,
+.pp-talk-send:focus-visible,
+.pp-talk-form input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* An open microphone is never subtle. It keeps the accent colour and the pulse
+   for as long as it is listening — a hot microphone you cannot see is the whole
+   thing people are right to be afraid of. */
+.pp-talk-mic[data-on='true'] {
   background: var(--accent);
   color: var(--accent-ink);
   animation: pp-listening 1.4s ease-in-out infinite;
@@ -1256,28 +1331,11 @@ html[data-reduced-motion='true'] .pp-companion { cursor: default; }
 
 @keyframes pp-listening {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
-  50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 0%, transparent); }
+  50%      { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
 }
 
 /* Reduced motion loses the pulse but keeps the colour, which is what actually
    carries the "this is on" message. */
 @media (prefers-reduced-motion: reduce) {
-  .pp-companion-mic[data-on='true'] { animation: none; }
-}
-
-.pp-companion-say {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 4px);
-  transform: translateX(-50%);
-}
-
-.pp-companion-say input {
-  width: 16ch;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--ink);
+  .pp-talk-mic[data-on='true'] { animation: none; }
 }

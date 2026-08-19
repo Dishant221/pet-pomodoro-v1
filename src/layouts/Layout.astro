@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { isProductionBuild } from '../site';
 import Companion from '../islands/Companion';
+import TalkBar from '../islands/TalkBar';
 
 /**
  * The one place every page's `<head>` is assembled.
@@ -237,6 +238,13 @@ const year = new Date().getFullYear();
       over an article someone came to read.
     */}
     <Companion client:idle />
+
+    {/*
+      The control that talks to the pet, for the pet that lives on the page.
+      It renders itself only in `screen` mode — the stage mounts its own inside
+      the game, where the animal actually is — so exactly one is ever present.
+    */}
+    <TalkBar context="screen" client:idle />
 
     <script src="/sw-register.js" is:inline></script>
     <script src="/fullscreen.js" is:inline defer></script>

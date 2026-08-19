@@ -52,6 +52,9 @@ import * as audio from '../game/audio';
 import { CLOCK_MAX_W, CLOCK_MIN_W } from '../stores/profile';
 import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
+import type { PetState } from '../game/manifest';
+import { $talk } from '../game/talk';
+import TalkBar from './TalkBar';
 
 const LAST_SEEN_KEY = 'petpomo.lastSeen.v1';
 
@@ -102,6 +105,27 @@ const SEASON_GLYPH: Record<SeasonId, string> = {
   winter: '🌨️',
 };
 
+/**
+ * A spoken-to behaviour, as the stage's smaller vocabulary.
+ *
+ * The rig the on-screen companion drives has fifteen actions; the stage has nine
+ * intents, and they are not the same set. Anything without a real equivalent
+ * lands on `idle` rather than being dropped, so the pet always acknowledges that
+ * it was spoken to even when it cannot act out the exact reply.
+ */
+const TALK_TO_PET_STATE: Record<string, PetState> = {
+  idle: 'idle',
+  walk: 'idle',
+  stretch: 'waking',
+  sit: 'idle',
+  sleep: 'sleeping',
+  play: 'playing',
+  jump: 'playing',
+  celebrate: 'celebrating',
+  groom: 'petted',
+  beg: 'begging',
+};
+
 export default function Game() {
   const profile = useStore($profile);
   const timer = useStore($timer);
@@ -113,6 +137,29 @@ export default function Game() {
   const [toast, setToast] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const reduced = prefersReducedMotion(profile);
+
+  /**
+   * How the stage pet answers being spoken to.
+   *
+   * The on-screen companion can play any of the rig's fifteen actions directly.
+   * The stage animal is driven by intent instead, so a reply is translated into
+   * the nearest `PetState` and held briefly before handing control back to the
+   * store — otherwise the next vitals tick would overwrite the reaction before
+   * anyone saw it.
+   */
+  const talk = useStore($talk);
+  const [talkState, setTalkState] = useState<PetState | null>(null);
+
+  useEffect(() => {
+    if (talk.seq === 0 || !talk.behaviour) return;
+    const next = TALK_TO_PET_STATE[talk.behaviour];
+    if (!next) return;
+    setTalkState(next);
+    const t = setTimeout(() => setTalkState(null), 3200);
+    return () => clearTimeout(t);
+    // Keyed on the sequence number so saying the same thing twice plays twice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [talk.seq]);
 
   /** Which overlays the player has kept. See `Settings.showWorld` and friends. */
   const { showWorld, showPet, showTimer, showClock } = profile.settings;
@@ -859,7 +906,9 @@ export default function Game() {
         <Stage3D
           scene={profile.equipped.scene}
           pet={profile.equipped.pet}
-          petState={petState}
+          /* A reply outranks the vitals-driven state for the few seconds it
+             plays, so being spoken to is visible on the stage too. */
+          petState={talkState ?? petState}
           reduced={reduced}
           mood={profile.vitals.happiness / 100}
           petVisible={petLivesOnStage}
@@ -901,6 +950,11 @@ export default function Game() {
           </div>
         )}
         {showPet && metrics}
+
+        {/* Talking to the animal in its stage. Renders itself only when the pet
+            actually lives here — in `screen` mode the layout's copy is the one
+            on duty, so there is never a second microphone. */}
+        <TalkBar context="stage" />
 
         {floating && showTimer && hud}
 

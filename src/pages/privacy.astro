@@ -58,13 +58,21 @@ import Legal from '../layouts/Legal.astro';
     feature that runs locally and it does not. That is Google's processing under
     <a href="https://policies.google.com/privacy" rel="noopener noreferrer nofollow" target="_blank">their privacy
     policy</a>, and it is the main reason this feature is opt-in every single time. Firefox and Safari have no such
-    facility, so there you type to the pet instead and no audio is involved at all.
+    facility. You can also simply <strong>type</strong> to the pet in any browser, which involves no microphone and no
+    audio at all — the text box is always there, next to the microphone button.
   </p>
   <p>
     What <em>we</em> receive is only the text, never the audio. It is sent to <code>/api/ask</code>, passed to a small
     language model running on Cloudflare's network to choose which behaviour the animal performs, and then discarded.
-    It is not stored, not written to the database, and not logged. The reply is an animation and a short line of
-    narration — the pet answers in meows, never in words.
+    What you said is not stored, not written to the database, and not logged. The reply is an animation and a short
+    line of narration — the pet answers in meows, never in words.
+  </p>
+  <p>
+    One thing <em>is</em> written, and it is fair that you know: a counter, so that this feature cannot be used to run
+    up a bill on our account. Each request bumps a row holding a number and an expiry time. That row is keyed by a
+    shortened one-way hash of your IP address mixed with the time window — not the address itself, and not anything
+    that can be linked to your save, your sync code or what you said. The rows are deleted once their window passes,
+    which is minutes for the burst counter and a day for the daily one.
   </p>
   <p>
     If you would rather not have any of this, simply never press the button. Blocking <code>/api/ask</code> is also

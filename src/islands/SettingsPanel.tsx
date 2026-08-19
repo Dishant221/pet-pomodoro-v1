@@ -292,6 +292,15 @@ export default function SettingsPanel() {
                   </span>
                 </span>
               </Row>
+              <Toggle
+                label="Stay put"
+                hint="Keeps the animal where you put it. It still sits, grooms, dozes and answers when you talk to it — it just doesn't pace."
+                checked={s.petStay}
+                onChange={(v) => {
+                  updateSettings({ petStay: v });
+                  say(v ? 'The pet will stay where you put it.' : 'The pet will wander again.');
+                }}
+              />
               <Row label="Position">
                 <span class="flex items-center gap-2">
                   <span class="text-xs" style="color: var(--ink-soft)">

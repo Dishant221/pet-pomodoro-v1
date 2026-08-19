@@ -156,6 +156,22 @@ export interface Settings {
   petX: number;
   /** How big the animal is drawn, in px. A judgement, so it is absolute. */
   petW: number;
+  /**
+   * Whether the on-screen pet stays where it was put instead of wandering.
+   *
+   * Defaults to staying. A companion that paces the whole width of the window
+   * is charming for about a minute and then it is a moving object in the corner
+   * of your eye while you are trying to work — which is the opposite of what a
+   * focus timer is for. It also made the pet genuinely hard to interact with,
+   * because every control attached to it was a target sliding away at 34 px/s.
+   *
+   * Staying does not mean frozen: it still sits, grooms, sleeps and reacts to
+   * being spoken to. It just does it where the player parked it.
+   *
+   * Distinct from `reducedMotion`, which is an accessibility setting covering
+   * every animation in the app. This one is a preference about one animal.
+   */
+  petStay: boolean;
 }
 
 export interface PetVitals {
@@ -240,6 +256,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Bottom-left, out of the way of the timer card and of the nav.
   petX: 0.06,
   petW: 150,
+  petStay: true,
 };
 
 /**
@@ -411,6 +428,7 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       petMode: oneOf<PetMode>(rawSettings.petMode, VALID_PET_MODES, d.petMode),
       petX: num(rawSettings.petX, d.petX),
       petW: num(rawSettings.petW, d.petW),
+      petStay: bool(rawSettings.petStay, d.petStay),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),

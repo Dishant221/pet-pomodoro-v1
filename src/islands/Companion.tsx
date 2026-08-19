@@ -7,7 +7,7 @@ import { webglAvailable } from '../three/webgl';
 import { blockedBy, groundAt, measureTerrain, typingRect, type Ledge } from '../game/terrain';
 import { moodFor, MOODS } from '../game/mood';
 import * as audio from '../game/audio';
-import { ask, listenOnce, speechAvailable, type ListenHandle } from '../game/speech';
+import { $talk, ALLOWED_REPLIES } from '../game/talk';
 /**
  * Type-only, for the same reason `Stage3D` imports its engine this way: three.js
  * and the rig on top of it are more than the rest of the app put together, and a
@@ -35,33 +35,18 @@ import type { Action } from '../three/animations';
 const BAND = 92;
 /** The tallest thing it will climb onto rather than turn away from. */
 const HOP_MAX = 46;
-/** Walking, in px per second. A cat crossing a screen should take a while. */
-const SPEED = 34;
+/**
+ * Walking, in px per second.
+ *
+ * Slower than it was. At 34 the animal crossed a laptop window in well under a
+ * minute and read as restless rather than alive — and anything attached to it
+ * was a target moving faster than a pointer wants to chase.
+ */
+const SPEED = 20;
 /** Keep this far clear of the window edges. */
 const EDGE = 8;
 
 type Mode = 'walk' | 'pause' | 'sit' | 'react';
-
-/**
- * Behaviours the pet may be asked to perform in reply to being spoken to.
- *
- * Kept in step with the whitelist in `worker/src/index.ts`, and checked on this
- * side too. The server's list is the one that stops a model inventing an
- * action; this one is what stops a *response* — from a proxy, a cache, or a
- * future version of that endpoint — reaching the animation system unchecked.
- */
-const ALLOWED_REPLIES = new Set<string>([
-  'idle',
-  'sit',
-  'sleep',
-  'stretch',
-  'play',
-  'jump',
-  'celebrate',
-  'groom',
-  'beg',
-  'walk',
-]);
 
 export default function Companion() {
   const profile = useStore($profile);
@@ -99,6 +84,10 @@ export default function Companion() {
   sizeRef.current = { w: width, h: height };
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
+  const stayRef = useRef(settings.petStay);
+  stayRef.current = settings.petStay;
+  const petXRef = useRef(settings.petX);
+  petXRef.current = settings.petX;
 
   const moodId = moodFor(profile.vitals);
 
@@ -225,6 +214,8 @@ export default function Companion() {
         // Awake but not pacing.
         engine.setSpeed(0);
         engine.setAction('sit');
+      } else if (stayRef.current) {
+        rest(now, dt, w, vw, engine);
       } else {
         step(now, dt, w, h, vw, vh, engine);
       }
@@ -232,6 +223,54 @@ export default function Companion() {
       // Feet on the floor, or on whatever it climbed onto.
       const y = vh - h - liftRef.current;
       host.style.transform = `translate3d(${Math.round(xRef.current)}px, ${Math.round(y)}px, 0)`;
+    };
+
+    /**
+     * Parked, but not switched off.
+     *
+     * The pet stays where the player put it and cycles slowly through the calm
+     * actions — sitting, grooming, the occasional stretch or nap. It still turns
+     * to face a reaction and still answers when spoken to; it simply does not
+     * travel. This is the default, because a companion that paces continuously
+     * in the corner of a focus timer is working against the thing it is sitting
+     * next to.
+     *
+     * `x` is eased toward the parked fraction rather than assigned, so a window
+     * resize slides it back into place instead of teleporting it.
+     */
+    const rest = (now: number, dt: number, w: number, vw: number, engine: CompanionEngine) => {
+      const room = Math.max(0, vw - w);
+      const target = clamp(petXRef.current, 0, 1) * room;
+      xRef.current += (target - xRef.current) * Math.min(1, dt * 3);
+      liftRef.current = groundAt(ledgesRef.current, xRef.current, xRef.current + w, HOP_MAX);
+
+      engine.setSpeed(0);
+      if (modeRef.current === 'react') {
+        if (!engine.busy()) {
+          modeRef.current = 'sit';
+          untilRef.current = now + 4000;
+        }
+        return;
+      }
+
+      if (now <= untilRef.current) return;
+
+      // Long dwells on purpose: the point is that glancing over twice a minute
+      // shows you roughly the same animal in roughly the same place.
+      const roll = Math.random();
+      if (roll < 0.5) {
+        engine.setAction('sit');
+        untilRef.current = now + 8000 + Math.random() * 7000;
+      } else if (roll < 0.75) {
+        engine.setAction('idle');
+        untilRef.current = now + 6000 + Math.random() * 6000;
+      } else if (roll < 0.9) {
+        engine.setAction('groom', true);
+        modeRef.current = 'react';
+      } else {
+        engine.setAction('sleep');
+        untilRef.current = now + 12_000 + Math.random() * 10_000;
+      }
     };
 
     const step = (
@@ -304,16 +343,18 @@ export default function Companion() {
       engine.setSpeed(SPEED / 40);
       engine.setAction('walk');
 
+      // Weighted toward stopping. Even with wandering switched on, a cat that
+      // is walking most of the time is a distraction rather than a companion.
       if (now > untilRef.current) {
         const roll = Math.random();
-        if (roll < 0.55) {
+        if (roll < 0.3) {
           untilRef.current = now + 2500 + Math.random() * 4000;
-        } else if (roll < 0.9) {
+        } else if (roll < 0.85) {
           modeRef.current = 'sit';
-          untilRef.current = now + 2000 + Math.random() * 3500;
+          untilRef.current = now + 5000 + Math.random() * 6000;
         } else {
           modeRef.current = 'pause';
-          untilRef.current = now + 1200;
+          untilRef.current = now + 2000;
         }
       }
     };
@@ -363,73 +404,26 @@ export default function Companion() {
 
   // --- being spoken to -------------------------------------------------------
   //
-  // Off until asked for, every time. There is deliberately no stored "always
-  // listening" setting: see the note at the top of game/speech.ts for why.
-  const [listening, setListening] = useState(false);
-  const [bubble, setBubble] = useState<string | null>(null);
-  const [typed, setTyped] = useState<string | null>(null);
-  const listenRef = useRef<ListenHandle | null>(null);
-  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The conversation itself lives in `game/talk.ts`, driven by the fixed control
+  // in `TalkBar`. This island's only job is to perform the reaction: the pet used
+  // to carry the microphone itself, which meant the control walked away from the
+  // pointer and did not exist at all when the pet lived in its stage.
+  const talk = useStore($talk);
 
-  const show = (line: string) => {
-    setBubble(line);
-    if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
-    bubbleTimer.current = setTimeout(() => setBubble(null), 6000);
-  };
-
-  /** Send what was said, then play back whatever the animal decided to do. */
-  const heard = async (text: string) => {
-    show('…');
-    const r = await ask(text);
-    show(r.say);
-    // The behaviour is checked again here rather than trusted: this is the last
-    // point before an arbitrary string reaches the animation system.
-    const action = ALLOWED_REPLIES.has(r.behaviour) ? (r.behaviour as Action) : 'idle';
+  useEffect(() => {
+    // `seq` starts at 0 and is bumped per reaction, so this cannot fire on mount
+    // and a repeated behaviour still plays twice.
+    if (talk.seq === 0 || !talk.behaviour) return;
     const engine = engineRef.current;
-    if (engine) {
-      engine.setAction(action, true);
-      modeRef.current = 'react';
-    }
-    // It answers in its own voice, never in words. Tone picks the variant, so
-    // an excited reply is a different noise from a sad one.
-    if (!settings.muted) {
-      const variant = r.tone === 'excited' ? 2 : r.tone === 'sad' ? 1 : 0;
-      void audio.unlock().then(() => audio.playVoice(variant, { force: true }));
-    }
-  };
-
-  const toggleListen = (e: Event) => {
-    e.stopPropagation();
-    if (listening) {
-      listenRef.current?.cancel();
-      return;
-    }
-    if (!speechAvailable()) {
-      // No recogniser here — Firefox and Safari. Offer the keyboard instead of
-      // a control that would do nothing.
-      setTyped('');
-      return;
-    }
-    setListening(true);
-    show('listening…');
-    listenRef.current = listenOnce({
-      onResult: (text) => void heard(text),
-      onEnd: (reason) => {
-        setListening(false);
-        listenRef.current = null;
-        if (reason === 'denied') show('needs microphone permission');
-      },
-    });
-  };
-
-  // A recogniser must never outlive the component that opened it.
-  useEffect(
-    () => () => {
-      listenRef.current?.cancel();
-      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
-    },
-    [],
-  );
+    if (!engine) return;
+    // Checked once more before an arbitrary string reaches the animation system.
+    const action = ALLOWED_REPLIES.has(talk.behaviour) ? (talk.behaviour as Action) : 'idle';
+    engine.setAction(action, true);
+    modeRef.current = 'react';
+    // Only the sequence number matters; reacting to `behaviour` would miss a
+    // repeat of the same one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [talk.seq]);
 
   const grab = useRef<{ dx: number; moved: number } | null>(null);
 
@@ -555,63 +549,10 @@ export default function Companion() {
     >
       <canvas ref={canvasRef} class="pp-companion-canvas" aria-hidden="true" />
 
-      {/* What the animal just did, in words, for anyone who cannot hear the
-          meow — and because a reaction you can read is a reaction you can be
-          sure landed. `polite`, so it never interrupts. */}
-      {/* `aria-live` without `role="status"`, deliberately. The role adds
-          nothing here — it only implies the same polite live region — and it
-          would put a second `[role="status"]` on any page the pet is on, which
-          is the selector the stage and the settings panel already use for their
-          own announcements. */}
-      {bubble && (
-        <p class="pp-companion-bubble" aria-live="polite">
-          {bubble}
-        </p>
-      )}
-
-      {/* Talking to it. A button, pressed each time — never a stored setting,
-          and never a microphone left open. */}
-      <button
-        type="button"
-        class="pp-companion-mic"
-        data-on={listening ? 'true' : 'false'}
-        aria-pressed={listening}
-        title={listening ? 'Listening — click to stop' : 'Say something to your pet'}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={toggleListen}
-      >
-        <span aria-hidden="true">{listening ? '◉' : '🎤'}</span>
-        <span class="sr-only">{listening ? 'Listening. Click to stop.' : 'Say something to your pet'}</span>
-      </button>
-
-      {/* Firefox and Safari cannot transcribe, so they get the keyboard. The
-          same endpoint, the same reaction — just typed. */}
-      {typed !== null && (
-        <form
-          class="pp-companion-say"
-          onPointerDown={(e) => e.stopPropagation()}
-          onSubmit={(e) => {
-            e.preventDefault();
-            const t = typed.trim();
-            setTyped(null);
-            if (t) void heard(t);
-          }}
-        >
-          <input
-            type="text"
-            value={typed}
-            autoFocus
-            maxLength={200}
-            placeholder="Say something…"
-            aria-label="Say something to your pet"
-            onInput={(e) => setTyped((e.currentTarget as HTMLInputElement).value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setTyped(null);
-              e.stopPropagation();
-            }}
-          />
-        </form>
-      )}
+      {/* The reply is shown by `TalkBar`, not here. A bubble parented to this
+          element was clipped away by `contain: paint` and never actually
+          appeared on screen, which is why talking to the pet looked like it did
+          nothing at all. */}
       <span
         class="pp-companion-grip"
         onPointerDown={onResizeDown}
