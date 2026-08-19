@@ -9,8 +9,10 @@ import {
   isOwned,
   resetAll,
   updateSettings,
+  PET_MAX_W,
+  PET_MIN_W,
 } from '../stores/profile';
-import type { ClockDock, ClockFont, ClockMode, ClockSize, Settings } from '../stores/profile';
+import type { ClockDock, ClockFont, ClockMode, ClockSize, PetMode, Settings } from '../stores/profile';
 import { syncDurations } from '../stores/timer';
 import { SCENES, SCENE_IDS } from '../game/manifest';
 import { THEME_ITEMS } from '../game/economy';
@@ -244,6 +246,71 @@ export default function SettingsPanel() {
               control on the page and the longest list, and rendering a zone
               chooser under a switch that is off is furniture. */}
           {s.showClock && <ZonePicker zones={s.clockZones} />}
+        </Group>
+
+        <Group title="Pet">
+          <p class="text-sm" style="color: var(--ink-soft)">
+            Where the animal lives. It is the same pet either way — the same species, the same
+            colours, the same moods — so moving it does not reset anything.
+          </p>
+          <Row label="Lives">
+            <Choice
+              value={s.petMode}
+              options={[
+                { id: 'stage', label: 'In the scene' },
+                { id: 'screen', label: 'On the page' },
+              ]}
+              onPick={(v) => {
+                updateSettings({ petMode: v as PetMode });
+                say(
+                  v === 'screen'
+                    ? 'The pet now walks along the bottom of every page.'
+                    : 'The pet is back in its scene.',
+                );
+              }}
+            />
+          </Row>
+          {s.petMode === 'screen' && (
+            <>
+              <Row label="Size">
+                <span class="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={PET_MIN_W}
+                    max={PET_MAX_W}
+                    step={2}
+                    value={s.petW}
+                    class="pp-focus-ring"
+                    style="accent-color: var(--accent)"
+                    aria-label="Pet size"
+                    onInput={(e) =>
+                      updateSettings({ petW: Number((e.currentTarget as HTMLInputElement).value) })
+                    }
+                  />
+                  <span class="pp-tabular text-xs" style="color: var(--ink-soft)">
+                    {s.petW}px
+                  </span>
+                </span>
+              </Row>
+              <Row label="Position">
+                <span class="flex items-center gap-2">
+                  <span class="text-xs" style="color: var(--ink-soft)">
+                    Drag the animal along the bottom of the window, or nudge it with the arrow keys.
+                  </span>
+                  <button
+                    type="button"
+                    class="pp-btn pp-focus-ring px-3 py-1.5 text-sm"
+                    onClick={() => {
+                      updateSettings({ petX: 0.06, petW: 150 });
+                      say('Pet moved back to the corner.');
+                    }}
+                  >
+                    Reset
+                  </button>
+                </span>
+              </Row>
+            </>
+          )}
         </Group>
 
         <Group title="World">

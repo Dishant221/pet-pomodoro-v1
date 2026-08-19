@@ -34,6 +34,9 @@ export type ClockFont = 'rounded' | 'mono' | 'serif';
 /** Countdown size. The floating clock is read from across a desk. */
 export type ClockSize = 'sm' | 'md' | 'lg';
 
+/** Where the animal lives — in the painted stage, or loose on the page. */
+export type PetMode = 'stage' | 'screen';
+
 export interface SessionRecord {
   /** Completion timestamp, ms since epoch. */
   at: number;
@@ -126,6 +129,33 @@ export interface Settings {
    * from the browser, not from the save, so it stays right when they travel.
    */
   clockZones: string[];
+  /**
+   * Where the animal lives.
+   *
+   * `stage` is the original: the pet belongs to the painted world on the focus
+   * page and exists nowhere else. `screen` lifts the same pet out of the stage
+   * and onto the page itself, where it walks along the bottom of the window on
+   * every route — the timer, the shop, the blog — and can be picked up, moved
+   * and resized.
+   *
+   * It is one pet either way, not two. The stage hides its own animal in
+   * `screen` mode rather than drawing a second one, because two of the same cat
+   * on one screen reads as a bug however it is explained.
+   */
+  petMode: PetMode;
+  /**
+   * Where along the bottom of the window the pet is parked, as a fraction of
+   * the room it has, for the same reason the clock's position is a fraction: it
+   * has to survive a window resize, a rotation, and opening the save on another
+   * machine.
+   *
+   * Horizontal only. The animal walks on the floor of the window, so there is
+   * no vertical position to remember — storing one would be a field that could
+   * disagree with where the pet actually is.
+   */
+  petX: number;
+  /** How big the animal is drawn, in px. A judgement, so it is absolute. */
+  petW: number;
 }
 
 export interface PetVitals {
@@ -202,6 +232,14 @@ export const DEFAULT_SETTINGS: Settings = {
   // than one they had to find.
   showClock: false,
   clockZones: [],
+  // `stage`, deliberately. Defaulting to `screen` would silently empty the
+  // painted world for every existing save — the thing those players actually
+  // come here for — to show them a feature they never asked for. It is one
+  // switch away in Settings → Pet.
+  petMode: 'stage',
+  // Bottom-left, out of the way of the timer card and of the nav.
+  petX: 0.06,
+  petW: 150,
 };
 
 /**
@@ -249,6 +287,7 @@ const VALID_PETS = new Set<string>(PET_ITEMS.map((p) => p.id));
 const VALID_SNACKS = new Set<string>(SNACK_ITEMS.map((s) => s.id));
 const VALID_MODES = new Set<string>(['focus', 'short', 'long']);
 const VALID_CLOCK_MODES = new Set<string>(['docked', 'float']);
+const VALID_PET_MODES = new Set<string>(['stage', 'screen']);
 const VALID_CLOCK_DOCKS = new Set<string>(['top', 'left']);
 const VALID_PHASE_MODES = new Set<string>(['auto', 'dawn', 'morning', 'noon', 'afternoon', 'dusk', 'night']);
 const VALID_WEATHER_MODES = new Set<string>([
@@ -369,6 +408,9 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
       showTimer: bool(rawSettings.showTimer, d.showTimer),
       showClock: bool(rawSettings.showClock, d.showClock),
       clockZones: zoneList(rawSettings.clockZones),
+      petMode: oneOf<PetMode>(rawSettings.petMode, VALID_PET_MODES, d.petMode),
+      petX: num(rawSettings.petX, d.petX),
+      petW: num(rawSettings.petW, d.petW),
     },
     vitals: {
       hunger: clamp(num(rawVitals.hunger, base.vitals.hunger), 0, 100),
@@ -433,8 +475,25 @@ export function clampSettings(s: Settings): Settings {
     // route into the settings — the picker, an imported file, and a pull from
     // cloud sync all pass through this function.
     clockZones: Array.isArray(s.clockZones) ? s.clockZones.slice(0, MAX_ZONES) : [],
+    // Same reasoning as the clock: a fraction outside 0..1 is an animal parked
+    // off-screen, which is indistinguishable from having lost the pet.
+    petX: clamp(s.petX, 0, 1),
+    // Unlike the clock there is no "natural" size — a 0 here would be an
+    // invisible pet, so it is always held inside the usable range.
+    petW: clamp(Math.round(s.petW), PET_MIN_W, PET_MAX_W),
   };
 }
+
+/**
+ * How big the on-screen animal may be drawn.
+ *
+ * The floor is where the face stops being readable: below about 90px the ears
+ * and eyes are fewer than a couple of pixels each and it reads as a smudge. The
+ * ceiling is where a companion stops being a companion and starts being a
+ * window covering what you are trying to read.
+ */
+export const PET_MIN_W = 96;
+export const PET_MAX_W = 420;
 
 /** The floating card cannot be narrower than its controls or wider than useful. */
 export const CLOCK_MIN_W = 260;

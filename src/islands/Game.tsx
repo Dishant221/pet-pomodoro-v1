@@ -580,6 +580,15 @@ export default function Game() {
   };
 
   // --- derived --------------------------------------------------------------
+  /**
+   * The animal is either in the painting or loose on the page, never both.
+   *
+   * The stage keeps everything else — the world, the weather, the props, the
+   * errands — and simply stops drawing the cat, because two of the same animal
+   * on one screen reads as a bug however it is explained.
+   */
+  const petLivesOnStage = profile.settings.petMode !== 'screen';
+
   const total = durationFor(timer.mode, profile.settings);
   const progress = total > 0 ? 1 - remaining / total : 0;
 
@@ -853,6 +862,7 @@ export default function Game() {
           petState={petState}
           reduced={reduced}
           mood={profile.vitals.happiness / 100}
+          petVisible={petLivesOnStage}
           onPet={handlePet}
           onPoke={handlePoke}
           onFeed={handleFeed}

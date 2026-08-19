@@ -430,6 +430,22 @@ export class Engine {
     this.reduced = r;
   }
 
+  /**
+   * Hide the animal without tearing the stage down.
+   *
+   * Used when the player has moved the pet onto the page: the painted world,
+   * the weather and the props all stay, and only the cat leaves. Drawing it in
+   * both places at once would put two of the same animal on one screen, which
+   * reads as a bug however it is explained.
+   *
+   * The rig keeps simulating while hidden — it costs almost nothing, and a pet
+   * that had been frozen for an hour would snap through a stale walk cycle the
+   * moment the setting was switched back.
+   */
+  setPetVisible(v: boolean): void {
+    this.pet.root.visible = v;
+  }
+
   /** Drives the cat's agenda from the app's pet-state store. */
   setIntent(state: PetState): void {
     if (state === this.intent) return;

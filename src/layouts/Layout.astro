@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { isProductionBuild } from '../site';
+import Companion from '../islands/Companion';
 
 /**
  * The one place every page's `<head>` is assembled.
@@ -229,8 +230,15 @@ const year = new Date().getFullYear();
       </p>
     </footer>
 
+    {/*
+      The pet, when the player has it living on the page rather than in the
+      stage. `client:idle` rather than `client:load`: the animal is the least
+      urgent thing on any of these routes, and on the blog it is decoration
+      over an article someone came to read.
+    */}
+    <Companion client:idle />
+
     <script src="/sw-register.js" is:inline></script>
     <script src="/fullscreen.js" is:inline defer></script>
-    <script src="/pet-strip.js" is:inline defer></script>
   </body>
 </html>

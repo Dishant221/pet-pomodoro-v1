@@ -1125,3 +1125,74 @@ html[data-reduced-motion='true'] .pp-snow {
 .pp-tabular { font-variant-numeric: tabular-nums; }
 
 .pp-grabbing, .pp-grabbing * { cursor: grabbing !important; }
+
+/* --- The pet, loose on the page ------------------------------------------- */
+/*
+   Fixed to the window, not the document, so scrolling moves the page under the
+   animal rather than carrying it away. Position is written as a transform by
+   the walk loop every frame — never as `left`, which would invalidate layout
+   sixty times a second for a box that is only ever moving.
+
+   z-index sits above the panels (25) and the nav (30). The pet is small and
+   the player put it where it is, so it wins.
+*/
+.pp-companion {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  cursor: grab;
+  touch-action: none;
+  /* The box is only ever moved by transform, so the browser can keep it on its
+     own layer instead of repainting the page under it. */
+  will-change: transform;
+  /* Its own stacking and paint context: the canvas inside must never be able
+     to bleed over a dropdown that opens next to it. */
+  contain: layout paint;
+}
+
+.pp-companion:active { cursor: grabbing; }
+
+.pp-companion-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Pointer events land on the host, which is what carries the drag handlers.
+     Letting them hit the canvas as well would double every gesture. */
+  pointer-events: none;
+}
+
+/*
+   The size handle. Deliberately faint until the pet is hovered or focused: a
+   permanent control bolted to a cat reads as a widget, and the whole point is
+   that it does not.
+*/
+.pp-companion-grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: var(--accent);
+  /* A pair of hairlines, so it reads as a resize grip rather than a dot. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-ink) 45%, transparent);
+}
+
+.pp-companion:hover .pp-companion-grip,
+.pp-companion:focus-within .pp-companion-grip {
+  opacity: 0.85;
+}
+
+.pp-companion:focus-visible,
+.pp-companion-grip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Parked rather than pacing. The pet is still there and still strokeable. */
+html[data-reduced-motion='true'] .pp-companion { cursor: default; }

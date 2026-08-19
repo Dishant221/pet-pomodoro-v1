@@ -50,6 +50,12 @@ export interface Stage3DProps {
   reduced: boolean;
   /** 0..1, derived from happiness — biases ears, tail and idle behaviour. */
   mood: number;
+  /**
+   * False when the player has the pet living on the page instead.
+   *
+   * The world stays; only the animal leaves. See `Engine.setPetVisible`.
+   */
+  petVisible: boolean;
   onPet: () => void;
   onPoke: () => void;
   onFeed: () => void;
@@ -143,6 +149,7 @@ export default function Stage3D(props: Stage3DProps) {
       // was no engine yet to tell.
       engine.setIntent(cbRef.current.petState);
       engine.setMood(cbRef.current.mood);
+      engine.setPetVisible(cbRef.current.petVisible);
       // Seed the sky before the first frame, so there is no flash of midday
       // lighting on a night visit.
       const w = $view.get();
@@ -203,6 +210,10 @@ export default function Stage3D(props: Stage3DProps) {
   useEffect(() => {
     engineRef.current?.setMood(props.mood);
   }, [props.mood]);
+
+  useEffect(() => {
+    engineRef.current?.setPetVisible(props.petVisible);
+  }, [props.petVisible]);
 
   useEffect(() => {
     engineRef.current?.setDaylight(world.fraction, world.weather);
