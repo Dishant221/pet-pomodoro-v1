@@ -38,8 +38,16 @@ import Legal from '../layouts/Legal.astro';
   <h2>Third parties</h2>
   <p>
     No third-party scripts run on this site — no analytics, no ad network, no embedded widgets, no external fonts.
-    The only outbound request the site makes on your behalf is to its own <code>/api/weather</code> endpoint, and that
-    is described in the <a href="/privacy">privacy policy</a>.
+    The requests the site makes on your behalf all go to its own endpoints: <code>/api/weather</code> for the sky,
+    <code>/api/sync</code> if you turn cloud sync on, and <code>/api/ask</code> when you talk to the pet. All three are
+    described in the <a href="/privacy">privacy policy</a>.
+  </p>
+  <p>
+    There is one exception worth stating plainly, and it is not a cookie. If you press the microphone button to talk to
+    your pet <strong>in Chrome or Edge</strong>, the browser itself sends the audio to Google's speech service to turn
+    it into text. That is the browser doing it rather than a script of ours, but the effect on you is the same, so it
+    is written down here as well as in the <a href="/privacy">privacy policy</a>. It happens only while you hold that
+    feature open, and never otherwise.
   </p>
   <p>
     If advertising is added later it will very likely involve cookies. This page and the privacy policy will be

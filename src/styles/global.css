@@ -1196,3 +1196,88 @@ html[data-reduced-motion='true'] .pp-snow {
 
 /* Parked rather than pacing. The pet is still there and still strokeable. */
 html[data-reduced-motion='true'] .pp-companion { cursor: default; }
+
+/* The speech bubble, the microphone, and the typed fallback. */
+.pp-companion-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  max-width: 22ch;
+  width: max-content;
+  margin: 0;
+  padding: 0.3rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  pointer-events: none;
+}
+
+.pp-companion-mic {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--card);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.pp-companion:hover .pp-companion-mic,
+.pp-companion:focus-within .pp-companion-mic,
+/* While it is listening the control stays visible whatever the pointer is
+   doing. A microphone that is open and invisible is the whole thing people
+   are right to be afraid of. */
+.pp-companion-mic[data-on='true'] {
+  opacity: 1;
+}
+
+.pp-companion-mic[data-on='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  animation: pp-listening 1.4s ease-in-out infinite;
+}
+
+@keyframes pp-listening {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+
+/* Reduced motion loses the pulse but keeps the colour, which is what actually
+   carries the "this is on" message. */
+@media (prefers-reduced-motion: reduce) {
+  .pp-companion-mic[data-on='true'] { animation: none; }
+}
+
+.pp-companion-say {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%);
+}
+
+.pp-companion-say input {
+  width: 16ch;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+}

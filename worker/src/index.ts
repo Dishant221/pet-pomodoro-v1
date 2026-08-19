@@ -21,7 +21,33 @@ type Bindings = {
   DB: D1Database;
   /** Comma-separated origin allowlist. Unset means "same-origin only". */
   ALLOWED_ORIGINS?: string;
+  /**
+   * Workers AI, for /api/ask. Optional on purpose: without it the endpoint
+   * still answers, using the local reaction table, so a deploy with no AI
+   * binding degrades instead of 500ing at a player talking to their cat.
+   */
+  AI?: WorkersAi;
+  /** Overrides the default model id. Model ids are retired on their own schedule. */
+  ASK_MODEL?: string;
+  /** Turnstile secret. Unset skips the check; the rate limits still apply. */
+  TURNSTILE_SECRET?: string;
+  /**
+   * Cloudflare's own rate limiter, used for the burst limit on /api/ask.
+   *
+   * The `overLimit` helper below counts in the edge cache, which its own
+   * comment admits is neither atomic nor shared between colos. That is a fine
+   * trade for defending a free save file. It is not a fine trade for the one
+   * endpoint in this project that spends money per call, so that one uses a
+   * real limiter and falls back to the cache counter only if the binding is
+   * missing.
+   */
+  ASK_LIMIT?: RateLimiter;
 };
+
+/** Declared narrowly, like the edge cache and Workers AI above. */
+interface RateLimiter {
+  limit(opts: { key: string }): Promise<{ success: boolean }>;
+}
 
 /** Codes are generated client-side by newSyncCode(); keep this in step with it. */
 const CODE_RE = /^[a-z0-9]{16,64}$/;
@@ -369,6 +395,181 @@ app.get('/api/weather', async (c) => {
   // Cache a clone; the original is still being streamed to this caller.
   if (edgeCache) c.executionCtx.waitUntil(edgeCache.put(cacheKey, response.clone()));
   return response;
+});
+
+// --- talking to the pet -----------------------------------------------------
+
+/**
+ * POST /api/ask  { text }
+ *
+ * The player says something; the animal decides how to react to it. What comes
+ * back is not prose for the pet to recite — it is a *reaction*: which behaviour
+ * to play, what tone to meow in, and one short line for the speech bubble. The
+ * pet answers in its own voice, because a talking cat is a chatbot with fur and
+ * a meowing one is a pet.
+ *
+ * Three things this endpoint is careful about:
+ *
+ *   - **Text only.** Audio never reaches this Worker. Transcription happens in
+ *     the browser and only the words are sent, which is both cheaper and a much
+ *     smaller promise to keep.
+ *   - **Nothing is logged.** A prompt here is a recording of someone talking to
+ *     their pet in their own room. It is used to pick an animation and then
+ *     discarded.
+ *   - **It is capped.** This is the only endpoint in the project that costs
+ *     money per call, so it is rate limited per address and degrades to a local
+ *     reaction rather than failing when the limit or the binding is missing.
+ */
+
+/** Enough for a sentence anyone would say to a cat. */
+const ASK_MAX_CHARS = 200;
+const ASK_PER_MINUTE = 6;
+const ASK_PER_DAY = 150;
+
+/**
+ * The behaviours the companion can actually play. The model is asked for one of
+ * these and its answer is checked against the set rather than trusted: a model
+ * inventing `backflip` must degrade to a shrug, not throw on the client.
+ */
+const BEHAVIOURS = new Set(['idle', 'sit', 'sleep', 'stretch', 'play', 'jump', 'celebrate', 'groom', 'beg', 'walk']);
+const TONES = new Set(['happy', 'calm', 'sad', 'excited']);
+
+/** Default model. Overridable, because model ids are retired on their own schedule. */
+const ASK_MODEL = '@cf/meta/llama-3.2-3b-instruct';
+
+const ASK_SYSTEM = [
+  'You decide how a small pet cat reacts to something its owner just said.',
+  'The cat cannot talk. It only meows, and it can perform one behaviour.',
+  'Reply with ONLY a JSON object, no prose, no code fence:',
+  '{"behaviour":"<one of: idle, sit, sleep, stretch, play, jump, celebrate, groom, beg, walk>",',
+  '"tone":"<one of: happy, calm, sad, excited>","say":"<at most 12 words, describing what the cat does>"}',
+  'The "say" line is shown in a speech bubble and must read as narration of an animal,',
+  'never as the cat speaking words. Example: "tilts her head and blinks slowly at you".',
+  'If the owner sounds sad, the cat comes closer and settles. If excited, it plays.',
+].join(' ');
+
+/** A reaction that needs no model — used when AI is absent, capped, or broken. */
+function localReaction(text: string): { behaviour: string; tone: string; say: string } {
+  const t = text.toLowerCase();
+  if (/\b(sit|stay|down)\b/.test(t)) return { behaviour: 'sit', tone: 'calm', say: 'sits down and looks up at you' };
+  if (/\b(sleep|bed|night|nap)\b/.test(t)) return { behaviour: 'sleep', tone: 'calm', say: 'curls up and closes her eyes' };
+  if (/\b(play|fetch|toy|game)\b/.test(t)) return { behaviour: 'play', tone: 'excited', say: 'pounces after nothing at all' };
+  if (/\b(good|clever|well done|love)\b/.test(t)) return { behaviour: 'celebrate', tone: 'happy', say: 'trills and winds around your ankles' };
+  if (/\b(sad|tired|hard|stress)\b/.test(t)) return { behaviour: 'sit', tone: 'sad', say: 'settles against you and goes quiet' };
+  if (/\b(come|here|hello|hi|hey)\b/.test(t)) return { behaviour: 'walk', tone: 'happy', say: 'trots over to you' };
+  return { behaviour: 'idle', tone: 'calm', say: 'tilts her head and blinks slowly' };
+}
+
+/**
+ * Workers AI, declared narrowly.
+ *
+ * Same reasoning as the edge cache above: this file is compiled as part of the
+ * browser program, so pulling the full Workers ambient types in would put the
+ * whole runtime into every client module's scope.
+ */
+interface WorkersAi {
+  run(model: string, input: { messages: { role: string; content: string }[]; max_tokens?: number }): Promise<unknown>;
+}
+
+/** Turnstile, when it is configured. Absent secret means the check is skipped. */
+async function turnstileOk(secret: string | undefined, token: unknown, ip: string): Promise<boolean> {
+  if (!secret) return true;
+  if (typeof token !== 'string' || !token) return false;
+  try {
+    const body = new FormData();
+    body.append('secret', secret);
+    body.append('response', token);
+    body.append('remoteip', ip);
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body,
+      signal: AbortSignal.timeout(4000),
+    });
+    const out = (await res.json()) as { success?: boolean };
+    return out.success === true;
+  } catch {
+    // A verification service that is down must not lock everyone out of
+    // talking to their cat. The rate limits below are still in force.
+    return true;
+  }
+}
+
+app.post('/api/ask', async (c) => {
+  const who = clientKey(c);
+  const now = Date.now();
+
+  // Checked before the body is read, so a flood costs as little as possible.
+  //
+  // Two limits with different jobs. The burst limit stops a script hammering
+  // the endpoint and uses Cloudflare's real limiter, which is atomic — this is
+  // the one that has to actually hold, because every call past it is billed.
+  // The daily cap is a budget guard rather than a defence, so it can live in
+  // the edge cache with the same best-effort caveat as everything else here.
+  const burstOk = c.env.ASK_LIMIT
+    ? (await c.env.ASK_LIMIT.limit({ key: who })).success
+    : !(await overLimit(`ask/${who}/${Math.floor(now / 60_000)}`, ASK_PER_MINUTE, 120));
+
+  const day = Math.floor(now / 86_400_000);
+  if (!burstOk || (await overLimit(`askd/${who}/${day}`, ASK_PER_DAY, 90_000))) {
+    // Not an error to the player: the cat simply reacts on its own.
+    return c.json({ ok: false, capped: true, ...localReaction('') }, 200, { 'retry-after': '60' });
+  }
+
+  let body: { text?: unknown; token?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'malformed json' }, 400);
+  }
+
+  const text = typeof body.text === 'string' ? body.text.trim().slice(0, ASK_MAX_CHARS) : '';
+  if (!text) return c.json({ error: 'nothing said' }, 400);
+
+  if (!(await turnstileOk(c.env.TURNSTILE_SECRET, body.token, who))) {
+    return c.json({ error: 'verification failed' }, 403);
+  }
+
+  const ai = c.env.AI;
+  if (!ai) {
+    // No binding provisioned. The feature still works, just without the model.
+    return c.json({ ok: true, model: false, ...localReaction(text) });
+  }
+
+  try {
+    const raw = await ai.run(c.env.ASK_MODEL || ASK_MODEL, {
+      messages: [
+        { role: 'system', content: ASK_SYSTEM },
+        { role: 'user', content: text },
+      ],
+      max_tokens: 120,
+    });
+
+    // The response shape is `{ response: string }` for text generation, and the
+    // string is a model's best effort at JSON — it may arrive fenced, prefixed,
+    // or with a trailing apology. Pull the first object out rather than trusting
+    // the whole body to parse.
+    const out = (raw as { response?: unknown }).response;
+    const s = typeof out === 'string' ? out : '';
+    const start = s.indexOf('{');
+    const end = s.lastIndexOf('}');
+    if (start < 0 || end <= start) throw new Error('no object in response');
+
+    const parsed = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
+    const behaviour = typeof parsed.behaviour === 'string' && BEHAVIOURS.has(parsed.behaviour) ? parsed.behaviour : null;
+    const tone = typeof parsed.tone === 'string' && TONES.has(parsed.tone) ? parsed.tone : 'calm';
+    const say = typeof parsed.say === 'string' ? parsed.say.trim().slice(0, 90) : '';
+
+    // A model that ignored the whitelist gets the local reaction instead of
+    // putting an unknown action name in front of the animation system.
+    if (!behaviour || !say) return c.json({ ok: true, model: false, ...localReaction(text) });
+
+    return c.json({ ok: true, model: true, behaviour, tone, say });
+  } catch {
+    // Deliberately silent, and deliberately still a reaction. A pet that
+    // freezes because an inference endpoint had a bad second is worse than one
+    // that blinks at you.
+    return c.json({ ok: true, model: false, ...localReaction(text) });
+  }
 });
 
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));

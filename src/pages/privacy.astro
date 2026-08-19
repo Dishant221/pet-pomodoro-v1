@@ -45,6 +45,32 @@ import Legal from '../layouts/Legal.astro';
     this at all, blocking <code>/api/weather</code> is harmless — the game falls back to fair weather.
   </p>
 
+  <h2>Talking to your pet</h2>
+  <p>
+    You can say something to the animal and have it react. This is <strong>off unless you press the microphone
+    button</strong>, and it is off again as soon as it has heard one sentence — there is no setting that leaves it
+    listening, on purpose. While the microphone is open the button stays lit, and pressing it again stops it.
+  </p>
+  <p>
+    Please read this part carefully, because it is the one place where something leaves your device.
+    In Chrome and Edge, turning your speech into text is <strong>done by the browser, not by us, and not on your
+    computer</strong>: Chrome streams the audio to Google's speech service and sends the text back. It looks like a
+    feature that runs locally and it does not. That is Google's processing under
+    <a href="https://policies.google.com/privacy" rel="noopener noreferrer nofollow" target="_blank">their privacy
+    policy</a>, and it is the main reason this feature is opt-in every single time. Firefox and Safari have no such
+    facility, so there you type to the pet instead and no audio is involved at all.
+  </p>
+  <p>
+    What <em>we</em> receive is only the text, never the audio. It is sent to <code>/api/ask</code>, passed to a small
+    language model running on Cloudflare's network to choose which behaviour the animal performs, and then discarded.
+    It is not stored, not written to the database, and not logged. The reply is an animation and a short line of
+    narration — the pet answers in meows, never in words.
+  </p>
+  <p>
+    If you would rather not have any of this, simply never press the button. Blocking <code>/api/ask</code> is also
+    harmless: the pet falls back to reacting on its own.
+  </p>
+
   <h2>What we do not do</h2>
   <ul>
     <li>No accounts, no passwords, no email addresses.</li>

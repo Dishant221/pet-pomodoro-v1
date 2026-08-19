@@ -7,6 +7,7 @@ import { webglAvailable } from '../three/webgl';
 import { blockedBy, groundAt, measureTerrain, typingRect, type Ledge } from '../game/terrain';
 import { moodFor, MOODS } from '../game/mood';
 import * as audio from '../game/audio';
+import { ask, listenOnce, speechAvailable, type ListenHandle } from '../game/speech';
 /**
  * Type-only, for the same reason `Stage3D` imports its engine this way: three.js
  * and the rig on top of it are more than the rest of the app put together, and a
@@ -40,6 +41,27 @@ const SPEED = 34;
 const EDGE = 8;
 
 type Mode = 'walk' | 'pause' | 'sit' | 'react';
+
+/**
+ * Behaviours the pet may be asked to perform in reply to being spoken to.
+ *
+ * Kept in step with the whitelist in `worker/src/index.ts`, and checked on this
+ * side too. The server's list is the one that stops a model inventing an
+ * action; this one is what stops a *response* — from a proxy, a cache, or a
+ * future version of that endpoint — reaching the animation system unchecked.
+ */
+const ALLOWED_REPLIES = new Set<string>([
+  'idle',
+  'sit',
+  'sleep',
+  'stretch',
+  'play',
+  'jump',
+  'celebrate',
+  'groom',
+  'beg',
+  'walk',
+]);
 
 export default function Companion() {
   const profile = useStore($profile);
@@ -339,6 +361,76 @@ export default function Companion() {
     speak();
   };
 
+  // --- being spoken to -------------------------------------------------------
+  //
+  // Off until asked for, every time. There is deliberately no stored "always
+  // listening" setting: see the note at the top of game/speech.ts for why.
+  const [listening, setListening] = useState(false);
+  const [bubble, setBubble] = useState<string | null>(null);
+  const [typed, setTyped] = useState<string | null>(null);
+  const listenRef = useRef<ListenHandle | null>(null);
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = (line: string) => {
+    setBubble(line);
+    if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    bubbleTimer.current = setTimeout(() => setBubble(null), 6000);
+  };
+
+  /** Send what was said, then play back whatever the animal decided to do. */
+  const heard = async (text: string) => {
+    show('…');
+    const r = await ask(text);
+    show(r.say);
+    // The behaviour is checked again here rather than trusted: this is the last
+    // point before an arbitrary string reaches the animation system.
+    const action = ALLOWED_REPLIES.has(r.behaviour) ? (r.behaviour as Action) : 'idle';
+    const engine = engineRef.current;
+    if (engine) {
+      engine.setAction(action, true);
+      modeRef.current = 'react';
+    }
+    // It answers in its own voice, never in words. Tone picks the variant, so
+    // an excited reply is a different noise from a sad one.
+    if (!settings.muted) {
+      const variant = r.tone === 'excited' ? 2 : r.tone === 'sad' ? 1 : 0;
+      void audio.unlock().then(() => audio.playVoice(variant, { force: true }));
+    }
+  };
+
+  const toggleListen = (e: Event) => {
+    e.stopPropagation();
+    if (listening) {
+      listenRef.current?.cancel();
+      return;
+    }
+    if (!speechAvailable()) {
+      // No recogniser here — Firefox and Safari. Offer the keyboard instead of
+      // a control that would do nothing.
+      setTyped('');
+      return;
+    }
+    setListening(true);
+    show('listening…');
+    listenRef.current = listenOnce({
+      onResult: (text) => void heard(text),
+      onEnd: (reason) => {
+        setListening(false);
+        listenRef.current = null;
+        if (reason === 'denied') show('needs microphone permission');
+      },
+    });
+  };
+
+  // A recogniser must never outlive the component that opened it.
+  useEffect(
+    () => () => {
+      listenRef.current?.cancel();
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    },
+    [],
+  );
+
   const grab = useRef<{ dx: number; moved: number } | null>(null);
 
   const onPointerDown = (e: PointerEvent) => {
@@ -462,6 +554,59 @@ export default function Companion() {
       aria-label={label}
     >
       <canvas ref={canvasRef} class="pp-companion-canvas" aria-hidden="true" />
+
+      {/* What the animal just did, in words, for anyone who cannot hear the
+          meow — and because a reaction you can read is a reaction you can be
+          sure landed. `polite`, so it never interrupts. */}
+      {bubble && (
+        <p class="pp-companion-bubble" role="status" aria-live="polite">
+          {bubble}
+        </p>
+      )}
+
+      {/* Talking to it. A button, pressed each time — never a stored setting,
+          and never a microphone left open. */}
+      <button
+        type="button"
+        class="pp-companion-mic"
+        data-on={listening ? 'true' : 'false'}
+        aria-pressed={listening}
+        title={listening ? 'Listening — click to stop' : 'Say something to your pet'}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={toggleListen}
+      >
+        <span aria-hidden="true">{listening ? '◉' : '🎤'}</span>
+        <span class="sr-only">{listening ? 'Listening. Click to stop.' : 'Say something to your pet'}</span>
+      </button>
+
+      {/* Firefox and Safari cannot transcribe, so they get the keyboard. The
+          same endpoint, the same reaction — just typed. */}
+      {typed !== null && (
+        <form
+          class="pp-companion-say"
+          onPointerDown={(e) => e.stopPropagation()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const t = typed.trim();
+            setTyped(null);
+            if (t) void heard(t);
+          }}
+        >
+          <input
+            type="text"
+            value={typed}
+            autoFocus
+            maxLength={200}
+            placeholder="Say something…"
+            aria-label="Say something to your pet"
+            onInput={(e) => setTyped((e.currentTarget as HTMLInputElement).value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setTyped(null);
+              e.stopPropagation();
+            }}
+          />
+        </form>
+      )}
       <span
         class="pp-companion-grip"
         onPointerDown={onResizeDown}

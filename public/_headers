@@ -17,10 +17,18 @@
   # analytics later without leaking which page someone was on.
   Referrer-Policy: strict-origin-when-cross-origin
 
-  # Refuse powerful features outright. The weather feature deliberately does
-  # not use geolocation — it derives an approximate area from the request —
-  # so denying it here makes that guarantee enforceable rather than a promise.
-  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=(), interest-cohort=()
+  # Refuse powerful features outright, with one exception. The weather feature
+  # deliberately does not use geolocation — it derives an approximate area from
+  # the request — so denying it here makes that guarantee enforceable rather
+  # than a promise.
+  #
+  # `microphone=(self)` is the exception, and it is the narrowest form: this
+  # origin only, never a frame or a third party. It exists so the player can
+  # talk to the pet, which is opt-in per session, ends after one sentence, and
+  # shows a lit indicator the whole time the microphone is open. The browser
+  # still asks for permission on top of this — the header only decides whether
+  # it is allowed to ask. See src/game/speech.ts and the privacy page.
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(self), midi=(), payment=(), usb=(), xr-spatial-tracking=(), interest-cohort=()
 
   # Two years, subdomains included, and eligible for preload.
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload

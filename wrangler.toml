@@ -14,10 +14,33 @@ binding = "DB"
 database_name = "petpomo"
 database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 
+# Workers AI, for /api/ask — the endpoint that decides how the pet reacts to
+# being spoken to. It is the only thing in this project that costs money per
+# call, so the endpoint rate-limits per address and caps per day, and it falls
+# back to a local reaction table when the binding is missing. That fallback is
+# why a deploy without AI enabled on the account still works.
+[ai]
+binding = "AI"
+
+# The burst limit on /api/ask. Cloudflare's own limiter rather than the edge
+# cache counter used elsewhere in the Worker, because that one is not atomic
+# and every call past this limit is a billed inference. `period` accepts only
+# 10 or 60 seconds; the daily budget cap stays in the Worker.
+[[ratelimits]]
+name = "ASK_LIMIT"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 6
+  period = 60
+
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API onto
 # its own Worker/domain, e.g. "https://petpomo.pages.dev".
 ALLOWED_ORIGINS = ""
+# Model ids are retired on their own schedule, so this is a var rather than a
+# constant in the source. Empty means "use the default in worker/src/index.ts".
+ASK_MODEL = ""
 
 # ---------------------------------------------------------------------------
 # Preview. Every deploy on a branch other than main lands here, on a
@@ -33,5 +56,22 @@ binding = "DB"
 database_name = "petpomo-preview"
 database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
 
+# Restated, not inherited — see the note above about non-inheritable keys. A
+# binding declared only at the top level silently vanishes on preview, and the
+# first sign of it would be the pet answering from the fallback table.
+[env.preview.ai]
+binding = "AI"
+
+# A separate namespace id, so a load test against preview cannot spend
+# production's limiter budget or lock real players out of talking to their pet.
+[[env.preview.ratelimits]]
+name = "ASK_LIMIT"
+namespace_id = "1002"
+
+  [env.preview.ratelimits.simple]
+  limit = 6
+  period = 60
+
 [env.preview.vars]
 ALLOWED_ORIGINS = ""
+ASK_MODEL = ""
