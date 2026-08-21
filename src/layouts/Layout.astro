@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { isProductionBuild } from '../site';
 import Companion from '../islands/Companion';
 import TalkBar from '../islands/TalkBar';
+import SupportWidget from '../islands/SupportWidget';
 
 /**
  * The one place every page's `<head>` is assembled.
@@ -254,6 +255,13 @@ const year = new Date().getFullYear();
       the game, where the animal actually is — so exactly one is ever present.
     */}
     <TalkBar context="screen" client:idle />
+
+    {/*
+      Support is a property of the site, not of the pet, so unlike the talk
+      bar it renders on every route in every mode — a stage player reading
+      the blog can still report the bug they are looking at.
+    */}
+    <SupportWidget client:idle />
 
     <script src="/sw-register.js" is:inline></script>
     <script src="/fullscreen.js" is:inline defer></script>

@@ -64,7 +64,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 53 | Mid-article arcade | One tiny game per post (Focus Five, Unscramble or Memory Pairs, rotated by slug hash), injected client-side after the middle paragraph of 8+-paragraph posts. Win streak in localStorage only; no-JS readers see an uninterrupted article. |
 | 54 | Blog ad placeholders | Labelled 728×90 banner + 300×250 rectangle placeholders (`AdSlot.astro`) on index, topics and posts. Height reserved against CLS; stable `data-ad-slot` ids for later AdSense wiring. Landing-page `.pp-adslot` unchanged. |
 | 55 | Per-post social/SEO meta | og:type=article, article:published_time/tags, per-post og:image from the cover, BreadcrumbList + timeRequired in the BlogPosting schema, reading time on page. |
-| 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact`, `support@pomodoropet.com` behind the 💬 button above the talk-to-your-pet control (topic picker + message → prefilled mailto; no mail backend by design). Addresses live in `src/site.ts`. **Delivery depends on #58.** |
+| 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact` with a validated form (name/email/subject/message, honeypot + time-gate against bots, mailto composed with full URL-encoding); `support@pomodoropet.com` behind the animated 💬 (own island, every page, every mode — not just where the talk bar renders). No mail backend by design. Addresses live in `src/site.ts`. **Delivery depends on #58.** |
 
 ---
 

@@ -43,6 +43,50 @@ import { SITE, hasContact } from '../site';
     )
   }
 
+  {
+    hasContact && (
+      <>
+        <h2>Write to us</h2>
+        <p>
+          Fill this in and it opens a ready-addressed email to {SITE.contactEmail} in your own mail app — nothing is
+          sent or stored by this site.
+        </p>
+        <form class="pp-contact-form" data-to={SITE.contactEmail} novalidate>
+          {/* Honeypot: invisible to people, irresistible to form-filling bots.
+              Anything typed here means the submit is dropped silently. */}
+          <div class="pp-hp" aria-hidden="true">
+            <label for="pp-cf-website">Website</label>
+            <input id="pp-cf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="pp-cf-row">
+            <label for="pp-cf-name">Name <span class="pp-cf-req">*</span></label>
+            <input id="pp-cf-name" name="name" type="text" required maxlength="100" autocomplete="name" />
+          </div>
+
+          <div class="pp-cf-row">
+            <label for="pp-cf-email">Your email <span class="pp-cf-req">*</span></label>
+            <input id="pp-cf-email" name="email" type="email" required maxlength="254" autocomplete="email" />
+          </div>
+
+          <div class="pp-cf-row">
+            <label for="pp-cf-subject">Subject <span class="pp-cf-req">*</span></label>
+            <input id="pp-cf-subject" name="subject" type="text" required maxlength="150" />
+          </div>
+
+          <div class="pp-cf-row">
+            <label for="pp-cf-message">Message <span class="pp-cf-req">*</span></label>
+            <textarea id="pp-cf-message" name="message" required maxlength="1500" rows="6" />
+          </div>
+
+          <p class="pp-cf-error" role="alert" hidden />
+
+          <button type="submit" class="pp-cf-send">Open email to send</button>
+        </form>
+      </>
+    )
+  }
+
   <h2>What to include</h2>
   <ul>
     <li><strong>Bugs</strong> — what you did, what happened, what you expected, and your browser.</li>
@@ -60,3 +104,121 @@ import { SITE, hasContact } from '../site';
     payments, so there is never a reason to.
   </p>
 </Legal>
+
+<script>
+  /**
+   * The form has no server behind it, deliberately: it validates locally and
+   * composes a mailto for the user's own client, so there is no endpoint to
+   * flood, nothing stored, and nothing to inject into. What remains to defend
+   * is the mailto URL itself (everything user-typed is encodeURIComponent'd,
+   * so newlines cannot smuggle headers) and bot noise (a honeypot field plus
+   * a submit-too-fast gate, both failing silently so a bot learns nothing).
+   */
+  const form = document.querySelector<HTMLFormElement>('.pp-contact-form');
+  if (form) {
+    const loadedAt = Date.now();
+    const error = form.querySelector<HTMLParagraphElement>('.pp-cf-error')!;
+
+    const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      error.hidden = true;
+
+      // Bots fill the invisible field and submit within moments of load;
+      // people do neither. Both checks fail silently on purpose.
+      if (field('website').value !== '' || Date.now() - loadedAt < 2500) return;
+
+      const name = field('name').value.trim().slice(0, 100);
+      const email = field('email').value.trim().slice(0, 254);
+      const subject = field('subject').value.trim().slice(0, 150);
+      const message = field('message').value.trim().slice(0, 1500);
+
+      if (!name || !email || !subject || !message || !field('email').checkValidity()) {
+        error.textContent = 'Please fill in every field, with a valid email address.';
+        error.hidden = false;
+        return;
+      }
+
+      const to = form.dataset.to!;
+      const body = `From: ${name} <${email}>\n\n${message}`;
+      window.location.href = `mailto:${to}?subject=${encodeURIComponent(`[PetPomo] ${subject}`)}&body=${encodeURIComponent(body)}`;
+
+      error.textContent = 'Your email app should now be open with the message ready to send.';
+      error.hidden = false;
+    });
+  }
+</script>
+
+<style>
+  .pp-contact-form {
+    display: grid;
+    gap: 0.8rem;
+    max-width: 34rem;
+  }
+
+  /* Off-screen rather than display:none — some bots skip hidden inputs. */
+  .pp-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .pp-cf-row {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .pp-cf-row label {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.8rem;
+  }
+
+  .pp-cf-req {
+    color: var(--accent);
+  }
+
+  .pp-cf-row input,
+  .pp-cf-row textarea {
+    padding: 0.5rem 0.65rem;
+    font: inherit;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--ink);
+  }
+
+  .pp-cf-row textarea {
+    resize: vertical;
+  }
+
+  .pp-cf-row input:focus-visible,
+  .pp-cf-row textarea:focus-visible,
+  .pp-cf-send:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .pp-cf-error {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  .pp-cf-send {
+    justify-self: start;
+    padding: 0.5rem 1rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+</style>
