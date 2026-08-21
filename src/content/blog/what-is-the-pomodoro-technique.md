@@ -10,6 +10,13 @@ parts. Francesco Cirillo worked it out as a university student in the late
 1980s using a kitchen timer shaped like a tomato — *pomodoro* is Italian for
 tomato, which is the whole story behind the name.
 
+<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
+     src/assets/blog/what-is-the-pomodoro-technique.png  then replace this comment with:
+     ![The pomodoro cycle: 25 minutes of focus, a 5-minute break, repeated four times before a long break](../../assets/blog/what-is-the-pomodoro-technique.png)
+     Subject: a simple hand-drawn diagram of the four-step cycle — one tomato-shaped
+     timer, four blocks, a long-break gap — in the site's warm illustration style.
+     Alt: The pomodoro cycle: 25 minutes of focus, a 5-minute break, repeated four times before a long break -->
+
 ## The method
 
 1. **Pick one task.** Not a list. One.

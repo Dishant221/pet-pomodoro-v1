@@ -10,6 +10,13 @@ method is wrong — the [Pomodoro Technique](/blog/what-is-the-pomodoro-techniqu
 is about as simple as a productivity method gets — but because a timer is a
 number that goes down, and abandoning a number costs nothing.
 
+<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
+     src/assets/blog/why-a-virtual-pet-helps-you-focus.png  then replace this comment with:
+     ![A plain countdown timer beside a sleeping cat: the same 25 minutes, with and without something that notices](../../assets/blog/why-a-virtual-pet-helps-you-focus.png)
+     Subject: side-by-side — a bare timer on the left, the same timer with the
+     sleeping cat and warm scene on the right.
+     Alt: A plain countdown timer beside a sleeping cat: the same 25 minutes, with and without something that notices -->
+
 ## Nothing is watching
 
 Press stop on a plain timer and the world is unchanged. There is no cost, no
