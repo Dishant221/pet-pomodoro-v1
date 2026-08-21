@@ -6,7 +6,7 @@ import { SITE, hasContact } from '../site';
 <Legal
   title="Contact"
   description="How to reach PetPomo about bugs, feature requests, privacy questions or a lost sync code."
-  updated="2026-08-16"
+  updated="2026-08-22"
   intro="Bugs, ideas, privacy questions, or a save you want deleted — all welcome."
 >
   {
@@ -14,7 +14,12 @@ import { SITE, hasContact } from '../site';
       <>
         <h2>Email</h2>
         <p>
-          <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+          General enquiries — <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+        </p>
+        <p>
+          Support, bug reports and issues — <a href={`mailto:${SITE.supportEmail}`}>{SITE.supportEmail}</a>. You can
+          also reach this straight from the app: the 💬 button next to your pet opens a short form that starts the
+          email for you.
         </p>
         <p>
           It is one person reading these, so a reply may take a few days. Please include what browser you are on if

@@ -64,6 +64,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 53 | Mid-article arcade | One tiny game per post (Focus Five, Unscramble or Memory Pairs, rotated by slug hash), injected client-side after the middle paragraph of 8+-paragraph posts. Win streak in localStorage only; no-JS readers see an uninterrupted article. |
 | 54 | Blog ad placeholders | Labelled 728×90 banner + 300×250 rectangle placeholders (`AdSlot.astro`) on index, topics and posts. Height reserved against CLS; stable `data-ad-slot` ids for later AdSense wiring. Landing-page `.pp-adslot` unchanged. |
 | 55 | Per-post social/SEO meta | og:type=article, article:published_time/tags, per-post og:image from the cover, BreadcrumbList + timeRequired in the BlogPosting schema, reading time on page. |
+| 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact`, `support@pomodoropet.com` behind the 💬 button above the talk-to-your-pet control (topic picker + message → prefilled mailto; no mail backend by design). Addresses live in `src/site.ts`. **Delivery depends on #58.** |
 
 ---
 
@@ -147,6 +148,13 @@ site would de-index itself. **The full step-by-step cutover checklist is in
 DEPLOY.md → "Going live on www.pomodoropet.com"** — including the
 backup-branches-before-merge rule and post-merge verification. Until then,
 ship to `testing` only; preview builds are noindex and safe.
+
+**58. Email Routing for `support@` / `enquire@pomodoropet.com`.** Blocked on
+the same domain as #56. Once `pomodoropet.com` is on Cloudflare: dashboard →
+Email → Email Routing, create custom addresses `support@` and `enquire@`, both
+forwarding to the personal gmail inbox, and verify the destination address.
+Until this is done, mail sent to either address bounces — #57 printed them on
+the site, so this must land with (or before) the #56 cutover.
 
 ---
 

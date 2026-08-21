@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
 import { $profile } from '../stores/profile';
 import { $talk, canListen, clearBubble, sayTo, stopListening, toggleListening } from '../game/talk';
+import { SITE } from '../site';
+
+const SUPPORT_TOPICS = ['Support', 'Issue', 'Query'] as const;
+type SupportTopic = (typeof SUPPORT_TOPICS)[number];
 
 /**
  * The control that talks to the pet.
@@ -38,7 +42,11 @@ export default function TalkBar({ context }: TalkBarProps) {
   const talk = useStore($talk);
   const [text, setText] = useState('');
   const [open, setOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportTopic, setSupportTopic] = useState<SupportTopic>('Support');
+  const [supportMsg, setSupportMsg] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const supportRef = useRef<HTMLTextAreaElement>(null);
 
   const onScreen = profile.settings.petMode === 'screen';
   const mine = context === 'screen' ? onScreen : !onScreen;
@@ -49,6 +57,10 @@ export default function TalkBar({ context }: TalkBarProps) {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (supportOpen) supportRef.current?.focus();
+  }, [supportOpen]);
 
   if (!mine) return null;
 
@@ -61,8 +73,83 @@ export default function TalkBar({ context }: TalkBarProps) {
 
   const listening = talk.listening;
 
+  // There is no mail backend, deliberately: the site has no accounts and no
+  // server that can send on a user's behalf. The form composes the message and
+  // hands it to the user's own mail client, which also means they keep a copy
+  // and can see exactly what is being sent.
+  const sendSupport = (e: Event) => {
+    e.preventDefault();
+    const body = supportMsg.trim();
+    if (!body) return;
+    const subject = `PetPomo ${supportTopic.toLowerCase()}`;
+    window.location.href = `mailto:${SITE.supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setSupportOpen(false);
+    setSupportMsg('');
+  };
+
   return (
     <div class="pp-talk" data-context={context} data-open={open ? 'true' : 'false'}>
+      {/* Support sits above the talk controls so the two are never confused:
+          the row below talks to the pet, this talks to the human behind it. */}
+      {supportOpen ? (
+        <form class="pp-support-panel" onSubmit={sendSupport}>
+          <div class="pp-support-head">
+            <strong>Contact support</strong>
+            <button
+              type="button"
+              class="pp-support-close"
+              aria-label="Close support form"
+              onClick={() => setSupportOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <select
+            class="pp-support-topic"
+            aria-label="What is this about?"
+            value={supportTopic}
+            onChange={(e) => setSupportTopic((e.currentTarget as HTMLSelectElement).value as SupportTopic)}
+          >
+            {SUPPORT_TOPICS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <textarea
+            ref={supportRef}
+            class="pp-support-msg"
+            rows={4}
+            maxLength={2000}
+            placeholder="Describe your issue or question…"
+            aria-label="Your message to support"
+            value={supportMsg}
+            onInput={(e) => setSupportMsg((e.currentTarget as HTMLTextAreaElement).value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSupportOpen(false);
+            }}
+          />
+          <div class="pp-support-actions">
+            <button type="submit" class="pp-support-send" disabled={!supportMsg.trim()}>
+              Send to {SITE.supportEmail}
+            </button>
+          </div>
+          <p class="pp-support-note">
+            Opens in your email app. For general enquiries see the <a href="/contact">contact page</a>.
+          </p>
+        </form>
+      ) : (
+        <button
+          type="button"
+          class="pp-support-toggle"
+          title="Message support — report an issue or ask a question"
+          onClick={() => setSupportOpen(true)}
+        >
+          <span aria-hidden="true">💬</span>
+          <span class="sr-only">Message support — report an issue or ask a question</span>
+        </button>
+      )}
+
       {/* The reply, and the only place it is shown. `polite` so it never cuts
           across whatever else is being announced. */}
       {talk.bubble && (

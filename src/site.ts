@@ -35,14 +35,20 @@ export const SITE = {
   url: PRODUCTION_ORIGIN,
 
   /**
-   * Public contact address.
+   * Public contact address for general enquiries, shown on the contact page.
    *
-   * NOT YET SET. Ad networks, payment processors and several privacy laws all
-   * expect a reachable contact address, so this has to be a real inbox before
-   * the site is monetised or submitted anywhere. Until it is, the contact page
-   * says so plainly rather than printing an address that bounces.
+   * Both addresses are on the custom domain, so they only receive mail once
+   * Email Routing (or an equivalent forward) is configured on pomodoropet.com.
+   * Do not ship a build with these set while the domain's mail is unrouted —
+   * a printed address that bounces is worse than none.
    */
-  contactEmail: '',
+  contactEmail: 'enquire@pomodoropet.com',
+
+  /**
+   * Support address, used by the in-app support widget (the 💬 above the
+   * talk-to-your-pet control) for bug reports, issues and help requests.
+   */
+  supportEmail: 'support@pomodoropet.com',
 
   /**
    * Legal entity or trading name shown on the policy pages.
