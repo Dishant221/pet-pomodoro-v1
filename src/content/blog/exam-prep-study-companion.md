@@ -3,6 +3,10 @@ title: Exam prep with a companion who keeps the schedule
 description: Revision is a long campaign where pace beats intensity. How pomodoro sessions and a companion who expects the routine keep exam prep steady for weeks.
 publishedAt: 2026-08-22
 tags: ['studying', 'pomodoro', 'breaks', 'virtual pet']
+image: ../../assets/blog/exam-prep-study-companion.jpg
+imageAlt: "A student taking handwritten notes from an open textbook"
+imageCredit: "Photo: 'researching and taking notes' by jimmiehomeschoolmom, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/94168846@N00/3968018385"
 ---
 
 A companion who keeps the schedule solves the hardest problem in exam prep,
@@ -10,12 +14,6 @@ which is not understanding the material but turning up to it, day after day,
 for weeks. Revision is a long campaign, and campaigns are won on pace rather
 than intensity — the steady sessions you actually do beat the heroic ones
 you plan and dread.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/exam-prep-study-companion.png  then replace this comment with:
-     ![Revision notes spread across a desk with a timer running and a cat asleep on the spare paper](../../assets/blog/exam-prep-study-companion.png)
-     Subject: revision notes and highlighters spread across a desk, a pomodoro timer running on a laptop, and a small cat asleep on a spare sheet of paper.
-     Alt: Revision notes spread across a desk with a timer running and a cat asleep on the spare paper -->
 
 ## Pace beats intensity
 
@@ -54,7 +52,7 @@ deliver neither.
 
 What a single session looks like from the inside — choosing the task,
 clearing the start, parking distractions on paper — is
-[its own walkthrough](/blog/adhd-friendly-study-session/), and everything in
+[its own walkthrough](/adhd-friendly-study-session/), and everything in
 it applies double during exam season, when the stakes make attention
 jumpier than usual.
 
@@ -79,7 +77,7 @@ routine converts a self-appointment into something slightly more binding.
 Slightly is often enough. Revision doesn't need you to feel accountable to
 the syllabus; it needs you at the desk at roughly the same times, most days,
 for weeks — and company at the desk makes that
-[considerably less bleak](/blog/studying-alone-without-feeling-alone/) than
+[considerably less bleak](/studying-alone-without-feeling-alone/) than
 doing it alone in silence.
 
 ## The panic week
@@ -95,7 +93,7 @@ the panic week produce the same thing they produce in any other week —
 diminishing attention dressed up as effort — only now with added dread. Most
 people can feel the difference between the first session after a proper
 break and the fourth hour without one; the panic week does not repeal it,
-and [skipping breaks makes focus worse, not better](/blog/skipping-breaks-adhd/)
+and [skipping breaks makes focus worse, not better](/skipping-breaks-adhd/)
 regardless of how loudly the calendar is shouting.
 
 What the panic week may honestly justify is *more sessions* — an earlier

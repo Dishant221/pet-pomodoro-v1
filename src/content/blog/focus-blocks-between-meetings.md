@@ -3,6 +3,10 @@ title: Finding real focus blocks between meetings
 description: Forty minutes between meetings is too short for deep work and too long to waste. One pomodoro fits that gap exactly — here is how to defend it.
 publishedAt: 2026-08-22
 tags: ['pomodoro', 'work', 'focus', 'breaks']
+image: ../../assets/blog/focus-blocks-between-meetings.jpg
+imageAlt: "A wall calendar month with plans handwritten in some of the boxes"
+imageCredit: "Photo: '365.39: February 2006' by WordRidden, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/97844767@N00/4346199768"
 ---
 
 The real focus blocks between meetings are usually one pomodoro long. The
@@ -10,12 +14,6 @@ classic gap — forty minutes between one call ending and the next beginning —
 is too short to start anything grand and too long to surrender, and a single
 bounded session fits it almost exactly. The skill is not finding more time.
 It is treating the time you already have as usable.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/focus-blocks-between-meetings.png  then replace this comment with:
-     ![A calendar day view with a single tomato-red focus block wedged between two meetings](../../assets/blog/focus-blocks-between-meetings.png)
-     Subject: a calendar day view where one small tomato-red block sits neatly in the gap between two grey meeting blocks.
-     Alt: A calendar day view with a single tomato-red focus block wedged between two meetings -->
 
 ## The forty-minute gap problem
 
@@ -42,7 +40,7 @@ an unbroken horizon, and the gap has a wall at both ends.
 But a pomodoro was never open-ended. A bounded session doesn't need a
 horizon; it needs edges, and the gap supplies both — one meeting just built
 the start line and the next has already built the finish. Twenty-five
-minutes on [one named task](/blog/one-task-per-session/) fits inside forty
+minutes on [one named task](/one-task-per-session/) fits inside forty
 with room for a breath on either side. It will not produce a masterpiece.
 It will reliably produce twenty-five minutes of actual progress, which is
 twenty-five minutes more than the scroll produces, four or five times a day.
@@ -81,7 +79,7 @@ the fear of over-running is what stops most people descending into real work
 between meetings. Without a timer, going deep is risky — you might surface
 at five past, flustered and late — so attention hedges, staying shallow
 enough to keep one eye on the clock. And clock-watching is just
-[context switching](/blog/cost-of-context-switching/) in slow motion: every
+[context switching](/cost-of-context-switching/) in slow motion: every
 glance at the time is a small unload and reload of the work.
 
 The bell removes the hedge. Something reliable is standing guard, so
@@ -99,14 +97,14 @@ rather than forty minutes of residue.
 None of this rescues a calendar that is genuinely wall-to-wall; some days
 hold no gaps and pretending otherwise helps nobody. But most meeting-heavy
 days hold three or four, and three or four finished sessions is — by the
-[honest arithmetic of what a day actually contains](/blog/plan-your-day-in-pomodoros/)
+[honest arithmetic of what a day actually contains](/plan-your-day-in-pomodoros/)
 — a respectable day's focused work, extracted from time that was previously
 written off.
 
 It helps to plan the gaps like the sessions they are: look at the calendar
 in the morning, spot where they fall, and assign each one a task in advance,
 the way you would any other block. The [office-adapted version of the
-technique](/blog/pomodoro-at-work/) is mostly this kind of salvage — not
+technique](/pomodoro-at-work/) is mostly this kind of salvage — not
 carving out mythical four-hour stretches, but refusing to let the real
 forty-minute ones dissolve.
 

@@ -18,7 +18,20 @@ import { z } from 'zod';
  */
 const blog = defineCollection({
   loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
-  schema: z.object({
+  schema: ({ image }) =>
+    z.object({
+    /**
+     * Cover photo, self-hosted under src/assets/blog/. The CSP only allows
+     * same-origin images, so hotlinking a stock site would render nothing —
+     * every image is downloaded, committed, and optimised by Astro at build.
+     */
+    image: image().optional(),
+    /** Describes the actual photo, not the article. Required whenever image is set. */
+    imageAlt: z.string().optional(),
+    /** Attribution for openly-licensed photos: "Title" by Creator (CC BY 2.0). */
+    imageCredit: z.string().optional(),
+    /** Link to the photo's source page, shown with the credit. */
+    imageCreditUrl: z.string().url().optional(),
     title: z.string().max(70, 'Titles over ~70 characters get truncated in search results'),
     /** The search snippet. Write it for a human deciding whether to click. */
     description: z.string().min(50).max(165),

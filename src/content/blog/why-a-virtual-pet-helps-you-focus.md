@@ -3,19 +3,16 @@ title: Why a virtual pet makes focus timers stick
 description: Plain timers are easy to abandon because nothing notices. A pet that reacts to your sessions borrows a much older motivation, and that changes the odds.
 publishedAt: 2026-08-16
 tags: ['virtual pet', 'focus', 'habits', 'pomodoro']
+image: ../../assets/blog/why-a-virtual-pet-helps-you-focus.jpg
+imageAlt: "A grey cat sitting on a desk in front of a computer monitor"
+imageCredit: "Photo: 'Computacat' by foshie, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/10069045@N00/836457405"
 ---
 
 Most people who try a focus timer quit within a fortnight. Not because the
-method is wrong — the [Pomodoro Technique](/blog/what-is-the-pomodoro-technique/)
+method is wrong — the [Pomodoro Technique](/what-is-the-pomodoro-technique/)
 is about as simple as a productivity method gets — but because a timer is a
 number that goes down, and abandoning a number costs nothing.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/why-a-virtual-pet-helps-you-focus.png  then replace this comment with:
-     ![A plain countdown timer beside a sleeping cat: the same 25 minutes, with and without something that notices](../../assets/blog/why-a-virtual-pet-helps-you-focus.png)
-     Subject: side-by-side — a bare timer on the left, the same timer with the
-     sleeping cat and warm scene on the right.
-     Alt: A plain countdown timer beside a sleeping cat: the same 25 minutes, with and without something that notices -->
 
 ## Nothing is watching
 

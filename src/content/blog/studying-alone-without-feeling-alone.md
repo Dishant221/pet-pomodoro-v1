@@ -3,6 +3,10 @@ title: Studying alone without feeling alone
 description: Studying alone is two jobs — the material and the silence. How to make a room feel inhabited without inviting distraction in, and why it helps.
 publishedAt: 2026-08-22
 tags: ['studying', 'loneliness', 'focus', 'companionship']
+image: ../../assets/blog/studying-alone-without-feeling-alone.jpg
+imageAlt: "A glowing laptop on a desk covered in notes late at night"
+imageCredit: "Photo: 'Late Night Studying' by maticulous, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/22925444@N05/3007201259"
 ---
 
 Studying alone is two jobs at once: learning the material, and withstanding
@@ -11,12 +15,6 @@ is the one that actually decides how long you last at the desk — and the
 trick to solitary study is not to eliminate the silence but to furnish it,
 so the room feels inhabited without anything in it competing for your
 attention.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/studying-alone-without-feeling-alone.png  then replace this comment with:
-     ![A warm study corner at night, books open under a lamp, a cat asleep in the lamplight](../../assets/blog/studying-alone-without-feeling-alone.png)
-     Subject: A cosy study corner late at night — open books and notes under a warm lamp, a small cat asleep in the pool of light.
-     Alt: A warm study corner at night, books open under a lamp, a cat asleep in the lamplight -->
 
 ## The silence is a second workload
 
@@ -35,7 +33,7 @@ This is why solitary study collapses in a characteristic way. It is rarely
 the difficulty of the work that ends the session. It is the moment the
 loneliness of the arrangement becomes more noticeable than the page — the
 point where [loneliness starts spending the concentration you
-needed](/blog/loneliness-and-concentration/). The phone appears not because
+needed](/loneliness-and-concentration/). The phone appears not because
 the phone is interesting but because it is the nearest exit from the quiet.
 
 Naming the second job changes how you prepare for it. You would not attempt
@@ -85,7 +83,7 @@ changes the feel of a session: you are no longer the only thing happening.
 
 Whole communities have converged on the same discovery from another
 direction — millions of students keep [a stranger silently working on a
-second screen](/blog/study-with-me-quiet-company/) for exactly this reason.
+second screen](/study-with-me-quiet-company/) for exactly this reason.
 The witness matters more than the words.
 
 ## Give the session edges, not just atmosphere
@@ -98,7 +96,7 @@ Sessions with edges fix this cheaply. One task, one bounded block, a break
 that actually contains something — food, standing, feeding the cat — then
 again. Each bell is a small event in the room, a moment where the evening
 has a pulse. The [full walkthrough of a session built this
-way](/blog/adhd-friendly-study-session/) was written with ADHD in mind, but
+way](/adhd-friendly-study-session/) was written with ADHD in mind, but
 the shape helps anyone studying alone, because edges are company of a kind:
 they are moments when the structure, at least, notices you.
 

@@ -3,6 +3,10 @@ title: "Task initiation with ADHD: why starting is the hardest part"
 description: Task initiation with ADHD — why the wall between intending and beginning exists, and how a smaller commitment plus a start ritual lowers the cost.
 publishedAt: 2026-08-22
 tags: ['adhd', 'focus', 'habits', 'pomodoro']
+image: ../../assets/blog/adhd-task-initiation.jpg
+imageAlt: "Notebooks and index cards filled with handwritten to-do lists"
+imageCredit: "Photo: 'My organization' by koalazymonkey, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/9544998@N04/3627200113"
 ---
 
 With ADHD, starting a task is often harder than doing it. The work itself
@@ -12,12 +16,6 @@ actually starting, which can swallow an hour, an afternoon, or the whole
 day. This has a name, task initiation, and it responds far better to
 shrinking the commitment and ritualising the start than it ever does to
 willpower.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/adhd-task-initiation.png  then replace this comment with:
-     ![A hand hovering over a single large Start button](../../assets/blog/adhd-task-initiation.png)
-     Subject: a hand hovering over a single large Start button.
-     Alt: A hand hovering over a single large Start button -->
 
 ## The wall is real, and it is not laziness
 
@@ -49,7 +47,7 @@ So shrink what you are saying yes to, on two axes at once.
 
 **One session, not the task.** Commit to a fixed stretch of minutes, after
 which you are genuinely allowed to stop. This is the quiet reason
-[the Pomodoro Technique suits many people with ADHD](/blog/pomodoro-technique-adhd/):
+[the Pomodoro Technique suits many people with ADHD](/pomodoro-technique-adhd/):
 it replaces "do the report" with "sit with the report until a bell rings",
 and the second yes is radically cheaper. The bell is load-bearing — the
 permission to stop is what makes the start affordable.
@@ -57,7 +55,7 @@ permission to stop is what makes the start affordable.
 **One task, not a list.** A session pointed at three things is really
 pointed at none, and choosing between them is itself a start-cost you'll pay
 at minute one. Name a single task before you begin —
-[one task per session](/blog/one-task-per-session/) is the rule that keeps
+[one task per session](/one-task-per-session/) is the rule that keeps
 the interval honest.
 
 Get both right and the thing you must say yes to is no longer "the report".
@@ -109,7 +107,7 @@ present wall; a small immediate one actually tips the scales, which is why
 the coin at the end of a PetPomo session lands the way a quarterly bonus
 never does. Why small-and-now beats large-and-later — and where that kind
 of design stays honest — is worth
-[its own article](/blog/small-rewards-adhd-motivation/), but the practical
+[its own article](/small-rewards-adhd-motivation/), but the practical
 rule is simple: arrange for something pleasant to happen at the moment a
 session ends, every time. The next start is bought with the last finish.
 

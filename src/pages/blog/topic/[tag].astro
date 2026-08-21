@@ -1,0 +1,97 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { allTags, sortByDate, tagSlug, type Post } from '../../../blog/util';
+
+/**
+ * One crawlable archive page per topic — /blog/topic/adhd/ and so on. These
+ * are the category entrances search engines actually index, complementing
+ * the client-side search box which they cannot run.
+ */
+export async function getStaticPaths() {
+  const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+  return allTags(posts).map((t) => ({
+    params: { tag: t.slug },
+    props: { label: t.label, tag: t.tag, posts: posts.filter((p) => p.data.tags.includes(t.tag)) },
+  }));
+}
+
+interface Props {
+  label: string;
+  tag: string;
+  posts: Post[];
+}
+const { label, tag, posts } = Astro.props;
+
+const allPosts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const tags = allTags(allPosts);
+const url = new URL(`/blog/topic/${tagSlug(tag)}/`, Astro.site).href;
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${label} — PetPomo Blog`,
+    url,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: posts.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: p.data.title,
+        url: new URL(`/${p.id}/`, Astro.site).href,
+      })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: new URL('/blog/', Astro.site).href },
+      { '@type': 'ListItem', position: 3, name: label, item: url },
+    ],
+  },
+];
+---
+
+<Layout
+  title={`${label} articles — PetPomo Blog`}
+  description={`Every PetPomo article about ${label.toLowerCase()}: ${posts.length} piece${posts.length === 1 ? '' : 's'} on focus, pomodoro sessions and gentle habits.`}
+  schema={schema}
+>
+  <header class="mb-6 grid gap-3">
+    <nav aria-label="Breadcrumb" class="text-xs" style="color: var(--ink-soft)">
+      <a href="/" class="pp-focus-ring rounded underline underline-offset-2">Home</a>
+      <span aria-hidden="true"> › </span>
+      <a href="/blog/" class="pp-focus-ring rounded underline underline-offset-2">Blog</a>
+    </nav>
+    <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{label} 🐾</h1>
+    <p class="max-w-2xl text-sm" style="color: var(--ink-soft)">
+      {posts.length} article{posts.length === 1 ? '' : 's'} on this topic. Or jump to another:
+    </p>
+    <nav aria-label="Browse by topic" class="flex flex-wrap gap-1.5">
+      {
+        tags.map((t) => (
+          <a
+            href={`/blog/topic/${t.slug}/`}
+            class="pp-focus-ring pp-tag-chip"
+            aria-current={t.tag === tag ? 'true' : undefined}
+          >
+            {t.label} <span aria-hidden="true">({t.count})</span>
+          </a>
+        ))
+      }
+    </nav>
+  </header>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post, i) => <PostCard post={post} eager={i < 3} />)}
+  </div>
+
+  <div class="mt-8">
+    <AdSlot variant="banner" slotId="topic-bottom" />
+  </div>
+</Layout>

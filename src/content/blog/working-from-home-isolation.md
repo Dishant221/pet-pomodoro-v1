@@ -3,6 +3,10 @@ title: Working from home and the isolation nobody schedules for
 description: Offices supplied company nobody planned — kettle queues, overheard jokes. Working from home removed it without replacing it. What to put back, and how.
 publishedAt: 2026-08-22
 tags: ['remote work', 'loneliness', 'work', 'mental health']
+image: ../../assets/blog/working-from-home-isolation.jpg
+imageAlt: "A home desk with a laptop, paperwork and a red mug of coffee"
+imageCredit: "Photo: 'Day 12. Working from home.' by davidmulder61, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/113026679@N03/15646186494"
 ---
 
 The isolation of working from home is nobody's fault and nobody's job, which
@@ -11,12 +15,6 @@ kettle queue, the overheard joke, the person who wanders past and says
 *lunch?* — and when remote work removed the office, all of that went with it,
 unlisted and unreplaced, because it had never appeared on any plan in the
 first place.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/working-from-home-isolation.png  then replace this comment with:
-     ![A home desk with a laptop and a mug, a small cat companion visible on the screen](../../assets/blog/working-from-home-isolation.png)
-     Subject: A home working desk with a laptop, a steaming mug, and a small pixel cat sleeping in the corner of the screen.
-     Alt: A home desk with a laptop and a mug, a small cat companion visible on the screen -->
 
 ## The office was a social machine nobody designed
 
@@ -49,7 +47,7 @@ than what came before. It is the same provision, moved in-house.
 
 Left unreplaced, the quiet compounds. Days blur, edges dissolve, and the
 silence starts [taxing the very concentration the arrangement was supposed to
-protect](/blog/loneliness-and-concentration/).
+protect](/loneliness-and-concentration/).
 
 ## Video calls are meetings, not company
 
@@ -70,11 +68,11 @@ The first practical replacement is ritual. Offices marked your edges for
 you — the commute, the coat on the chair, the lights going off floor by
 floor. At home, nothing marks anything unless you do it yourself.
 
-[Small, repeated rituals](/blog/small-rituals-solitary-work/) carry more
+[Small, repeated rituals](/small-rituals-solitary-work/) carry more
 weight than their size suggests: the same mug at the same hour, a walk that
 stands in for the commute, a fixed sequence that means *work has begun* and
 another that means *work is over*. A day [built around its breaks rather than
-its hours](/blog/work-from-home-routine/) gives you several of these edges
+its hours](/work-from-home-routine/) gives you several of these edges
 for free, because every break is a small boundary with a before and an
 after.
 

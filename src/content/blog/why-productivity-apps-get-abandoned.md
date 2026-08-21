@@ -3,6 +3,10 @@ title: Why productivity apps get abandoned within a fortnight
 description: Productivity apps rarely fail on features. They fail because nothing notices when you leave — and because streaks make coming back feel worse.
 publishedAt: 2026-08-22
 tags: ['habits', 'focus', 'virtual pet']
+image: ../../assets/blog/why-productivity-apps-get-abandoned.jpg
+imageAlt: "A hand holding a smartphone showing a list app"
+imageCredit: "Photo: 'Wheelmap App iPhone' by SOZIALHELDEN, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/44580714@N03/9397521833"
 ---
 
 Productivity apps get abandoned because leaving costs nothing and returning
@@ -11,12 +15,6 @@ lists sync, the charts render — it is social: nothing in the app notices when
 you stop coming, and the things that pretend to notice, like streaks, manage
 to make it worse. Understand those two facts and the fortnight-shaped
 graveyard on everyone's phone stops being mysterious.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/why-productivity-apps-get-abandoned.png  then replace this comment with:
-     ![A phone folder crowded with abandoned productivity app icons](../../assets/blog/why-productivity-apps-get-abandoned.png)
-     Subject: A phone home-screen folder labelled "Productivity" crowded with app icons, all clearly unused.
-     Alt: A phone folder crowded with abandoned productivity app icons -->
 
 ## Nothing notices when you leave
 
@@ -35,7 +33,7 @@ holding up tend to get put down.
 This is why the apps that last tend to smuggle in a witness. Sometimes the
 witness is other people — a shared board, a co-working call. Sometimes it is
 a creature: the argument for that particular witness is made properly in
-[why a virtual pet makes focus timers stick](/blog/why-a-virtual-pet-helps-you-focus/),
+[why a virtual pet makes focus timers stick](/why-a-virtual-pet-helps-you-focus/),
 but the short version is that a cat which naps while you work and wakes at the
 bell turns your session from a private number into a thing that happened *to
 someone*. Even a small, pixelated someone changes the arithmetic of quitting.
@@ -57,7 +55,7 @@ because the app has converted *returning* into *facing what you broke*. The
 rational move — and users are rational about avoiding bad feelings — is to
 never open the app again, which is exactly what happens. The tool punished
 the one behaviour it should have made cheapest. There is a whole piece on
-that hinge moment, [coming back after a bad week](/blog/coming-back-after-a-bad-week/),
+that hinge moment, [coming back after a bad week](/coming-back-after-a-bad-week/),
 because the return is where these tools live or die.
 
 ## Fiddling with settings feels like using the app
@@ -94,7 +92,7 @@ that people still use in month six needs:
   dead is a reason to delete the app.
 - **Rewards that land at the finish.** Small, immediate, and attached to the
   session actually ending — the full case is in
-  [small rewards, right now](/blog/small-rewards-adhd-motivation/).
+  [small rewards, right now](/small-rewards-adhd-motivation/).
 - **A record that doesn't shame.** Stats that show what happened, including
   the thin weeks, without converting them into a grade. A mirror, not a
   headmaster.

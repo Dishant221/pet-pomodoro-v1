@@ -3,18 +3,16 @@ title: Why looking after something helps when you feel alone
 description: 'Caring for something — even a small virtual pet — can ease the feeling of being surplus when you are alone. How that works, and where the help runs out.'
 publishedAt: 2026-08-22
 tags: ['loneliness', 'mental health', 'virtual pet', 'companionship']
+image: ../../assets/blog/why-caring-for-something-helps.jpg
+imageAlt: "Close-up of a calico cat with green eyes looking up"
+imageCredit: "Photo: 'Happy Mother's Day' by Trish Hamme, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/33152876@N08/4583544229"
 ---
 
 Looking after something helps when you feel alone because it reverses the
 direction of need: instead of being a person nobody is expecting, you become
 a person something is waiting for. That shift — from surplus to needed — is
 small, but it works on exactly the part of loneliness that hurts most.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/why-caring-for-something-helps.png  then replace this comment with:
-     ![Hands offering a small snack to an expectant cartoon cat looking up](../../assets/blog/why-caring-for-something-helps.png)
-     Subject: hands offering a snack to a small, expectant cat that is looking up hopefully.
-     Alt: Hands offering a small snack to an expectant cartoon cat looking up -->
 
 ## Loneliness is partly the feeling of being surplus
 
@@ -43,7 +41,7 @@ the dog for the dog's sake, and came back better yourself.
 Part of it is structure: a creature's needs put fixed points in a day that
 had none, and days with fixed points are easier to live through. That is the
 same mechanism that makes
-[small rituals steady solitary work](/blog/small-rituals-solitary-work/) —
+[small rituals steady solitary work](/small-rituals-solitary-work/) —
 except the ritual now has a stake in you turning up.
 
 Part of it is plainer. Care gives you somewhere to put warmth that otherwise
@@ -69,7 +67,7 @@ downside. It never dies, never runs away, and nothing you have built is ever
 lost. The responsibility is real enough to feel and small enough to carry on
 the worst week of the year. Whether that narrow kind of company amounts to
 anything is a fair question, and
-[worth answering honestly](/blog/can-a-virtual-pet-help-with-loneliness/) —
+[worth answering honestly](/can-a-virtual-pet-help-with-loneliness/) —
 but as a first rung on the ladder of looking after things, it asks less than
 anything alive.
 
@@ -82,7 +80,7 @@ Returning to a to-do list means facing an audit. Returning to something you
 look after means being greeted.
 
 A creature that is simply pleased you turned up makes
-[coming back after a bad week](/blog/coming-back-after-a-bad-week/) cheaper
+[coming back after a bad week](/coming-back-after-a-bad-week/) cheaper
 than any amount of resolve does. You are not resuming a performance that was
 interrupted; you are rejoining something that missed you. Many people find
 that difference is what gets them across the doorstep at all.

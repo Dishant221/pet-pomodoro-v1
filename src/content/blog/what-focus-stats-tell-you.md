@@ -3,18 +3,16 @@ title: What your focus stats actually tell you — and what they don't
 description: Focus time tracking stats are a mirror, not a scoreboard. Which numbers deserve your trust, which ones flatter you, and how to read a week kindly.
 publishedAt: 2026-08-22
 tags: ['focus', 'pomodoro', 'habits', 'work']
+image: ../../assets/blog/what-focus-stats-tell-you.jpg
+imageAlt: "A smartphone displaying line graphs in a graphing app"
+imageCredit: "Photo: 'Graph view - Math Algorithms' by Steppschuh, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/steppschuh/9301998902"
 ---
 
 Your focus stats tell you two things worth knowing: how much you actually
 focused, and when. They tell you almost nothing about whether the work was
 any good, whether it mattered, or whether you are a diligent person — and the
 trouble starts the moment you read them as if they did.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/what-focus-stats-tell-you.png  then replace this comment with:
-     ![A simple bar chart of one working week, with tall days, short days and one empty day](../../assets/blog/what-focus-stats-tell-you.png)
-     Subject: A plain bar chart of a humanly imperfect week — a couple of strong days, a weak one, one blank.
-     Alt: A simple bar chart of one working week, with tall days, short days and one empty day -->
 
 A mirror and a scoreboard look similar. Both are surfaces with numbers on
 them. The difference is what you do next.
@@ -32,7 +30,7 @@ actually focus, as opposed to when do I believe I focus? Mornings, almost
 always, say the numbers, while the calendar keeps optimistically booking deep
 work at four in the afternoon. How many sessions does a real day hold, as
 opposed to a hoped-for day? That answer alone will quietly fix your planning —
-[counting a day in pomodoros](/blog/plan-your-day-in-pomodoros/) only works
+[counting a day in pomodoros](/plan-your-day-in-pomodoros/) only works
 if the count comes from evidence rather than ambition.
 
 Read as a scoreboard, the same page answers only one question — more or less
@@ -99,12 +97,12 @@ March. The mirror reading asks what the shape shows — and it usually shows
 something specific and forgivable. The empty Thursday was the day of four
 meetings. The thin patch is a cold, or a deadline that swallowed everything,
 or a stretch where the real task was too vague to sit with, which is a
-[naming problem, not a discipline problem](/blog/one-task-per-session/).
+[naming problem, not a discipline problem](/one-task-per-session/).
 
 Then it asks the only forward-looking question stats can answer: what is one
 session I could finish tomorrow? Because the way back from a bad week is not
 a heroic week — [it is one finished
-session](/blog/coming-back-after-a-bad-week/), counted, banked, and built on.
+session](/coming-back-after-a-bad-week/), counted, banked, and built on.
 Your stats will record it without comment. The cat, it must be said, will be
 pleased to see you regardless of what the chart looks like; [the
 numbers](/) were never the part of the room that cared.

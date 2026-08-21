@@ -3,6 +3,10 @@ title: 'Finishing what you start: closing loops with a bell'
 description: How to finish tasks when everything trails off instead of ending — give work an honest finish line, close the open loops, and let a bell say done.
 publishedAt: 2026-08-22
 tags: ['focus', 'pomodoro', 'habits']
+image: ../../assets/blog/finishing-what-you-start.jpg
+imageAlt: "A runner crossing the finish line arch of a marathon with arms raised"
+imageCredit: "Photo: 'Finish Line - 2011 Eugene Marathon' by ex_magician, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/37882873@N00/5688071602"
 ---
 
 You finish what you start by giving every piece of work an ending it can
@@ -10,12 +14,6 @@ actually reach. Most tasks do not fail in the middle; they trail off,
 because nothing ever said *done* — and everything that trails off stays
 open in your head, quietly costing you attention long after you stopped
 working on it.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/finishing-what-you-start.png  then replace this comment with:
-     ![A bell mid-ring, a cat waking up beside it, and a checkbox freshly ticked](../../assets/blog/finishing-what-you-start.png)
-     Subject: A small bell caught mid-ring, a cat stretching awake next to it, and a single ticked box.
-     Alt: A bell mid-ring, a cat waking up beside it, and a checkbox freshly ticked -->
 
 The fix is not more willpower at the end of tasks. It is putting the end
 somewhere you can see it from the beginning.
@@ -48,7 +46,7 @@ means trailing off is their default ending — you do not decide to stop
 so much as gradually find yourself elsewhere.
 
 A timed session replaces the slippery question with a blunt one. You
-name [one task](/blog/one-task-per-session/), you start the timer, and
+name [one task](/one-task-per-session/), you start the timer, and
 at the end there is a fact: the bell rang and you were still there, or
 it didn't. No judgement about quality, no philosophy about doneness —
 a finish line you either crossed or didn't, laid down *before* you
@@ -60,7 +58,7 @@ sessions on it, and four closed loops feel entirely different from six
 hours of open-ended trailing. And it closes loops in both directions:
 the bell that lets you stop matters as much as the one that says you
 finished, because for some of us the failure mode is
-[not being able to put a thing down at all](/blog/hyperfocus-needs-a-bell/),
+[not being able to put a thing down at all](/hyperfocus-needs-a-bell/),
 and an ending you did not choose is still an ending.
 
 ## Small completions deserve noticing
@@ -78,7 +76,7 @@ nobody attended the closing.
 
 This is why PetPomo makes a small ceremony of the bell. The cat wakes,
 stretches, is visibly pleased; a coin arrives; the session lands in
-[your record of finished sessions](/blog/what-focus-stats-tell-you/)
+[your record of finished sessions](/what-focus-stats-tell-you/)
 where it stays counted. None of it is elaborate, and all of it exists
 for one reason: the finish must be an *event*, not an absence of work.
 Notice that the cat celebrates the bell, never the minutes before it —

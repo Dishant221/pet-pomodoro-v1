@@ -3,6 +3,10 @@ title: "Hyperfocus: when the problem is stopping, not starting"
 description: ADHD hyperfocus is focus without brakes — missed meals, lost hours. Why a bell that ends sessions matters as much as the one that starts them.
 publishedAt: 2026-08-22
 tags: ['adhd', 'focus', 'breaks', 'pomodoro']
+image: ../../assets/blog/hyperfocus-needs-a-bell.jpg
+imageAlt: "A red vintage kitchen wall clock"
+imageCredit: "Photo: 'Early General Electric Colored Wall Clock' by alexkerhead, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/26354629@N02/2658021420"
 ---
 
 Hyperfocus is focus without brakes. Most of the ADHD conversation is about
@@ -11,12 +15,6 @@ surfacing at 9 p.m. from something you sat down to at two, meals skipped,
 messages unread, one task magnificently advanced at the expense of every
 other thing the day was supposed to hold. If that is your pattern, the most
 valuable thing a timer does is not start. It is ring.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/hyperfocus-needs-a-bell.png  then replace this comment with:
-     ![Clock hands blurring past behind a glowing screen, with a bell arriving as the interruption](../../assets/blog/hyperfocus-needs-a-bell.png)
-     Subject: clock hands blurring past while a screen glows; the bell as the interruption.
-     Alt: Clock hands blurring past behind a glowing screen, with a bell arriving as the interruption -->
 
 ## The superpower framing hides the invoice
 
@@ -66,7 +64,7 @@ sober part of you is still in charge. The bell is a letter from
 
 An honest objection: sometimes the bell rings and the work genuinely is
 going well, and stopping dead would waste a rare good state. The
-[classic advice for flow](/blog/pomodoro-technique-adhd/) applies — the
+[classic advice for flow](/pomodoro-technique-adhd/) applies — the
 method should bend rather than break here.
 
 But notice what the bell has already accomplished by ringing. Without it,
@@ -96,7 +94,7 @@ your focus and wakes at the bell wanting food and fuss, so the break arrives
 with a job in it — thirty seconds of looking after something that is not
 the task. Trivial, and that's the design: trivial is achievable mid-trance,
 and once you're up, you're out. People who skip breaks tend to discover the
-cost with interest — [that pattern has its own article](/blog/skipping-breaks-adhd/)
+cost with interest — [that pattern has its own article](/skipping-breaks-adhd/)
 — but for hyperfocusers the stakes are higher than tiredness. The break is
 the only moment the day gets to renegotiate with the task.
 
@@ -105,7 +103,7 @@ loves the middle of things — the middle is where the interest lives — and
 will happily deepen a task forever rather than close it. A bell that says
 *this block is over* is small, regular practice at the skill the trance
 never develops on its own:
-[calling a thing done and letting it go](/blog/finishing-what-you-start/).
+[calling a thing done and letting it go](/finishing-what-you-start/).
 
 Stopping doesn't come naturally to everyone. It doesn't have to. Like time
 itself for many people with ADHD, it can be outsourced — to a bell that

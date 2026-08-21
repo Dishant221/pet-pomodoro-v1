@@ -3,6 +3,10 @@ title: An ADHD-friendly study session, from first minute to last
 description: One ADHD-friendly study session walked through from first minute to last — one task, a distraction notepad, and a break that actually restores you.
 publishedAt: 2026-08-22
 tags: ['adhd', 'studying', 'focus', 'pomodoro']
+image: ../../assets/blog/adhd-friendly-study-session.jpg
+imageAlt: "Design books, a spiral notebook and a mug of coffee laid out on a desk"
+imageCredit: "Photo: 'books, notebook and coffee' by ftrc, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/81035303@N00/1103252851"
 ---
 
 An ADHD-friendly study session starts before the timer does: one task chosen
@@ -11,12 +15,6 @@ know are coming. What follows is a single session walked through from first
 minute to last — not a list of tips, because tips have a way of becoming
 another list you never open, but the actual shape of half an hour that has a
 reasonable chance of happening.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/adhd-friendly-study-session.png  then replace this comment with:
-     ![A tidy desk holding one open notebook, a running timer, and a sleeping cat](../../assets/blog/adhd-friendly-study-session.png)
-     Subject: A tidy desk with exactly one notebook open, a timer running beside it, and a small cat asleep next to the timer.
-     Alt: A tidy desk holding one open notebook, a running timer, and a sleeping cat -->
 
 ## Before you sit down: choose one thing and say it out loud
 
@@ -36,7 +34,7 @@ is, judging you silently.
 
 Starting is the hardest part of studying with ADHD, and it deserves its own
 plan rather than its own shame. There is a longer argument about why in
-[the piece on task initiation](/blog/adhd-task-initiation/), but the short
+[the piece on task initiation](/adhd-task-initiation/), but the short
 version is this: the wall between intending and beginning does not respond to
 willpower, it responds to shrinking the commitment and adding a ritual.
 
@@ -85,7 +83,7 @@ work.
 
 If you study alone and the silence itself is part of what makes sessions hard
 to face, that is a real thing and not a character flaw — there is a separate
-piece on [studying alone without feeling alone](/blog/studying-alone-without-feeling-alone/)
+piece on [studying alone without feeling alone](/studying-alone-without-feeling-alone/)
 about making a room feel inhabited.
 
 ## When the session collapses
@@ -104,7 +102,7 @@ ones that didn't.
 This matters double during long campaigns like revision, where the schedule
 runs for weeks and one bad afternoon can feel like the whole plan failing —
 there is more on pacing that in
-[the exam prep piece](/blog/exam-prep-study-companion/). The plan did not
+[the exam prep piece](/exam-prep-study-companion/). The plan did not
 fail. An afternoon did, and afternoons are replaceable.
 
 ## Last minute: close the loop on purpose

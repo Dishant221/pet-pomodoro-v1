@@ -3,6 +3,10 @@ title: How loneliness quietly erodes concentration
 description: Loneliness runs in the background and spends the attention you meant for work. How lonely focus gets harder, and the small levers that may help.
 publishedAt: 2026-08-22
 tags: ['loneliness', 'mental health', 'focus']
+image: ../../assets/blog/loneliness-and-concentration.jpg
+imageAlt: "A desk with a glowing lamp and laptop beside a rain-flecked window at night"
+imageCredit: "Photo: 'Desk' by Anders Ljungberg, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/45803937@N00/293229639"
 ---
 
 Loneliness erodes concentration because it is not a feeling that waits
@@ -10,12 +14,6 @@ politely until the work is done. It behaves like a background process —
 always running, rarely visible, quietly spending the same attention you were
 hoping to give the task in front of you. The work does not get harder; you
 arrive at it with less.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/loneliness-and-concentration.png  then replace this comment with:
-     ![A desk at dusk lit by a single lamp, rain running down the window behind it](../../assets/blog/loneliness-and-concentration.png)
-     Subject: A tidy desk at dusk with one warm lamp on, a laptop closed, and rain streaking a dark window.
-     Alt: A desk at dusk lit by a single lamp, rain running down the window behind it -->
 
 ## Part of you stays on watch
 
@@ -69,7 +67,7 @@ sees you start, so stopping costs nothing.
 Add loneliness — not merely being alone, but feeling it — and the load grows
 again, because now the lookout and the rumination are running alongside
 everything else. Anyone who has [worked from home through a long quiet
-stretch](/blog/working-from-home-isolation/) will recognise the arithmetic:
+stretch](/working-from-home-isolation/) will recognise the arithmetic:
 the tasks were no harder than they were in the office, but somehow the days
 cost more.
 
@@ -87,7 +85,7 @@ But smaller, structural things move the needle too, and they are cheap enough
 to try. A room that feels inhabited is easier to work in than one that feels
 abandoned, and rooms can be made to feel inhabited by modest means — sound,
 light, routine, [presence that asks nothing of
-you](/blog/presence-without-conversation/).
+you](/presence-without-conversation/).
 
 This is the mechanism PetPomo leans on. A cat that sleeps beside your timer
 while you focus, and wants feeding and stroking when the break arrives, does
@@ -96,7 +94,7 @@ did. What it does is smaller and still real: it gives the room a second
 occupant with its own schedule, so that working stops being something you do
 entirely unobserved. Students seem to discover this instinctively, which is
 much of why [studying alone goes better when the room feels lived
-in](/blog/studying-alone-without-feeling-alone/).
+in](/studying-alone-without-feeling-alone/).
 
 Be clear-eyed about the scale. This is a lever the size of a lamp, not the
 size of a friendship. It is worth pulling because it is nearly free, not

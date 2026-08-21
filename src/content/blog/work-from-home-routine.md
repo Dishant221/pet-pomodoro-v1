@@ -3,18 +3,16 @@ title: A work-from-home routine built around breaks, not hours
 description: A work from home routine that treats breaks as the skeleton of the day — real edges, breaks that actually restore, and an ending you choose.
 publishedAt: 2026-08-22
 tags: ['remote work', 'breaks', 'habits', 'work']
+image: ../../assets/blog/work-from-home-routine.jpg
+imageAlt: "A home desk with two monitors by a window, surrounded by flowering plants"
+imageCredit: "Photo: 'Jungle desk' by kcxd, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/26786061@N00/3623092029"
 ---
 
 The most workable work-from-home routine is built around when you stop, not
 how many hours you sit. Hours are how offices measure presence; at home nobody
 is measuring, and the day holds together far better when its skeleton is a set
 of deliberate breaks with work stretched between them.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/work-from-home-routine.png  then replace this comment with:
-     ![The same home desk in morning, midday and evening light, marking the shape of a working day](../../assets/blog/work-from-home-routine.png)
-     Subject: One home desk shown three times as morning, midday and evening light moves across it.
-     Alt: The same home desk in morning, midday and evening light, marking the shape of a working day -->
 
 That sounds backwards until you notice what actually disappeared when you
 stopped commuting. It was not the desk, and it was not the colleagues exactly.
@@ -33,7 +31,7 @@ stood up. The day ended because the room emptied and staying felt strange.
 None of this was designed — it was ambient structure, and it left when you
 did.
 
-The [missing company](/blog/working-from-home-isolation/) gets written about a
+The [missing company](/working-from-home-isolation/) gets written about a
 great deal. The missing edges get less attention, and they may matter just as
 much, because a day without edges does not become more productive. It becomes
 a single grey smear in which you are somehow always working and never quite
@@ -69,7 +67,7 @@ something further away than a screen. The content matters because it gives
 the break a natural end: the tea is made, the stretch is done, you sit back
 down. Skipping breaks entirely is the other failure mode, and it costs more
 than it saves — the case against it is [worth reading on its
-own](/blog/skipping-breaks-adhd/), because a skipped break is really a loan
+own](/skipping-breaks-adhd/), because a skipped break is really a loan
 taken out against the next work stretch.
 
 This is the reason PetPomo puts the pet's whole social life inside the break.
@@ -82,7 +80,7 @@ end is much harder to drift through than an open scroll.
 Start with a ritual rather than a resolution. The same mug, the same seat,
 the first timer started — a short fixed sequence that tells your head the day
 has begun, the way the commute used to. [Small rituals carry more of solitary
-work than they appear to](/blog/small-rituals-solitary-work/), and the start
+work than they appear to](/small-rituals-solitary-work/), and the start
 of the day is where they earn the most.
 
 Then work in stretches you can actually finish, with a short break at the end

@@ -1,0 +1,166 @@
+---
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SITE } from '../../site';
+import { allTags, sortByDate, type Post } from '../../blog/util';
+
+/**
+ * The blog index: searchable, filterable by topic, paginated nine cards a
+ * page. Page 1 is /blog/, later pages /blog/2/ and so on — the rest param
+ * keeps the first page's URL clean, which is the one that ranks.
+ */
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+  return paginate(posts, { pageSize: 9 });
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: Page<Post>;
+}
+const { page } = Astro.props;
+
+const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const tags = allTags(posts);
+
+/**
+ * Everything the client-side search needs, shipped as an inert JSON data
+ * block (~4 KB for 30 posts). CSP never blocks non-executable script types,
+ * and no request leaves the page — searching is instant and private.
+ */
+const searchIndex = posts.map((p) => ({
+  t: p.data.title,
+  d: p.data.description,
+  u: `/${p.id}/`,
+  g: p.data.tags,
+  m: p.data.publishedAt.toISOString().slice(0, 10),
+}));
+
+/**
+ * Blog + SearchAction structured data, on page 1 only — later pages are the
+ * same publication, and duplicated schema reads as spam. The SearchAction is
+ * what lets answer engines and Google treat /blog/?q= as this site's search.
+ */
+const schema =
+  page.currentPage === 1
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Blog',
+          name: `${SITE.name} Blog`,
+          description: 'Writing about focus, the pomodoro technique, habits and building PetPomo.',
+          url: new URL('/blog/', Astro.site).href,
+          blogPost: posts.map((p) => ({
+            '@type': 'BlogPosting',
+            headline: p.data.title,
+            description: p.data.description,
+            datePublished: p.data.publishedAt.toISOString(),
+            url: new URL(`/${p.id}/`, Astro.site).href,
+          })),
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: SITE.name,
+          url: new URL('/', Astro.site).href,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+              '@type': 'EntryPoint',
+              urlTemplate: new URL('/blog/', Astro.site).href + '?q={search_term_string}',
+            },
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ]
+    : undefined;
+
+const pageTitle =
+  page.currentPage === 1 ? 'Blog — PetPomo' : `Blog — page ${page.currentPage} — PetPomo`;
+
+/** Numbered links, always including first and last. */
+const pageNumbers = Array.from({ length: page.lastPage }, (_, i) => i + 1);
+const pageHref = (n: number) => (n === 1 ? '/blog/' : `/blog/${n}/`);
+---
+
+<Layout
+  title={pageTitle}
+  description="Writing about focus, the pomodoro technique, virtual pets and habits that actually stick. Search every article or browse by topic."
+  schema={schema}
+>
+  <header class="mb-6 grid gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">The PetPomo Blog 🐾</h1>
+      <p class="mt-2 max-w-2xl text-sm" style="color: var(--ink-soft)">
+        Focus, the pomodoro technique, and notes from building a virtual pet that lives on your desk.{' '}
+        <a href="/rss.xml" class="underline underline-offset-2">RSS</a>.
+      </p>
+    </div>
+
+    <search role="search" class="grid gap-3">
+      <div class="pp-blog-search" id="pp-search-box">
+        <span aria-hidden="true">🔍</span>
+        <input
+          type="search"
+          id="pp-search-input"
+          placeholder="Search all articles… (try “ADHD” or “breaks”)"
+          aria-label="Search articles"
+          autocomplete="off"
+        />
+      </div>
+      <nav aria-label="Browse by topic" class="flex flex-wrap gap-1.5">
+        {
+          tags.map((t) => (
+            <a href={`/blog/topic/${t.slug}/`} class="pp-focus-ring pp-tag-chip">
+              {t.label} <span aria-hidden="true">({t.count})</span>
+            </a>
+          ))
+        }
+      </nav>
+    </search>
+  </header>
+
+  <AdSlot variant="banner" slotId="blog-index-top" />
+
+  {/* Live search results — hidden until there is a query. */}
+  <section id="pp-search-results" hidden aria-live="polite" class="mt-6 grid gap-4"></section>
+
+  <div id="pp-post-grid" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {page.data.map((post, i) => <PostCard post={post} eager={i < 3} />)}
+  </div>
+
+  {
+    page.lastPage > 1 && (
+      <nav id="pp-pagination" aria-label="Blog pages" class="pp-pagination mt-8">
+        {page.url.prev ? (
+          <a href={page.url.prev} class="pp-focus-ring pp-page-link" rel="prev">
+            ← Newer
+          </a>
+        ) : null}
+        {pageNumbers.map((n) => (
+          <a
+            href={pageHref(n)}
+            class="pp-focus-ring pp-page-link"
+            aria-current={n === page.currentPage ? 'page' : undefined}
+          >
+            {n}
+          </a>
+        ))}
+        {page.url.next ? (
+          <a href={page.url.next} class="pp-focus-ring pp-page-link" rel="next">
+            Older →
+          </a>
+        ) : null}
+      </nav>
+    )
+  }
+
+  <script is:inline type="application/json" id="pp-search-data" set:html={JSON.stringify(searchIndex)} />
+</Layout>
+
+<script>
+  import { mountBlogSearch } from '../../blog/search';
+  mountBlogSearch();
+</script>

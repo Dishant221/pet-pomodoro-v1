@@ -3,6 +3,10 @@ title: "ADHD time blindness: making time visible enough to use"
 description: ADHD time blindness is knowing time exists without feeling it pass. How visible countdowns, bells and a sleeping cat turn time into an object you can use.
 publishedAt: 2026-08-22
 tags: ['adhd', 'focus', 'pomodoro', 'habits']
+image: ../../assets/blog/adhd-time-blindness.jpg
+imageAlt: "Close-up of sand falling inside an hourglass"
+imageCredit: "Photo: 'hourglass 1' by graymalkn, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/22244945@N00/3278868063"
 ---
 
 Time blindness is the gap between knowing that time exists and feeling it
@@ -12,12 +16,6 @@ it is suddenly on top of you, and "I'll leave in five minutes" turns out to
 have been said forty minutes ago. The response that works for many people is
 not trying harder to sense time. It is externalising it — turning time from a
 private feeling into a public object you can look at.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/adhd-time-blindness.png  then replace this comment with:
-     ![A large friendly countdown timer beside a sleeping cat, making time visible as a physical object](../../assets/blog/adhd-time-blindness.png)
-     Subject: a large friendly countdown beside a sleeping cat, time made physical.
-     Alt: A large friendly countdown timer beside a sleeping cat, making time visible as a physical object -->
 
 ## The clock in your head is an instrument, not a fact
 
@@ -69,13 +67,13 @@ actually need to know, without asking you to derive it.
 This is one instance of a much broader move: taking work your internal
 machinery does badly and handing it to external machinery that does it
 perfectly, every time, without being asked. That move deserves its own
-discussion — [borrowing structure when your own is unreliable](/blog/external-structure-adhd/)
+discussion — [borrowing structure when your own is unreliable](/external-structure-adhd/)
 — because it applies to far more than clocks.
 
 ## Fixed blocks give the countdown something to count
 
 A countdown needs an end to count towards, which is why time blindness and
-the [Pomodoro Technique](/blog/what-is-the-pomodoro-technique/) fit each
+the [Pomodoro Technique](/what-is-the-pomodoro-technique/) fit each
 other so well. The technique is, at heart, this whole argument in method
 form: chop the day into fixed blocks, make each block's remaining time
 visible, and mark the end with a sound you cannot miss.
@@ -89,7 +87,7 @@ edges you were supposed to check for.
 Whether the technique as a whole suits ADHD is a fair question with an
 honest, mixed answer — many people find it fits unusually well, some find
 the standard intervals all wrong — and it is worth reading
-[the full case](/blog/pomodoro-technique-adhd/) before deciding.
+[the full case](/pomodoro-technique-adhd/) before deciding.
 
 ## A state you can read is easier than a number
 

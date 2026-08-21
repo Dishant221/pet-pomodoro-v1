@@ -3,6 +3,10 @@ title: Small rituals that make solitary work feel kept company
 description: 'The same mug, the same start sequence, a small creature fed at the bell: how repeated work rituals give solitary days edges and a quiet sense of company.'
 publishedAt: 2026-08-22
 tags: ['loneliness', 'remote work', 'habits', 'companionship']
+image: ../../assets/blog/small-rituals-solitary-work.jpg
+imageAlt: "A stack of books, a mug and reading glasses on an outdoor table"
+imageCredit: "Photo: 'My desk, this morning' by juliejordanscott, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/98609821@N00/4812005089"
 ---
 
 A ritual is a small, repeated act that marks an edge — the same mug filled
@@ -10,12 +14,6 @@ before the first task, the same chair angled the same way, the same button
 pressed to begin. Done once, it is nothing. Done every working day, it starts
 to behave like company, because it gives the day a shape that somebody seems
 to be keeping. Even when the somebody is you.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/small-rituals-solitary-work.png  then replace this comment with:
-     ![A morning desk ritual: a full mug, an open notebook, and a finger about to start a timer](../../assets/blog/small-rituals-solitary-work.png)
-     Subject: a morning desk ritual — mug, notebook, and a timer being started, warm light.
-     Alt: A morning desk ritual: a full mug, an open notebook, and a finger about to start a timer -->
 
 ## Offices were full of rituals nobody called rituals
 
@@ -32,7 +30,7 @@ footpath that stays a footpath because everyone keeps walking it.
 
 Then a lot of us moved home, and the footpath grassed over. The work came
 along fine. The ceremony did not, and its absence is a large part of
-[the isolation nobody schedules for](/blog/working-from-home-isolation/) —
+[the isolation nobody schedules for](/working-from-home-isolation/) —
 not the missing meetings, but the missing kettle.
 
 ## A ritual is an edge, not a superstition
@@ -46,7 +44,7 @@ with your body.
 A day without edges does not become free. It becomes liquid. Work seeps into
 breakfast, breaks blur into scrolling, and the evening never quite announces
 itself — which is why a
-[work-from-home routine built around breaks](/blog/work-from-home-routine/)
+[work-from-home routine built around breaks](/work-from-home-routine/)
 matters more at a kitchen table than it ever did at a desk someone else owned.
 
 Rituals redraw the lines. The mug says *starting*. The closed laptop, carried
@@ -83,7 +81,7 @@ A ritual with a witness holds better. When the bell goes and the cat wakes
 up wanting feeding, the break has content and a claimant. You are not
 vaguely *pausing* — you are doing the small ceremony of looking after
 something, and the something notices whether you did.
-[Why looking after a creature helps](/blog/why-caring-for-something-helps/)
+[Why looking after a creature helps](/why-caring-for-something-helps/)
 when you spend your days alone is a bigger subject, but the short version
 is: a kept appointment feels different from a lapsed intention, even when
 the other party weighs nothing and lives in a browser tab.

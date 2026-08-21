@@ -3,6 +3,10 @@ title: How to plan a workday in pomodoros
 description: A workday holds fewer pomodoros than you think. How to plan by sessions instead of hours, leave slack on purpose, and review the week without guilt.
 publishedAt: 2026-08-22
 tags: ['pomodoro', 'work', 'habits']
+image: ../../assets/blog/plan-your-day-in-pomodoros.jpg
+imageAlt: "A closed notebook with a pen and reading glasses resting on top"
+imageCredit: "Photo: 'Pen, Diary and Glasses' by Generationbass.com, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/46959536@N04/4827013488"
 ---
 
 To plan a workday in pomodoros, count how many sessions the day genuinely
@@ -10,12 +14,6 @@ holds — far fewer than the arithmetic suggests — give each one a named task,
 and leave gaps on purpose. The whole value of the exercise is in the honest
 counting. A plan built on the day you wish you had is just a list of
 disappointments with timestamps.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/plan-your-day-in-pomodoros.png  then replace this comment with:
-     ![A day planner drawn as a short row of tomato-red blocks with deliberate gaps between them](../../assets/blog/plan-your-day-in-pomodoros.png)
-     Subject: a hand-drawn day planner showing a row of tomato-sized blocks with visible empty gaps between them.
-     Alt: A day planner drawn as a short row of tomato-red blocks with deliberate gaps between them -->
 
 ## The arithmetic is humbling
 
@@ -39,7 +37,7 @@ and the plan starts coming true. Of the two, the second matters more.
 An hour is a container of unknown contents — an hour of blended attention,
 interruptions and drift is not comparable to an hour of focused work, yet a
 plan written in hours treats them as equal. A session is a fairer unit,
-because a session has a definition: [one named task](/blog/one-task-per-session/),
+because a session has a definition: [one named task](/one-task-per-session/),
 one interval, attempted properly.
 
 So the plan for a day stops being "morning: report; afternoon: emails and
@@ -75,7 +73,7 @@ If your calendar belongs partly to other people, plan around the fixed
 points rather than pretending they aren't there. Meetings are the tent
 poles; sessions go in the spaces between. A forty-minute gap holds one. A
 two-hour stretch holds three with breaks. The
-[office version of the technique](/blog/pomodoro-at-work/) is mostly this:
+[office version of the technique](/pomodoro-at-work/) is mostly this:
 finding the sessions the calendar left behind, and defending their edges.
 
 It follows that different days have different honest capacities, and the
@@ -97,7 +95,7 @@ score, no streak to break, no red days. Looked at over a week or two, a
 pattern usually emerges: perhaps the mornings hold three reliable sessions
 and the afternoons rarely hold more than one, or Thursdays are always
 lighter than the plan admits. That is not failure data. That is the shape of
-your actual week, and [what the numbers can and can't tell you](/blog/what-focus-stats-tell-you/)
+your actual week, and [what the numbers can and can't tell you](/what-focus-stats-tell-you/)
 is worth understanding before you let them make you feel anything.
 
 Then — and this is the part people skip — adjust the plan to fit the

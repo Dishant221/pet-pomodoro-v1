@@ -3,6 +3,10 @@ title: Why skipping breaks makes ADHD focus worse, not better
 description: Skipping breaks does not bank extra ADHD focus — it borrows from the next session. Why a real break needs content, not just an absence of work.
 publishedAt: 2026-08-22
 tags: ['adhd', 'breaks', 'focus', 'pomodoro']
+image: ../../assets/blog/skipping-breaks-adhd.jpg
+imageAlt: "A cup of black coffee on a saucer with a spoon"
+imageCredit: "Photo: 'BLACK COFFEE' by rockindave1, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/63723146@N08/11288827415"
 ---
 
 Skipping breaks does not buy you more focus; it borrows focus from the next
@@ -11,12 +15,6 @@ stronger — stopping feels dangerous when starting was so expensive — and the
 cost of skipping is higher, which is an unkind combination. The break is not
 the pause between the work. It is half of the method, and it is the half
 almost everyone throws away first.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/skipping-breaks-adhd.png  then replace this comment with:
-     ![A break scene: a snack being offered to a begging cat while a kettle boils](../../assets/blog/skipping-breaks-adhd.png)
-     Subject: A proper break in progress — a hand dragging a snack toward a begging cat, kettle on in the background, work left behind on the desk.
-     Alt: A break scene: a snack being offered to a begging cat while a kettle boils -->
 
 ## Why the break is the half everyone skips
 
@@ -28,7 +26,7 @@ wave it away — *I'll just finish this bit* — and ride on.
 Sometimes that instinct is answering a real question, because with ADHD the
 relationship with stopping is genuinely complicated: when attention finally
 locks on, it can lock on without brakes, and there is a separate piece on that
-failure mode — [hyperfocus, when the problem is stopping](/blog/hyperfocus-needs-a-bell/).
+failure mode — [hyperfocus, when the problem is stopping](/hyperfocus-needs-a-bell/).
 But most skipped breaks are not hyperfocus. They are ordinary bargaining, and
 the bargain is worse than it looks, because it prices the break at zero. The
 break is not zero. The break is where the next session's start comes from.
@@ -79,7 +77,7 @@ The other thing a good break is not: an errand. "I'll use the break to reply
 to those emails" converts rest into a second job. If working from home has
 already blurred every edge of the day into every other edge, this matters
 double — there is a companion piece on
-[building a home routine around breaks](/blog/work-from-home-routine/),
+[building a home routine around breaks](/work-from-home-routine/),
 because at home the breaks are the only skeleton the day has.
 
 ## The sad cat is design honesty
@@ -93,7 +91,7 @@ This is the app editorialising, and it is meant to be. A timer that lets you
 chain sessions indefinitely with silent approval is flattering a behaviour
 that quietly wrecks the method. Whether the pomodoro rhythm suits ADHD at all
 is a fair question with an honest answer — covered in
-[does the Pomodoro Technique work for ADHD](/blog/pomodoro-technique-adhd/) —
+[does the Pomodoro Technique work for ADHD](/pomodoro-technique-adhd/) —
 but whatever interval you settle on, the structure only works with both of
 its halves. A cat that droops after the second skipped break is the design
 saying so, in the gentlest register available: someone here thinks you should

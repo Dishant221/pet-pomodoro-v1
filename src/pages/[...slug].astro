@@ -1,0 +1,224 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE, legalName } from '../site';
+import { fmtDate, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } from '../blog/util';
+
+/**
+ * Blog articles live directly under the root — www.pomodoropet.com/the-slug/ —
+ * with no /blog/ prefix. The old /blog/<slug>/ URLs 301 to here via
+ * public/_redirects, which scripts/make-redirects.mjs regenerates from the
+ * content folder.
+ */
+export async function getStaticPaths() {
+  // Drafts are built locally but never published, so a half-finished post
+  // cannot leak into the sitemap by being forgotten.
+  const posts = await getCollection('blog', ({ data }) => !data.draft || import.meta.env.DEV);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const url = new URL(`/${post.id}/`, Astro.site).href;
+const minutes = readingMinutes(post);
+
+const all = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const related = relatedPosts(post, all, 3);
+
+// Social cards want ~1200×630; the same optimised file feeds the schema.
+const ogAsset = post.data.image
+  ? await getImage({ src: post.data.image, width: 1200, format: 'jpg' })
+  : null;
+const ogImage = ogAsset ? new URL(ogAsset.src, Astro.site).href : undefined;
+
+/**
+ * BlogPosting + BreadcrumbList structured data.
+ *
+ * The article schema is what produces a dated, attributed result in search;
+ * the breadcrumb is what makes the result show "pomodoropet.com › Blog"
+ * instead of a bare URL, and both feed answer engines assembling citations.
+ */
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.data.title,
+    description: post.data.description,
+    datePublished: post.data.publishedAt.toISOString(),
+    dateModified: (post.data.updatedAt ?? post.data.publishedAt).toISOString(),
+    author: { '@type': 'Organization', name: legalName, url: SITE.url },
+    publisher: { '@type': 'Organization', name: legalName, url: SITE.url },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    keywords: post.data.tags.join(', '),
+    isAccessibleForFree: true,
+    timeRequired: `PT${minutes}M`,
+    ...(ogImage ? { image: ogImage } : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: new URL('/blog/', Astro.site).href },
+      { '@type': 'ListItem', position: 3, name: post.data.title, item: url },
+    ],
+  },
+];
+---
+
+<Layout
+  title={`${post.data.title} — PetPomo`}
+  description={post.data.description}
+  schema={schema}
+  ogImage={ogImage}
+  article={{
+    publishedAt: post.data.publishedAt,
+    updatedAt: post.data.updatedAt,
+    tags: post.data.tags,
+  }}
+>
+  <article class="pp-legal mx-auto grid max-w-3xl gap-5">
+    <header class="grid gap-2">
+      <nav aria-label="Breadcrumb" class="text-xs" style="color: var(--ink-soft)">
+        <a href="/" class="pp-focus-ring rounded underline underline-offset-2">Home</a>
+        <span aria-hidden="true"> › </span>
+        <a href="/blog/" class="pp-focus-ring rounded underline underline-offset-2">Blog</a>
+      </nav>
+      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{post.data.title}</h1>
+      <p class="text-xs" style="color: var(--ink-soft)">
+        <time datetime={post.data.publishedAt.toISOString()}>{fmtDate(post.data.publishedAt)}</time>
+        {
+          post.data.updatedAt && (
+            <span>
+              {' '}· updated <time datetime={post.data.updatedAt.toISOString()}>{fmtDate(post.data.updatedAt)}</time>
+            </span>
+          )
+        }
+        <span> · {minutes} min read</span>
+      </p>
+      {
+        post.data.tags.length > 0 && (
+          <p class="flex flex-wrap gap-1.5">
+            {post.data.tags.map((t) => (
+              <a href={`/blog/topic/${tagSlug(t)}/`} class="pp-focus-ring pp-tag-chip">
+                {tagLabel(t)}
+              </a>
+            ))}
+          </p>
+        )
+      }
+    </header>
+
+    {
+      post.data.image && (
+        <figure class="pp-post-hero">
+          <Image
+            src={post.data.image}
+            alt={post.data.imageAlt ?? ''}
+            width={1280}
+            loading="eager"
+            fetchpriority="high"
+          />
+          {post.data.imageCredit && (
+            <figcaption class="pp-post-credit">
+              {post.data.imageCreditUrl ? (
+                <a href={post.data.imageCreditUrl} rel="noopener nofollow" target="_blank">
+                  {post.data.imageCredit}
+                </a>
+              ) : (
+                post.data.imageCredit
+              )}
+            </figcaption>
+          )}
+        </figure>
+      )
+    }
+
+    <AdSlot variant="banner" slotId="post-top" />
+
+    <div id="pp-prose" class="pp-prose grid gap-4 text-sm leading-relaxed" style="color: var(--ink-soft)">
+      <Content />
+    </div>
+
+    <aside class="pp-card p-5 text-sm" style="color: var(--ink-soft)">
+      <p>
+        <strong style="color: var(--ink)">PetPomo</strong> is a free pomodoro timer with a cat who naps while you
+        focus. <a href="/" class="underline underline-offset-2">Start a session</a> — no account needed.
+      </p>
+    </aside>
+
+    <AdSlot variant="rectangle" slotId="post-bottom" />
+
+    {
+      related.length > 0 && (
+        <section aria-labelledby="pp-related-h" class="grid gap-3">
+          <h2 id="pp-related-h" class="text-lg font-bold tracking-tight" style="color: var(--ink)">
+            Keep reading 🐾
+          </h2>
+          <div class="grid gap-4 sm:grid-cols-3">
+            {related.map((p) => (
+              <PostCard post={p} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </article>
+</Layout>
+
+<script>
+  import { mountFocusGame } from '../blog/minigames';
+  mountFocusGame(document.getElementById('pp-prose'));
+</script>
+
+<style is:global>
+  /* Markdown output needs its own rhythm; the app's utility classes never
+     touch it because the HTML comes from the compiler, not from a template. */
+  .pp-prose h2 {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-top: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .pp-prose h3 {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+  }
+  .pp-prose ul,
+  .pp-prose ol {
+    display: grid;
+    gap: 0.45rem;
+    padding-left: 1.2rem;
+  }
+  .pp-prose ul { list-style: disc; }
+  .pp-prose ol { list-style: decimal; }
+  .pp-prose a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pp-prose strong { color: var(--ink); }
+  .pp-prose code {
+    font-size: 0.85em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  .pp-prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+</style>

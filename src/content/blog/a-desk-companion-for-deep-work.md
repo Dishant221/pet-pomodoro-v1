@@ -3,6 +3,10 @@ title: A desk companion for deep work
 description: Deep work advice is all subtraction — block, mute, remove. A desk companion is the one addition that helps focus, and it works by sitting still.
 publishedAt: 2026-08-22
 tags: ['focus', 'virtual pet', 'companionship', 'work']
+image: ../../assets/blog/a-desk-companion-for-deep-work.jpg
+imageAlt: "A cat asleep across a laptop keyboard on a desk"
+imageCredit: "Photo: 'Jade sleeps on the Dell' by cbowns, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/15417585@N00/108751988"
 ---
 
 A desk companion helps deep work by doing almost nothing. That is not a
@@ -10,12 +14,6 @@ limitation to apologise for; it is the entire job description. Deep work
 advice is otherwise a long list of subtractions — block the sites, mute the
 phone, empty the room — and the subtractions are right, but an emptied room
 turns out to be a surprisingly hard place to sit for three hours.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/a-desk-companion-for-deep-work.png  then replace this comment with:
-     ![A minimal desk in a dark theme with a small cat asleep in the corner of the screen](../../assets/blog/a-desk-companion-for-deep-work.png)
-     Subject: A spare, dark-themed desk setup for deep work, with a small sleeping cat shape in one corner of the screen.
-     Alt: A minimal desk in a dark theme with a small cat asleep in the corner of the screen -->
 
 The companion is the one addition worth making, and choosing it well comes
 down to a single question: what does it do while you are working? The right
@@ -48,10 +46,10 @@ the work sits steadier than it does at home in a silent flat. Other beings,
 peacefully occupied, hold a room still.
 
 Part of this is the witness effect that makes [body
-doubling](/blog/body-doubling-with-a-virtual-pet/) work — being observably
+doubling](/body-doubling-with-a-virtual-pet/) work — being observably
 at your desk makes leaving it feel like a small event rather than nothing.
 Part is simpler: company that expects nothing is
-[settling in a way silence is not](/blog/presence-without-conversation/).
+[settling in a way silence is not](/presence-without-conversation/).
 A sleeping cat on the end of the bed does not help you sleep, exactly. The
 bed is calmer with it there.
 
@@ -73,7 +71,7 @@ cat to sleep — it curls up, stops asking for anything, and becomes a small,
 still shape at the edge of the screen. All its charm is queued for the
 break, when it wakes wanting food and fuss and attention is the thing you
 are supposed to be spending. The ordering is the whole design:
-[a reason to start and a reason not to abandon](/blog/why-a-virtual-pet-helps-you-focus/),
+[a reason to start and a reason not to abandon](/why-a-virtual-pet-helps-you-focus/),
 and stillness in between.
 
 A companion that respects attention is one whose maker had to choose

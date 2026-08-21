@@ -3,18 +3,16 @@ title: Loneliness and solitude are not the same thing
 description: 'Solitude is aloneness you chose; loneliness is aloneness that happened to you. How structure and small presence can tip an empty room from one to the other.'
 publishedAt: 2026-08-22
 tags: ['loneliness', 'mental health', 'companionship']
+image: ../../assets/blog/loneliness-vs-solitude.jpg
+imageAlt: "A cosy reading corner with an armchair, an open book and warm sunlight"
+imageCredit: "Photo: 'Cozy reading corner with vintage decor and modern lighting in a sunlit living space' by Shixart1985, CC BY 2.0"
+imageCreditUrl: "https://commons.wikimedia.org/w/index.php?curid=196089322"
 ---
 
 Loneliness and solitude are not the same thing: solitude is aloneness you
 chose, and loneliness is aloneness that happened to you. The room can be
 identical — same desk, same silence, same closed door — and hold either one,
 depending on almost nothing you can see from the outside.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/loneliness-vs-solitude.png  then replace this comment with:
-     ![The same room shown twice: once dim and bleak, once warm with a cat asleep by the lamp](../../assets/blog/loneliness-vs-solitude.png)
-     Subject: the same room drawn twice side by side — once cold and bleak, once warm and inhabited with a cat asleep in the lamplight.
-     Alt: The same room shown twice: once dim and bleak, once warm with a cat asleep by the lamp -->
 
 ## The difference is consent
 
@@ -45,7 +43,7 @@ work runs clear. And there are days the identical silence turns on you —
 every small sound is the flat settling, the group chat stays unread, and
 attention keeps sliding off the page toward the question of why nobody has
 called. That second weather has real costs; it is
-[quietly corrosive to concentration](/blog/loneliness-and-concentration/)
+[quietly corrosive to concentration](/loneliness-and-concentration/)
 in a way the first never is.
 
 Same room. Same person. Different weather. Which suggests the useful
@@ -71,7 +69,7 @@ weathers. The presence does not need to be biological. Many people find a
 creature on a screen does a surprising fraction of the job — in PetPomo the
 cat sleeps through your focus sessions and potters about between them, and
 the room is very slightly inhabited either way. Whether that counts as real
-company [is a fair question with an honest answer](/blog/can-a-virtual-pet-help-with-loneliness/);
+company [is a fair question with an honest answer](/can-a-virtual-pet-help-with-loneliness/);
 what it inarguably does is keep the silence from being total.
 
 **Being expected somewhere, by something.** Loneliness feeds on the sense
@@ -79,7 +77,7 @@ that your absence would go unnoticed. The smallest standing appointment —
 the pet fed at the bell, the plant watered at noon — is a countering fact:
 something noticed. It asks nothing socially, which on the bad days is
 precisely its value; there is a whole case for
-[presence that asks nothing](/blog/presence-without-conversation/), and this
+[presence that asks nothing](/presence-without-conversation/), and this
 is a corner of it.
 
 None of this manufactures friendship, and none of it is meant to. It moves

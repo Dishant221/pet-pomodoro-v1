@@ -3,6 +3,10 @@ title: Body doubling, and why even a virtual pet counts as company
 description: What body doubling is, why presence without help works for ADHD focus, and why even a virtual pet asleep beside your timer counts as company.
 publishedAt: 2026-08-22
 tags: ['adhd', 'focus', 'virtual pet', 'companionship']
+image: ../../assets/blog/body-doubling-with-a-virtual-pet.jpg
+imageAlt: "A tabby cat resting quietly under a table, looking at the camera"
+imageCredit: "Photo: 'Wendy's Flickr Debut' by A.Davey, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/40595948@N00/3849643962"
 ---
 
 Body doubling is getting work done in the presence of someone who is not
@@ -11,12 +15,6 @@ laundry — and somehow the task you could not start alone gets started. It
 sounds like it shouldn't work, and it reliably does; enough people with ADHD
 swear by it that whole routines, friendships and online communities have
 been built on nothing more than being quietly in the same room.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/body-doubling-with-a-virtual-pet.png  then replace this comment with:
-     ![A split scene of a person working at a desk while a cat sleeps beside their timer](../../assets/blog/body-doubling-with-a-virtual-pet.png)
-     Subject: split scene — a person working, a cat asleep beside the timer.
-     Alt: A split scene of a person working at a desk while a cat sleeps beside their timer -->
 
 ## The help is that they don't help
 
@@ -43,7 +41,7 @@ inside someone else's running copy is a very cheap patch.
 Neither mechanism requires conversation. Both are wrecked by it, in fact.
 The whole arrangement runs on parallel silence, which is its own odd,
 comfortable kind of company —
-[presence that asks nothing of you](/blog/presence-without-conversation/).
+[presence that asks nothing of you](/presence-without-conversation/).
 
 ## The company doesn't have to be in the room
 
@@ -54,7 +52,7 @@ from further and further away.
 A friend on a video call, both of you muted, working. A library, where the
 whole room is a body double. And at the far end, the genuinely strange and
 genuinely popular practice of
-[studying alongside strangers on video](/blog/study-with-me-quiet-company/) —
+[studying alongside strangers on video](/study-with-me-quiet-company/) —
 hours of footage of someone silently writing at a desk, watched by thousands
 of people who are also silently writing at desks. Nobody in that arrangement
 has ever met. It still works, for many people, because the mechanism never
@@ -86,7 +84,7 @@ cat that materialises at the press of a button is neither wonderful nor
 scarce, and at four in the afternoon on a stuck day, available beats
 wonderful. The case for why a creature on the screen holds a habit better
 than a bare number is
-[its own argument](/blog/why-a-virtual-pet-helps-you-focus/), but the short
+[its own argument](/why-a-virtual-pet-helps-you-focus/), but the short
 version is that people are wired to notice living things, even schematic
 ones, in a way they are not wired to notice countdowns.
 

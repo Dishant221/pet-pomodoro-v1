@@ -3,6 +3,10 @@ title: "Small rewards, right now: motivation that works with ADHD"
 description: Why small, immediate rewards suit ADHD motivation better than distant payoffs — and where honest gamification ends and manipulation begins.
 publishedAt: 2026-08-22
 tags: ['adhd', 'habits', 'focus', 'virtual pet']
+image: ../../assets/blog/small-rewards-adhd-motivation.jpg
+imageAlt: "A jar filled with coins, seen from above"
+imageCredit: "Photo: 'dip into savings' by frankieleon, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/23307937@N04/5638958705"
 ---
 
 Motivation with ADHD works best when the reward arrives now, not at the end of
@@ -12,12 +16,6 @@ moment they have lost nearly all their pull, while a small reward that lands
 the second the bell rings arrives at full weight. This is not a character
 flaw to be trained out. It is a fact about how delay feels, and the useful
 move is to design around it rather than argue with it.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/small-rewards-adhd-motivation.png  then replace this comment with:
-     ![Coins landing beside a cat stretching as it wakes up](../../assets/blog/small-rewards-adhd-motivation.png)
-     Subject: A few coins landing on a desk beside a just-woken cat mid-stretch, celebrating the end of a focus session.
-     Alt: Coins landing beside a cat stretching as it wakes up -->
 
 ## Distant rewards shrink; near ones don't
 
@@ -37,7 +35,7 @@ work actually happens.
 This is also why the wall at the start of a task is so high. If the payoff is
 distant and the cost is right now, the ledger for *beginning* looks terrible —
 there is a whole piece on that wall in
-[task initiation with ADHD](/blog/adhd-task-initiation/). A near reward does
+[task initiation with ADHD](/adhd-task-initiation/). A near reward does
 not demolish the wall, but it puts something visible on the other side of it.
 
 ## The reward must follow the finish, not the effort
@@ -91,7 +89,7 @@ suffers visibly until you come back. Both use the same loop; only one of them
 is on your side. Loss-flavoured mechanics work, in the narrow sense that fear
 works, but they convert a focus tool into a small anxiety machine, and people
 quite sensibly walk away from those — it is one of the reasons
-[productivity apps get abandoned](/blog/why-productivity-apps-get-abandoned/)
+[productivity apps get abandoned](/why-productivity-apps-get-abandoned/)
 so quickly.
 
 The test to apply to any reward system, including PetPomo's: *what happens if
@@ -113,7 +111,7 @@ returns: the session finished yesterday makes today's easier to start, and
 finished work has a satisfaction that no token matches. The coin is a
 jump-lead, not the engine. There is a longer argument about why a creature
 makes a better jump-lead than a number in
-[why a virtual pet helps you focus](/blog/why-a-virtual-pet-helps-you-focus/).
+[why a virtual pet helps you focus](/why-a-virtual-pet-helps-you-focus/).
 
 So: make the reward small, make it immediate, attach it to the finish, and
 never let it punish you. That combination is unglamorous and it holds up.

@@ -3,6 +3,10 @@ title: 'Company without judgement: presence that asks nothing'
 description: 'Why company that cannot judge you is sometimes easier than company that can, and what a silent, undemanding presence actually does for solitary work.'
 publishedAt: 2026-08-22
 tags: ['companionship', 'loneliness', 'focus', 'virtual pet']
+image: ../../assets/blog/presence-without-conversation.jpg
+imageAlt: "A calico cat asleep on a striped cushion"
+imageCredit: "Photo: 'Sleeping Lucy at Thanksgiving 2008' by A.Davey, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/40595948@N00/3065402811"
 ---
 
 Company that cannot judge you is sometimes easier than company that can,
@@ -11,12 +15,6 @@ you are seen, so some part of you starts performing. A presence that asks
 nothing lets you be accompanied without being assessed, and for a lot of
 solitary work that turns out to be the only kind of company that helps more
 than it costs.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/presence-without-conversation.png  then replace this comment with:
-     ![A person working at a desk while a cat sleeps nearby, both at ease, no eye contact](../../assets/blog/presence-without-conversation.png)
-     Subject: a person working and a cat sleeping in parallel at the same desk, no eye contact, both visibly at ease.
-     Alt: A person working at a desk while a cat sleeps nearby, both at ease, no eye contact -->
 
 ## Every human witness charges a fee
 
@@ -51,10 +49,10 @@ You cannot disappoint it by procrastinating. It has no idea what
 procrastinating is. All presence, no verdict.
 
 This is the quiet engine inside
-[body doubling](/blog/body-doubling-with-a-virtual-pet/): the version that
+[body doubling](/body-doubling-with-a-virtual-pet/): the version that
 works best is usually not a colleague monitoring you but a person simply
 *existing* nearby, absorbed in their own work. And it explains the
-[millions of hours of study-with-me videos](/blog/study-with-me-quiet-company/)
+[millions of hours of study-with-me videos](/study-with-me-quiet-company/)
 — a stranger on a screen who cannot see you at all is presence with the
 judgement dialled to zero, which is precisely why it feels restful instead
 of invasive. The witness effect survives; the press officer stays asleep.
@@ -78,7 +76,7 @@ faintly pleased you exist.
 
 It sounds like almost nothing. For work that has to be done alone anyway,
 almost nothing is often the correct dose — enough presence to
-[keep chosen solitude from curdling into loneliness](/blog/loneliness-vs-solitude/),
+[keep chosen solitude from curdling into loneliness](/loneliness-vs-solitude/),
 not enough to start charging the fee.
 
 ## What it does — and what it doesn't replace

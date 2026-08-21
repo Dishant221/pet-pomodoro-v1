@@ -3,6 +3,10 @@ title: 'One task per session: the rule that makes pomodoro work'
 description: Pomodoro sessions fail when they carry three tasks. Why naming one task before you press start matters more than the timer itself, and how to slice big work.
 publishedAt: 2026-08-22
 tags: ['pomodoro', 'focus', 'work', 'habits']
+image: ../../assets/blog/one-task-per-session.jpg
+imageAlt: "Sticky notes stuck across two monitors above a keyboard"
+imageCredit: "Photo: 'Correct' by avlxyz, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/10559879@N00/2755990441"
 ---
 
 One task per session is the rule that makes the Pomodoro Technique work —
@@ -10,12 +14,6 @@ not the tomato, not the twenty-five minutes, but the discipline of naming a
 single piece of work before you press start and letting the timer belong to
 that and nothing else. Most pomodoros that fail were carrying three tasks
 when they left the ground.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/one-task-per-session.png  then replace this comment with:
-     ![A sticky note with a single handwritten task stuck beside a running timer](../../assets/blog/one-task-per-session.png)
-     Subject: a sticky note with one short handwritten line on it, stuck to the edge of a monitor beside a running pomodoro timer.
-     Alt: A sticky note with a single handwritten task stuck beside a running timer -->
 
 ## A session with three tasks is a to-do list with a countdown
 
@@ -32,7 +30,7 @@ deserves the next minute, and negotiation is expensive — it is the same
 switching cost you pay when a notification pulls you away, only self-inflicted
 and continuous.
 
-The [original method](/blog/what-is-the-pomodoro-technique/) is blunt about
+The [original method](/what-is-the-pomodoro-technique/) is blunt about
 this: pick one task, not a list. It is the first instruction, and it is the
 one that quietly gets dropped because it feels wasteful. Surely a whole
 block for one small thing is inefficient? It isn't. A block that finishes
@@ -48,7 +46,7 @@ the thing you come back to, and its specificity is what makes coming back
 easy.
 
 Naming also does something less obvious: it makes starting cheaper. A large
-part of the [wall between intending and beginning](/blog/adhd-task-initiation/)
+part of the [wall between intending and beginning](/adhd-task-initiation/)
 is not knowing what the first move actually is. A session with a name has a
 first move built in. You are not starting "the project"; you are starting
 one sentence of it.
@@ -95,7 +93,7 @@ defending the choice*.
 A single-task session has an honest ending in a way a multi-task session
 never does. When the bell rings, the question either got answered or it
 didn't, and if it didn't you know exactly where to pick it up — which makes
-the next session cheaper to start too. [Closing loops](/blog/finishing-what-you-start/)
+the next session cheaper to start too. [Closing loops](/finishing-what-you-start/)
 is most of what a bounded session is for, and you can only close a loop you
 can name.
 
@@ -108,7 +106,7 @@ diffuse busyness would just be noise.
 
 There is a final payoff. Once a session reliably means "one named task,
 attempted for one interval", sessions become a unit you can
-[plan a day with](/blog/plan-your-day-in-pomodoros/). Hours don't work for
+[plan a day with](/plan-your-day-in-pomodoros/). Hours don't work for
 planning because an hour of blended attention is not comparable to an hour
 of focused attention. Named sessions are comparable, and a plan built from
 comparable units is a plan you can actually review.

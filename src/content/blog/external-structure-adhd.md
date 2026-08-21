@@ -3,6 +3,10 @@ title: "External structure: borrowing a clock when yours is unreliable"
 description: External structure for ADHD means outsourcing time-sense to alarms, visible timers and other people — prosthetics, not crutches, and nothing to apologise for.
 publishedAt: 2026-08-22
 tags: ['adhd', 'focus', 'habits', 'pomodoro']
+image: ../../assets/blog/external-structure-adhd.jpg
+imageAlt: "Scaffolding wrapped around the upper floors of an ornate old building"
+imageCredit: "Photo: 'Grand Hotel from Colmore Row - Bagel Nation' by ell brown, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/39415781@N06/5137135535"
 ---
 
 External structure means moving the machinery of self-management out of your
@@ -12,12 +16,6 @@ discipline. For ADHD this is not a workaround to be graduated from — it is
 the correct engineering response to an internal clock that is unreliable, in
 the same way that glasses are the correct response to eyes that won't focus
 on their own.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/external-structure-adhd.png  then replace this comment with:
-     ![Scaffolding wrapped around a building shaped like a clock face](../../assets/blog/external-structure-adhd.png)
-     Subject: Construction scaffolding wrapped supportively around a building shaped like a large clock face.
-     Alt: Scaffolding wrapped around a building shaped like a clock face -->
 
 ## The internal version keeps failing for a reason
 
@@ -33,7 +31,7 @@ belief that you could run it properly if you just tried harder. You cannot
 try your way into a reliable time-sense any more than you can squint your way
 into reading a menu across the room. The felt passage of time simply doesn't
 report in — there is a whole piece on that particular gap,
-[time blindness](/blog/adhd-time-blindness/), but the summary is that knowing
+[time blindness](/adhd-time-blindness/), but the summary is that knowing
 time exists and feeling it pass are different faculties, and effort does not
 convert one into the other.
 
@@ -80,7 +78,7 @@ them, which is how lunch disappears.
 **It survives your bad days.** Structure that requires enthusiasm to operate
 is fair-weather rigging. A start button is one action; a morning plan of
 counted sessions rather than vague hours is one honest list — there is a
-practical walkthrough in [planning a day in pomodoros](/blog/plan-your-day-in-pomodoros/).
+practical walkthrough in [planning a day in pomodoros](/plan-your-day-in-pomodoros/).
 The test is whether the structure still functions on the day you are running
 on fumes, because that is the day it was for.
 
@@ -96,7 +94,7 @@ chair because staying is what is happening here. That effect is called body
 doubling, and it has a spectrum that runs from a friend at the same table to
 a stranger on a video stream to — at the cheap, always-available end — a
 small animated creature that settles down beside your timer. The full
-argument is in [body doubling, and why even a virtual pet counts](/blog/body-doubling-with-a-virtual-pet/),
+argument is in [body doubling, and why even a virtual pet counts](/body-doubling-with-a-virtual-pet/),
 but it belongs on this list because people often exhaust themselves with
 mechanical fixes before trying the social one.
 

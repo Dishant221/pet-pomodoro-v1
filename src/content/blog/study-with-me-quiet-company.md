@@ -3,6 +3,10 @@ title: Why millions study with strangers on video
 description: Study with me videos are hours of a stranger silently working — and they help. What that quiet company supplies, what it costs, and calmer versions.
 publishedAt: 2026-08-22
 tags: ['studying', 'focus', 'companionship']
+image: ../../assets/blog/study-with-me-quiet-company.jpg
+imageAlt: "A student sitting under a tree with a notebook and a laptop in the grass"
+imageCredit: "Photo: 'Student girl.' by verkeorg, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/68471686@N07/25128697035"
 ---
 
 People study with strangers on video because a silent stranger at a desk
@@ -11,12 +15,6 @@ permission to sit still. That is the whole product. A study-with-me video is
 hours of someone quietly working — no teaching, no talking, sometimes not
 even music — and it works for exactly the same reason a full library reading
 room works better than an empty one.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/study-with-me-quiet-company.png  then replace this comment with:
-     ![A laptop playing a study-with-me stream beside an open textbook and handwritten notes](../../assets/blog/study-with-me-quiet-company.png)
-     Subject: A laptop showing a study-with-me stream of a stranger at a desk, placed beside real homework — open textbook, pen, notes.
-     Alt: A laptop playing a study-with-me stream beside an open textbook and handwritten notes -->
 
 ## The strangest genre on the internet, on paper
 
@@ -35,7 +33,7 @@ content was never the point. The company was.
 ## A witness changes the texture of work
 
 The first thing the stranger supplies is a witness. This is the same
-mechanism as [body doubling](/blog/body-doubling-with-a-virtual-pet/) —
+mechanism as [body doubling](/body-doubling-with-a-virtual-pet/) —
 work goes easier when someone else is simply present, even if they never
 look at you, even if they could not care less what you do.
 
@@ -68,7 +66,7 @@ calmly, as though it were normal, makes it normal. The stream is proof that
 this is a thing people do, and you are one of the people doing it.
 
 None of this requires conversation, which is precisely the appeal for many.
-It is [presence without conversation](/blog/presence-without-conversation/)
+It is [presence without conversation](/presence-without-conversation/)
 — all of the accompaniment, none of the performance.
 
 ## The cost: company that lives next door to the circus
@@ -106,7 +104,7 @@ person — but it is always available, and it never autoplays into anything.
 
 Which shape suits you is temperament, not correctness. Some people need the
 human face; some find [a room made to feel inhabited by quieter
-means](/blog/studying-alone-without-feeling-alone/) is enough. The thing
+means](/studying-alone-without-feeling-alone/) is enough. The thing
 worth keeping, whatever the container, is the discovery underneath the whole
 genre: studying was never meant to be done entirely alone, and it does not
 have to be.

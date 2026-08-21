@@ -3,6 +3,10 @@ title: Coming back after a bad week
 description: 'The hardest part of a bad week is the return. How to pick tools that greet you instead of auditing you, and why one small session counts as coming back.'
 publishedAt: 2026-08-22
 tags: ['habits', 'mental health', 'focus', 'virtual pet']
+image: ../../assets/blog/coming-back-after-a-bad-week.jpg
+imageAlt: "A laptop and a mug silhouetted against a bright window"
+imageCredit: "Photo: 'Laptop by the window' by Sergiy Galyonkin, CC BY-SA 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/22974618@N00/51659434615"
 ---
 
 Coming back after a bad week is harder than the bad week was, because the
@@ -10,12 +14,6 @@ bad week only asked you to survive it — the return asks you to face what
 lapsed. The single most useful thing to know is that re-entry is a separate
 skill from discipline, and it is mostly about making the first step back
 cost as little as possible.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/coming-back-after-a-bad-week.png  then replace this comment with:
-     ![A door opening onto a warm room where a small cat looks up hopefully](../../assets/blog/coming-back-after-a-bad-week.png)
-     Subject: a door opening onto a warmly lit room where a small cat looks up hopefully at the person returning.
-     Alt: A door opening onto a warm room where a small cat looks up hopefully -->
 
 ## The return is the actual hard part
 
@@ -43,7 +41,7 @@ answers a question nobody returning asks. You did not open the app for a
 verdict. You opened it to come back.
 
 This is not a small design detail — it is
-[a large part of why productivity apps get abandoned](/blog/why-productivity-apps-get-abandoned/).
+[a large part of why productivity apps get abandoned](/why-productivity-apps-get-abandoned/).
 An app that punishes returns trains you not to return. The streak was
 supposed to be the reason you stayed; once broken, it becomes the reason you
 never come back, because the first screen after a lapse is an inspection you
@@ -71,12 +69,12 @@ output. It is proof that the door opens.
 then you are allowed to stop with a clear conscience. The finished feeling —
 a rung bell, a closed loop — matters more on the first day back than on any
 other day, which is a special case of
-[why finishing beats accumulating](/blog/finishing-what-you-start/).
+[why finishing beats accumulating](/finishing-what-you-start/).
 
 **Let something be glad before you are.** On the worst days, the reason to
 open the door cannot be the work, because the work is the thing you dread.
 It can be something that missed you.
-[Looking after a small creature](/blog/why-caring-for-something-helps/)
+[Looking after a small creature](/why-caring-for-something-helps/)
 puts a greeting on the other side of the door — you are not returning to an
 audit, you are returning to something. Many people find that is the
 difference between opening the app and circling it for another day.

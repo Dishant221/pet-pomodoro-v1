@@ -1361,3 +1361,241 @@ html[data-reduced-motion='true'] .pp-companion { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .pp-talk-mic[data-on='true'] { animation: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   BLOG
+   Preview cards, tag chips, search, pagination and the mid-article arcade.
+   Global rather than scoped because the cards render on three routes and the
+   arcade builds its DOM at runtime, where scoped styles cannot reach.
+--------------------------------------------------------------------------- */
+
+.pp-post-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pp-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgb(74 55 40 / 0.08), 0 10px 24px rgb(74 55 40 / 0.1);
+}
+.pp-post-card-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  color: inherit;
+  border-radius: inherit;
+}
+.pp-post-card-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.pp-post-card-body {
+  display: grid;
+  gap: 0.375rem;
+  padding: 1rem 1.1rem 0.5rem;
+}
+.pp-post-card-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 1.02rem;
+  line-height: 1.3;
+}
+.pp-post-card-desc {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pp-post-card-meta {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+.pp-post-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 1.1rem 1rem;
+}
+
+.pp-tag-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elev));
+  color: var(--ink-soft);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.pp-tag-chip:hover,
+.pp-tag-chip[aria-current='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+
+/* Search box on the blog index. */
+.pp-blog-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-card);
+}
+.pp-blog-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.pp-blog-search input:focus { outline: none; }
+.pp-blog-search input::placeholder { color: var(--ink-soft); opacity: 0.8; }
+
+/* Pagination. */
+.pp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.pp-page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 0.6rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  font-weight: 600;
+  color: var(--ink-soft);
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+.pp-page-link:hover { transform: translateY(-1px); }
+.pp-page-link[aria-current='page'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+
+/* The mid-article arcade. An empty slot (no JS) takes no space at all. */
+.pp-game-slot:empty { display: none; }
+.pp-arcade {
+  margin: 0.75rem 0;
+  padding: 1.1rem 1.2rem;
+  border: 2px dashed color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-elev));
+}
+.pp-arcade-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+.pp-arcade-paw { font-size: 1.1rem; }
+.pp-arcade-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.pp-arcade-blurb { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.25rem; }
+.pp-arcade-body { margin-top: 0.8rem; display: grid; gap: 0.7rem; justify-items: start; }
+.pp-arcade-row { display: flex; gap: 0.5rem; width: 100%; max-width: 20rem; }
+.pp-arcade-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--ink);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+.pp-arcade-btn { padding: 0.45rem 0.9rem; font-size: 0.85rem; }
+.pp-arcade-status { min-height: 1.2rem; font-size: 0.82rem; font-weight: 600; color: var(--ink); }
+.pp-arcade-hint { font-size: 0.78rem; color: var(--ink-soft); }
+.pp-arcade-foot { margin-top: 0.4rem; font-size: 0.7rem; color: var(--ink-soft); }
+
+.pp-ff-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 2.1rem);
+  gap: 0.3rem;
+}
+.pp-ff-tile {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--ink);
+  transition: background-color 0.2s ease;
+}
+.pp-ff-tile[data-hit='exact'] { background: #86c78c; border-color: transparent; color: #1e3a22; }
+.pp-ff-tile[data-hit='near'] { background: #f0cf74; border-color: transparent; color: #4a3b12; }
+.pp-ff-tile[data-hit='miss'] { opacity: 0.45; }
+
+.pp-us-letters { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.pp-us-tile { background: color-mix(in srgb, var(--accent) 25%, var(--bg-elev)); }
+
+.pp-mp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 3rem);
+  gap: 0.4rem;
+}
+.pp-mp-card {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-elev));
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+.pp-mp-card:hover { transform: translateY(-1px); }
+.pp-mp-card[data-state='up'] { background: var(--bg-elev); }
+.pp-mp-card[data-state='matched'] { background: #86c78c; border-color: transparent; cursor: default; }
+
+/* Cover image + credit on the article page. */
+.pp-post-hero img {
+  width: 100%;
+  height: auto;
+  /* One consistent frame whatever shape the source photo is. */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.pp-post-credit {
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+.pp-post-credit a { text-decoration: underline; text-underline-offset: 2px; }

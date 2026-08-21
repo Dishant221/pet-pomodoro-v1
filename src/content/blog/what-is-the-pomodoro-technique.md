@@ -3,19 +3,16 @@ title: What is the Pomodoro Technique?
 description: A 25-minute focus timer, a short break, and a rule about what to do when you get distracted. Here is how the method actually works and where it fails.
 publishedAt: 2026-08-16
 tags: ['pomodoro', 'focus', 'productivity']
+image: ../../assets/blog/what-is-the-pomodoro-technique.jpg
+imageAlt: "Boxes of red and yellow tomatoes at a market stall"
+imageCredit: "Photo: 'Tic Toc in Yellow Tomatoes - 13 images' by Harri Pehkonen, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/28268430@N03/4821212786"
 ---
 
 The Pomodoro Technique is a time management method with exactly four moving
 parts. Francesco Cirillo worked it out as a university student in the late
 1980s using a kitchen timer shaped like a tomato — *pomodoro* is Italian for
 tomato, which is the whole story behind the name.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/what-is-the-pomodoro-technique.png  then replace this comment with:
-     ![The pomodoro cycle: 25 minutes of focus, a 5-minute break, repeated four times before a long break](../../assets/blog/what-is-the-pomodoro-technique.png)
-     Subject: a simple hand-drawn diagram of the four-step cycle — one tomato-shaped
-     timer, four blocks, a long-break gap — in the site's warm illustration style.
-     Alt: The pomodoro cycle: 25 minutes of focus, a 5-minute break, repeated four times before a long break -->
 
 ## The method
 

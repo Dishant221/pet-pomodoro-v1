@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets';
+import { fmtDate, readingMinutes, tagLabel, tagSlug, type Post } from '../blog/util';
+
+/**
+ * One blog preview card: cover photo, title, snippet, date, reading time and
+ * tag chips. Used by the index, the topic pages and the related-posts block,
+ * so every list of articles on the site looks and behaves the same.
+ */
+interface Props {
+  post: Post;
+  /** Card thumbnails are decorative repeats of the article; lazy by default. */
+  eager?: boolean;
+}
+const { post, eager = false } = Astro.props;
+const href = `/${post.id}/`;
+const minutes = readingMinutes(post);
+---
+
+<article class="pp-card pp-post-card">
+  <a href={href} class="pp-focus-ring pp-post-card-link">
+    {
+      post.data.image && (
+        <Image
+          src={post.data.image}
+          alt=""
+          width={640}
+          height={360}
+          loading={eager ? 'eager' : 'lazy'}
+          class="pp-post-card-img"
+        />
+      )
+    }
+    <div class="pp-post-card-body">
+      <h3 class="pp-post-card-title">{post.data.title}</h3>
+      <p class="pp-post-card-desc">{post.data.description}</p>
+      <p class="pp-post-card-meta">
+        <time datetime={post.data.publishedAt.toISOString()}>{fmtDate(post.data.publishedAt)}</time>
+        <span aria-hidden="true"> · </span>{minutes} min read
+      </p>
+    </div>
+  </a>
+  {
+    post.data.tags.length > 0 && (
+      <p class="pp-post-card-tags">
+        {post.data.tags.map((t) => (
+          <a href={`/blog/topic/${tagSlug(t)}/`} class="pp-focus-ring pp-tag-chip">
+            {tagLabel(t)}
+          </a>
+        ))}
+      </p>
+    )
+  }
+</article>

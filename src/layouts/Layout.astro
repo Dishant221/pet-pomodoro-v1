@@ -23,6 +23,10 @@ interface Props {
   noindex?: boolean;
   /** JSON-LD to embed, if this page describes a specific thing. */
   schema?: Record<string, unknown> | Record<string, unknown>[];
+  /** Absolute URL of a page-specific social card; falls back to the site's. */
+  ogImage?: string;
+  /** Set on blog posts: switches og:type and emits the article:* meta. */
+  article?: { publishedAt: Date; updatedAt?: Date; tags: string[] };
 }
 
 const {
@@ -31,12 +35,14 @@ const {
   wide = false,
   noindex = false,
   schema,
+  ogImage: ogImageProp,
+  article,
 } = Astro.props;
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 // Astro.site comes from `site` in astro.config; canonical must be absolute.
 const canonical = new URL(path === '/' ? '/' : `${path}/`, Astro.site).href;
-const ogImage = new URL('/og.png', Astro.site).href;
+const ogImage = ogImageProp ?? new URL('/og.png', Astro.site).href;
 
 /**
  * Anything that is not the production origin is kept out of search entirely,
@@ -98,7 +104,10 @@ const year = new Date().getFullYear();
     {/* Open Graph / Twitter. Absolute URLs only — scrapers do not resolve
         relative ones, and a missing image is the difference between a card
         and a bare grey link. */}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    {article && <meta property="article:published_time" content={article.publishedAt.toISOString()} />}
+    {article?.updatedAt && <meta property="article:modified_time" content={article.updatedAt.toISOString()} />}
+    {article?.tags.map((t) => <meta property="article:tag" content={t} />)}
     <meta property="og:site_name" content="PetPomo" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

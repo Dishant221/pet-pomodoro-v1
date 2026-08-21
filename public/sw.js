@@ -6,7 +6,8 @@
  * they're cache-first. Everything the game needs is inlined into those bundles,
  * which is why offline play works after a single visit.
  */
-const VERSION = 'petpomo-v1';
+// v2: blog moved from /blog/<slug>/ to /<slug>/ — flushes stale cached pages.
+const VERSION = 'petpomo-v2';
 const SHELL = ['/', '/stats', '/shop', '/settings', '/about', '/favicon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

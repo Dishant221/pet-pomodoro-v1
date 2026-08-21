@@ -1,0 +1,73 @@
+---
+/**
+ * A reserved, clearly-labelled advertising slot. Placeholder only — no ad
+ * code ships until an ad network is approved.
+ *
+ * Two shapes, matching the two IAB units the layout is designed around:
+ *  - `banner`     728×90 leaderboard, shrinking to 320×100 on phones
+ *  - `rectangle`  300×250 medium rectangle
+ *
+ * Compliance notes baked into the markup rather than left to memory:
+ *  - The "Advertisement" label is required by Google publisher policy — an ad
+ *    may never masquerade as content or navigation.
+ *  - Height is reserved with CSS so a late-loading ad cannot shift the page
+ *    (CLS is both a ranking factor and an AdSense review criterion).
+ *  - Each slot carries a stable data-ad-slot id so wiring real AdSense later
+ *    is a find-and-replace, not a re-layout.
+ */
+interface Props {
+  variant: 'banner' | 'rectangle';
+  /** Stable identifier for this position, e.g. "post-mid". (named `slotId` because `slot` is reserved for Astro named slots) */
+  slotId: string;
+}
+const { variant, slotId } = Astro.props;
+---
+
+<aside class={`pp-ad pp-ad-${variant}`} data-ad-slot={slotId} aria-label="Advertisement">
+  <span class="pp-ad-label">Advertisement</span>
+  <span class="pp-ad-hint" aria-hidden="true">
+    {variant === 'banner' ? '728 × 90' : '300 × 250'} · ad slot
+  </span>
+</aside>
+
+<style>
+  .pp-ad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-inline: auto;
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--ink) 3%, transparent);
+    color: var(--ink-soft);
+  }
+  .pp-ad-banner {
+    width: 100%;
+    max-width: 728px;
+    height: 90px;
+  }
+  @media (max-width: 640px) {
+    .pp-ad-banner {
+      max-width: 320px;
+      height: 100px;
+    }
+  }
+  .pp-ad-rectangle {
+    width: 300px;
+    max-width: 100%;
+    height: 250px;
+  }
+  .pp-ad-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .pp-ad-hint {
+    font-size: 0.6875rem;
+    opacity: 0.5;
+  }
+</style>

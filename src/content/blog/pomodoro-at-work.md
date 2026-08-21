@@ -3,6 +3,10 @@ title: Making the Pomodoro Technique survive an office job
 description: The Pomodoro Technique was designed for people who control their own time. Here is how to make it survive Slack, meetings and an open-plan office.
 publishedAt: 2026-08-22
 tags: ['pomodoro', 'work', 'focus']
+image: ../../assets/blog/pomodoro-at-work.jpg
+imageAlt: "An office desk with a laptop, an external monitor and an open textbook"
+imageCredit: "Photo: 'Before the project' by imjoshdotcom, CC BY 2.0"
+imageCreditUrl: "https://www.flickr.com/photos/76187879@N00/3356968205"
 ---
 
 The Pomodoro Technique survives an office job, but not in its textbook form.
@@ -11,15 +15,9 @@ hands most of your hours to other people. What survives contact is the core —
 one task, a fixed interval, a genuine break — and what has to bend is almost
 everything around it.
 
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/pomodoro-at-work.png  then replace this comment with:
-     ![A browser tab title showing a countdown timer on an office monitor](../../assets/blog/pomodoro-at-work.png)
-     Subject: an office monitor with a spreadsheet open and a browser tab title quietly showing a running countdown.
-     Alt: A browser tab title showing a countdown timer on an office monitor -->
-
 ## The method assumes a freedom you probably don't have
 
-The [classic loop](/blog/what-is-the-pomodoro-technique/) — twenty-five
+The [classic loop](/what-is-the-pomodoro-technique/) — twenty-five
 minutes of work, a five-minute break, a longer rest after four rounds —
 quietly assumes you can line up four uninterrupted sessions in a row. At a
 kitchen table in the late 1980s, you could. In a modern office you are
@@ -57,7 +55,7 @@ handles "answer Priya" just as neatly as "look up that thing".
 Meetings are the obvious problem, and they demand honest arithmetic rather
 than optimism. If your calendar is broken into fragments, you will not get
 four clean rounds; you might get three scattered singles. Take them. A
-[forty-minute gap between calls](/blog/focus-blocks-between-meetings/) fits
+[forty-minute gap between calls](/focus-blocks-between-meetings/) fits
 one pomodoro almost exactly — too short for what people call deep work, but
 a bounded session doesn't need a runway. It needs edges, and a gap between
 meetings has two ready-made.
@@ -71,7 +69,7 @@ there and got spent on nothing in particular.
 
 The chat client deserves its own section, because it is engineered against
 everything the technique stands for. Every message is an invitation to
-[switch contexts](/blog/cost-of-context-switching/), and the switch costs
+[switch contexts](/cost-of-context-switching/), and the switch costs
 far more than the reading — it costs the reload of everything you were
 holding in your head when you looked away.
 

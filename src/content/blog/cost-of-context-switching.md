@@ -3,18 +3,16 @@ title: The real cost of context switching
 description: The context switching cost that hurts productivity isn't the glance at the other thing — it's the slow reload afterwards. How bounded sessions help.
 publishedAt: 2026-08-22
 tags: ['focus', 'work', 'pomodoro']
+image: ../../assets/blog/cost-of-context-switching.jpg
+imageAlt: "Three juggling balls resting on a wooden table"
+imageCredit: "Photo: 'Juggling balls' by No machine-readable author provided. Soulkeeper assumed (based on copyright claims)., CC BY-SA 3.0"
+imageCreditUrl: "https://commons.wikimedia.org/w/index.php?curid=545227"
 ---
 
 The real cost of a context switch is not the moment you glance at the other
 thing — it is the reload afterwards, when you have to rebuild everything you
 were holding in your head before the glance. The glance takes a second. The
 rebuilding is what quietly eats the afternoon.
-
-<!-- IMAGE SLOT — save a 1600x900 PNG or WebP (≤250 KB) at
-     src/assets/blog/cost-of-context-switching.png  then replace this comment with:
-     ![A juggler mid-drop, with too many labelled balls in the air and one falling](../../assets/blog/cost-of-context-switching.png)
-     Subject: A juggler caught mid-drop, juggling balls labelled as tasks, one slipping past their hands.
-     Alt: A juggler mid-drop, with too many labelled balls in the air and one falling -->
 
 This is why context switching feels cheap while it is happening and expensive
 only in retrospect, at five o'clock, when the day is somehow gone and the
@@ -48,7 +46,7 @@ A day of constant switching produces a distinctive signature — lots of things
 touched, nothing finished, and a tiredness out of proportion to anything
 accomplished. The tiredness is real. It is the cost of a dozen reloads,
 experienced as one long afternoon. This is the fog that makes [office
-pomodoro use](/blog/pomodoro-at-work/) feel so different from working at
+pomodoro use](/pomodoro-at-work/) feel so different from working at
 whim: not that the timer makes you faster, but that it stops you paying the
 reload tax a dozen times before lunch.
 
@@ -56,7 +54,7 @@ reload tax a dozen times before lunch.
 
 The pomodoro's countdown looks like the whole mechanism, but the deeper one
 is the boundary itself. When you start a session on [one named
-task](/blog/one-task-per-session/), you have signed a small contract: for
+task](/one-task-per-session/), you have signed a small contract: for
 this bounded stretch, everything else waits. Not forever — that would be
 unreasonable, and unreasonable promises get broken. Just until the bell.
 
@@ -88,7 +86,7 @@ because replying to twelve messages in a row keeps you in one shallow
 context instead of yanking you through twelve deep-to-shallow round trips.
 And the deep work gets what it actually needs, which is not more hours but
 *unbroken* ones — a distinction that matters most when the hours are scarce,
-as anyone [hunting focus between meetings](/blog/focus-blocks-between-meetings/)
+as anyone [hunting focus between meetings](/focus-blocks-between-meetings/)
 already knows. One clean session in a fragmented day outweighs a whole
 morning of interleaved everything.
 
