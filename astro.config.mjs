@@ -1,4 +1,6 @@
 // @ts-check
+import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
@@ -15,6 +17,23 @@ import tailwindcss from '@tailwindcss/vite';
 const PRODUCTION_ORIGIN = 'https://www.pomodoropet.com';
 const site = process.env.PUBLIC_SITE_URL ?? PRODUCTION_ORIGIN;
 const isProduction = site === PRODUCTION_ORIGIN;
+
+/**
+ * Posts that opted out of search with `searchIndex: false` frontmatter.
+ *
+ * The sitemap filter runs here in the config, where astro:content is not
+ * available, so the frontmatter is scanned directly. A page in the sitemap
+ * that answers noindex is a contradiction Search Console flags — whatever
+ * the meta tag says, the sitemap must not advertise it.
+ */
+const blogDir = fileURLToPath(new URL('./src/content/blog', import.meta.url));
+const unindexedSlugs = readdirSync(blogDir)
+  .filter((f) => /\.mdx?$/.test(f))
+  .filter((f) => {
+    const fm = readFileSync(`${blogDir}/${f}`, 'utf8').split(/^---\s*$/m)[1] ?? '';
+    return /^searchIndex:\s*false\s*$/m.test(fm);
+  })
+  .map((f) => f.replace(/\.mdx?$/, ''));
 
 export default defineConfig({
   site,
@@ -84,7 +103,12 @@ export default defineConfig({
       // app's stateful panels do not — they render nothing without a save.
       // On a preview build nothing does: submitting a sitemap for a deploy
       // that is entirely noindex would only waste crawl budget.
-      filter: (page) => isProduction && !/\/(settings|stats|shop)\/?$/.test(page),
+      filter: (page) =>
+        isProduction &&
+        !/\/(settings|stats|shop)\/?$/.test(page) &&
+        // Articles whose frontmatter says searchIndex: false stay live but
+        // out of the sitemap (their pages also carry noindex).
+        !unindexedSlugs.some((slug) => page.endsWith(`/${slug}/`)),
       changefreq: 'weekly',
       lastmod: new Date(),
     }),

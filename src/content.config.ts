@@ -42,6 +42,13 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     /** Hide from the index and the feed without deleting the file. */
     draft: z.boolean().default(false),
+    /**
+     * Should Google (and every other search/AI crawler) see this article?
+     * `false` keeps the page live on the site but marks it noindex, drops it
+     * from the sitemap, and leaves it out of llms.txt and the /<slug>.md
+     * crawler copies. Unlike `draft`, readers can still open it.
+     */
+    searchIndex: z.boolean().default(true),
   }),
 });
 

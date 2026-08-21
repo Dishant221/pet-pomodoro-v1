@@ -36,6 +36,10 @@ Disallow: /shop
 Disallow: /api/
 
 Sitemap: ${new URL('/sitemap-index.xml', site).href}
+
+# AI agents: a markdown index of this site lives at /llms.txt, every article
+# has a plain-markdown twin at /<slug>.md, and /llms-full.txt is the whole
+# corpus in one file.
 `
     : `# Non-production deploy — preview, or a branch build.
 #

@@ -1,0 +1,242 @@
+---
+import AdSlot from './AdSlot.astro';
+import { allTags, type Post } from '../blog/util';
+
+/**
+ * The blog's right rail: search, an ad slot, topic chips, a sponsor
+ * placeholder and the mascot. One component so every article carries the
+ * same rail and nothing drifts.
+ *
+ * The search box is a plain GET form onto /blog/?q= — the index already
+ * honours that querystring (it is what the SearchAction schema advertises),
+ * so search works from any article with zero extra JavaScript.
+ */
+
+interface Props {
+  /** All published posts — used to rank the topic chips by use. */
+  posts: Post[];
+  /** The article's headings; h2s become the "On this page" list. */
+  headings?: Array<{ depth: number; slug: string; text: string }>;
+}
+
+const { posts, headings = [] } = Astro.props;
+
+const topics = allTags(posts).slice(0, 12);
+const toc = headings.filter((h) => h.depth === 2);
+---
+
+<aside class="pp-side grid content-start gap-5 min-w-0" aria-label="Blog sidebar">
+  {/* Search — same widget as the blog index, submitting to its ?q= deep link. */}
+  <form action="/blog/" method="get" role="search" class="pp-blog-search">
+    <span aria-hidden="true">🔍</span>
+    <input
+      type="search"
+      name="q"
+      placeholder="Search articles…"
+      aria-label="Search articles"
+      autocomplete="off"
+    />
+  </form>
+
+  {
+    toc.length >= 3 && (
+      <nav class="pp-card grid gap-2 p-4" aria-labelledby="pp-toc-h">
+        <h2 id="pp-toc-h" class="pp-side-label">On this page</h2>
+        <ol class="pp-toc">
+          {toc.map((h) => (
+            <li>
+              <a href={`#${h.slug}`} class="pp-focus-ring rounded">
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+
+  <AdSlot variant="rectangle" slotId="sidebar-rail" />
+
+  <nav class="pp-card grid gap-2.5 p-4" aria-labelledby="pp-topics-h">
+    <h2 id="pp-topics-h" class="pp-side-label">Browse topics</h2>
+    <div class="flex flex-wrap gap-1.5">
+      {
+        topics.map((t) => (
+          <a href={`/blog/topic/${t.slug}/`} class="pp-focus-ring pp-tag-chip">
+            {t.label} <span aria-hidden="true">({t.count})</span>
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+
+  {/* Sponsor placeholder — labelled like the ad slots, no code until signed. */}
+  <div class="pp-sponsor" data-sponsor-slot="sidebar">
+    <span class="pp-side-label">Sponsor</span>
+    <p class="pp-sponsor-pitch">Your brand here 🐾</p>
+    <p class="pp-sponsor-sub">
+      Reach focused readers. <a href="/contact" class="pp-focus-ring rounded">Partner with PetPomo</a>
+    </p>
+  </div>
+
+  {/* The mascot. A blog rail should have at least one thing that is a treat. */}
+  <div class="pp-catwidget pp-card">
+    <svg viewBox="0 0 140 120" role="img" aria-label="PomoCat, the PetPomo cat, napping happily" class="pp-catwidget-art">
+      <path class="cw-fur-d" d="M108 98 q28 2 26 -20 q-2 -14 -17 -13 q11 3 9 12 q-2 13 -24 11 z"></path>
+      <ellipse class="cw-fur" cx="70" cy="88" rx="38" ry="26"></ellipse>
+      <ellipse class="cw-belly" cx="70" cy="96" rx="20" ry="14"></ellipse>
+      <ellipse class="cw-belly" cx="56" cy="108" rx="9" ry="5"></ellipse>
+      <ellipse class="cw-belly" cx="84" cy="108" rx="9" ry="5"></ellipse>
+      <path class="cw-fur" d="M42 34 L36 8 L60 22 Z"></path>
+      <path class="cw-fur" d="M98 34 L104 8 L80 22 Z"></path>
+      <path class="cw-inner" d="M45 28 L42 15 L55 22 Z"></path>
+      <path class="cw-inner" d="M95 28 L98 15 L85 22 Z"></path>
+      <circle class="cw-fur" cx="70" cy="46" r="30"></circle>
+      <path class="cw-fur-d" d="M60 18 q10 7 20 0 l-4 9 q-6 4 -12 0 z"></path>
+      <path class="cw-line" d="M52 46 q6 6 12 0" fill="none" stroke-width="2.5" stroke-linecap="round"></path>
+      <path class="cw-line" d="M76 46 q6 6 12 0" fill="none" stroke-width="2.5" stroke-linecap="round"></path>
+      <path class="cw-line-f" d="M67 55 h6 l-3 4.5 z"></path>
+      <path class="cw-line" d="M70 59 q0 4 -5 5 M70 59 q0 4 5 5" fill="none" stroke-width="1.8" stroke-linecap="round"></path>
+      <circle class="cw-blush" cx="46" cy="56" r="4.5"></circle>
+      <circle class="cw-blush" cx="94" cy="56" r="4.5"></circle>
+      <path
+        class="cw-line"
+        d="M40 50 H26 M41 57 l-13 4 M100 50 h14 M99 57 l13 4"
+        fill="none"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        opacity="0.7"></path>
+      <g class="cw-zzz" aria-hidden="true">
+        <text x="104" y="26">z</text>
+        <text x="115" y="14">z</text>
+      </g>
+    </svg>
+    <p class="pp-catwidget-say">“Meow! I nap while you focus.”</p>
+    <p class="pp-catwidget-sub">Run a 25-minute pomodoro and PomoCat curls up on your desk — free, no account.</p>
+    <a href="/" class="pp-btn pp-btn-primary pp-focus-ring pp-catwidget-cta">🐱 Start focusing</a>
+  </div>
+</aside>
+
+<style>
+  .pp-side-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  .pp-toc {
+    display: grid;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    font-size: 0.82rem;
+    counter-reset: toc;
+  }
+  .pp-toc li {
+    display: flex;
+    gap: 0.45rem;
+    align-items: baseline;
+  }
+  .pp-toc li::before {
+    counter-increment: toc;
+    content: counter(toc);
+    flex: none;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--accent) 55%, var(--bg-elev));
+    border-radius: 999px;
+    width: 1.1rem;
+    height: 1.1rem;
+    display: grid;
+    place-items: center;
+  }
+  .pp-toc a {
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .pp-toc a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .pp-sponsor {
+    display: grid;
+    gap: 0.3rem;
+    justify-items: center;
+    text-align: center;
+    padding: 1.1rem 1rem;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+  .pp-sponsor-pitch {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .pp-sponsor-sub {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .pp-sponsor-sub a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .pp-catwidget {
+    display: grid;
+    gap: 0.45rem;
+    justify-items: center;
+    text-align: center;
+    padding: 1.2rem 1.1rem 1.3rem;
+    overflow: hidden;
+  }
+  .pp-catwidget-art {
+    width: 8.5rem;
+    height: auto;
+  }
+  .cw-fur { fill: var(--fur); }
+  .cw-fur-d { fill: var(--fur-dark); }
+  .cw-belly { fill: var(--belly); }
+  .cw-inner { fill: var(--belly); opacity: 0.9; }
+  .cw-line { stroke: var(--line); }
+  .cw-line-f { fill: var(--line); }
+  .cw-blush { fill: #f2958a; opacity: 0.45; }
+  .cw-zzz text {
+    fill: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 800;
+    font-family: inherit;
+    animation: cw-float 2.8s ease-in-out infinite;
+  }
+  .cw-zzz text:last-child {
+    font-size: 10px;
+    animation-delay: 1.4s;
+  }
+  @keyframes cw-float {
+    0%, 100% { transform: translateY(0); opacity: 0.45; }
+    50% { transform: translateY(-3px); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cw-zzz text { animation: none; }
+  }
+  .pp-catwidget-say {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .pp-catwidget-sub {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .pp-catwidget-cta {
+    margin-top: 0.3rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+  }
+</style>
