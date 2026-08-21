@@ -5,7 +5,7 @@ done twice. **Ask for "the pending list" and this file is the answer.**
 
 Last updated: 22 August 2026. Branch: `testing`.
 
-Numbering runs to 55 and is append-only: an item keeps its number for life, so
+Numbering runs to 56 and is append-only: an item keeps its number for life, so
 "#33" means the same thing in a conversation three months from now.
 
 ---
@@ -137,6 +137,16 @@ ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 ## Blocked
 
 **43. Razorpay payments.** Blocked on business KYC. Architected for, not built.
+
+**56. Merge `testing` → `main` (domain cutover).** Blocked until
+`www.pomodoropet.com` is registered, attached to the `petpomo` Pages project as
+a custom domain, and returning 200. Everything on `testing` declares that
+domain as canonical; deploying it to production while the domain is dead would
+make every page point search engines at a host that does not resolve, and the
+site would de-index itself. **The full step-by-step cutover checklist is in
+DEPLOY.md → "Going live on www.pomodoropet.com"** — including the
+backup-branches-before-merge rule and post-merge verification. Until then,
+ship to `testing` only; preview builds are noindex and safe.
 
 ---
 

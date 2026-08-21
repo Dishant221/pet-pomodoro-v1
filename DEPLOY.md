@@ -114,6 +114,72 @@ at it.
 
 ---
 
+## ⚠️ Going live on www.pomodoropet.com — read before merging to `main`
+
+**As of 22 Aug 2026, do not merge `testing` into `main`.** Everything on
+`testing` — including the full blog overhaul of that date (root post URLs,
+covers, search, games) — is written for the new domain, and the domain is not
+live yet.
+
+### The problem, in one paragraph
+
+Every page this code builds declares `https://www.pomodoropet.com` as its
+*canonical URL* — a tag in the page's `<head>` that tells Google "whatever
+address you found me at, THIS is my real one". The sitemap, RSS feed, Open
+Graph images and structured data all point there too. That is correct once the
+domain works. But if this code is deployed to production while
+`www.pomodoropet.com` does not resolve, every page on `petpomo.pages.dev` will
+be telling Google "my real address is over there" — and "over there" is a dead
+host. Google follows the pointer, finds nothing, and drops the pages from its
+index. The site would de-index itself. Nothing looks broken to a visitor; the
+damage is invisible until search traffic is gone and slow to recover.
+
+Preview is safe from all of this: preview builds are `noindex` and serve a
+disallow-all robots.txt, so nothing there can leak into search.
+
+### The cutover checklist, in order
+
+1. **Register the domain** (if not already done) — `pomodoropet.com`, any
+   registrar, ideally Cloudflare Registrar since the account is already there.
+2. **Attach it to the Pages project**: Cloudflare dashboard → Workers & Pages
+   → `petpomo` → **Custom domains** → *Set up a custom domain* →
+   `www.pomodoropet.com`. Cloudflare creates the DNS record itself if the
+   domain's DNS is on Cloudflare. Add the apex `pomodoropet.com` as a second
+   custom domain (or a redirect rule) so the bare name works too.
+3. **Verify it resolves** before touching git. From any machine:
+   ```bash
+   curl -sI https://www.pomodoropet.com/ | head -3
+   ```
+   You want `HTTP/2 200` (it will serve whatever `main` last deployed — the
+   old content, which is fine). If this does not return 200, stop here.
+4. **Back up both branches** (house rule — see BACKLOG/memory: copy branches
+   before any merge, and push the copies):
+   ```bash
+   git branch main-pre-domain-cutover main
+   git branch testing-copy-domain-cutover testing
+   git push origin main-pre-domain-cutover testing-copy-domain-cutover
+   ```
+5. **Merge and push**:
+   ```bash
+   git checkout main && git merge testing && git push origin main
+   ```
+   The Actions workflow deploys production automatically.
+6. **Verify the cutover**: `https://www.pomodoropet.com/blog/` returns 200;
+   an old blog URL such as `/blog/what-is-the-pomodoro-technique/` 301s to
+   `/what-is-the-pomodoro-technique/`; `view-source:` on any page shows
+   `<link rel="canonical" href="https://www.pomodoropet.com/...">`.
+7. **Tell Google**: Search Console → add the `www.pomodoropet.com` property
+   and submit `https://www.pomodoropet.com/sitemap-index.xml`. If
+   `petpomo.pages.dev` was ever verified as a property, request indexing of a
+   few key pages so the canonical transfer is picked up sooner.
+
+Until step 3 passes, keep shipping to `testing` only. The `pages.dev`
+production deploy keeps working the whole time — Cloudflare never turns a
+project's `*.pages.dev` address off, and after cutover it simply becomes a
+mirror whose pages declare the custom domain as canonical.
+
+---
+
 ## Environments
 
 Two, both on the one `petpomo` Pages project. Which one a deploy lands in is
