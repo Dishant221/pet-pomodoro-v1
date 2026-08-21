@@ -67,7 +67,7 @@ database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API onto
-# its own Worker/domain, e.g. "https://petpomo.pages.dev".
+# its own Worker/domain, e.g. "https://www.pomodoropet.com".
 ALLOWED_ORIGINS = ""
 # Model ids are retired on their own schedule, so this is a var rather than a
 # constant in the source. Empty means "use the default in worker/src/index.ts".

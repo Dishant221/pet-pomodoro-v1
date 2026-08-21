@@ -6,8 +6,12 @@ name: Deploy
 # push a branch, get a deploy — while keeping the existing project and its two
 # URLs intact.
 #
-#   push to main      ->  petpomo.pages.dev          (production, D1 petpomo)
+#   push to main      ->  www.pomodoropet.com        (production, D1 petpomo)
 #   push to testing   ->  preview.petpomo.pages.dev  (preview,    D1 petpomo-preview)
+#
+# Production is still the Pages project's `main` deployment — the custom
+# domain is attached to it in the Cloudflare dashboard, and petpomo.pages.dev
+# keeps serving the same deploy with a canonical pointing at the domain.
 #
 # The environment is chosen entirely by the --branch flag passed to wrangler.
 # Cloudflare treats the project's production branch (main) as production and
@@ -53,7 +57,7 @@ jobs:
       - run: npm run build
         env:
           PUBLIC_SITE_URL: >-
-            ${{ github.ref_name == 'main' && 'https://petpomo.pages.dev' || 'https://preview.petpomo.pages.dev' }}
+            ${{ github.ref_name == 'main' && 'https://www.pomodoropet.com' || 'https://preview.petpomo.pages.dev' }}
 
       # The first-load JS budget, enforced rather than aspired to. Three.js is
       # three quarters of the ceiling on its own, so the split that keeps it out

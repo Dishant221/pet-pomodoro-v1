@@ -24,7 +24,7 @@ npm run build
 npx wrangler pages deploy dist --project-name petpomo
 ```
 
-That prints your live URL (`https://petpomo.pages.dev`). Done — the game is
+That prints your live URL (`https://www.pomodoropet.com`). Done — the game is
 fully playable: timer, all 9 pet states, shop, stats, themes, offline.
 
 ## 2. Cloud sync (optional)
@@ -49,7 +49,7 @@ Add → D1 database.** Variable name `DB`, database `petpomo`. Redeploy once mor
 Verify:
 
 ```bash
-curl https://petpomo.pages.dev/api/health
+curl https://www.pomodoropet.com/api/health
 # {"ok":true}
 ```
 
@@ -70,7 +70,7 @@ config with this file, so a hand-added binding disappears on the next deploy and
 Verify which one you are getting — the flag is in the response:
 
 ```bash
-curl -s https://petpomo.pages.dev/api/ask \
+curl -s https://www.pomodoropet.com/api/ask \
   -H 'content-type: application/json' -d '{"text":"good girl"}'
 # {"ok":true,"model":true,...}   <- inference ran
 # {"ok":true,"model":false,...}  <- fell back to the local reaction table
@@ -91,7 +91,7 @@ upstream call and no per-visitor record is ever created. Nothing is written to
 D1 and nothing is logged.
 
 ```bash
-curl https://petpomo.pages.dev/api/weather
+curl https://www.pomodoropet.com/api/weather
 # {"ok":true,"condition":"rain","temperature":14,...}
 ```
 
@@ -121,7 +121,7 @@ decided solely by `--branch`:
 
 | | Git branch | URL | Database |
 |---|---|---|---|
-| **Production** | `main` | `petpomo.pages.dev` | `petpomo` |
+| **Production** | `main` | `www.pomodoropet.com` | `petpomo` |
 | **Testing** | `testing` | `preview.petpomo.pages.dev` | `petpomo-preview` |
 
 **Pushing deploys.** `.github/workflows/deploy.yml` typechecks, builds and
@@ -129,7 +129,7 @@ deploys on every push to those two branches, so the normal workflow is just:
 
 ```bash
 git push origin testing    # -> preview.petpomo.pages.dev
-git push origin main       # -> petpomo.pages.dev
+git push origin main       # -> www.pomodoropet.com
 ```
 
 It needs two repository secrets, both under **Settings → Secrets and variables

@@ -84,7 +84,7 @@ branch you push to.
 | Push to | Goes to | Database |
 |---------|---------|----------|
 | `testing` | https://preview.petpomo.pages.dev | `petpomo-preview` |
-| `main` | https://petpomo.pages.dev | `petpomo` |
+| `main` | https://www.pomodoropet.com | `petpomo` |
 
 ```bash
 git add -A
@@ -161,7 +161,7 @@ this in public, and it must stay true.
 
 ## 8. When something breaks in production
 
-1. **Is the site up?** Open https://petpomo.pages.dev. If not, check the
+1. **Is the site up?** Open https://www.pomodoropet.com. If not, check the
    Cloudflare dashboard → Workers & Pages → petpomo → Deployments.
 2. **Did a deploy break it?** The Actions tab shows every deploy. Cloudflare
    keeps the previous ones — you can roll back from the Deployments list in one

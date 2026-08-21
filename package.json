@@ -20,7 +20,7 @@
     "test:sync": "node tests/sync.mjs",
     "test:talk": "node tests/verify-talk.mjs",
     "og": "node scripts/make-og.mjs",
-    "deploy": "cross-env PUBLIC_SITE_URL=https://petpomo.pages.dev astro build && wrangler pages deploy dist --project-name petpomo --branch main",
+    "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com astro build && wrangler pages deploy dist --project-name petpomo --branch main",
     "deploy:preview": "cross-env PUBLIC_SITE_URL=https://preview.petpomo.pages.dev astro build && wrangler pages deploy dist --project-name petpomo --branch preview"
   },
   "dependencies": {

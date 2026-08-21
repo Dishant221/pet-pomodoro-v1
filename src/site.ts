@@ -16,7 +16,17 @@
  * competes with production for production's own keywords, which is worse than
  * not ranking at all.
  */
-export const PRODUCTION_ORIGIN = 'https://petpomo.pages.dev';
+/**
+ * The custom domain. petpomo.pages.dev still serves the same content —
+ * Cloudflare never turns a project's *.pages.dev address off — and that is
+ * fine: every page it serves declares this origin as canonical, which tells
+ * search engines the two are one site and this one is the real address.
+ *
+ * DO NOT merge this to main before the domain is attached to the Pages
+ * project (Cloudflare dashboard -> Pages -> petpomo -> Custom domains) and
+ * resolving. A canonical pointing at a dead domain de-indexes the site.
+ */
+export const PRODUCTION_ORIGIN = 'https://www.pomodoropet.com';
 
 export const SITE = {
   name: 'PetPomo',

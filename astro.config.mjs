@@ -12,7 +12,7 @@ import tailwindcss from '@tailwindcss/vite';
  * Preview deploys override it, otherwise every preview would advertise itself
  * as the production site and invite duplicate-content penalties.
  */
-const PRODUCTION_ORIGIN = 'https://petpomo.pages.dev';
+const PRODUCTION_ORIGIN = 'https://www.pomodoropet.com';
 const site = process.env.PUBLIC_SITE_URL ?? PRODUCTION_ORIGIN;
 const isProduction = site === PRODUCTION_ORIGIN;
 
