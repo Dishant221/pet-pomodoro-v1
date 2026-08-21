@@ -52,6 +52,23 @@ with a 10-minute break. Anxious, avoidant work sometimes wants 15. The method
 survives the adjustment; what it does not survive is having no fixed end at
 all.
 
+## What the research says
+
+The technique itself has never been the subject of a large clinical trial —
+it is a folk method that later research happens to support. The two moves it
+is built on, short bounded work and deliberate breaks, have been measured:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Attention decays during long unbroken tasks; brief diversions restore it | Performance held steady across a 50-minute vigilance task only in the group given two short breaks | [Ariga & Lleras, *Cognition* (2011)](https://doi.org/10.1016/j.cognition.2010.12.007) |
+| Micro-breaks reliably raise vigour and reduce fatigue | Meta-analysis of 22 experiments; breaks of up to ~10 minutes showed consistent recovery effects | [Albulescu et al., *PLOS ONE* (2022)](https://doi.org/10.1371/journal.pone.0272460) |
+| The most productive workers alternate hard rather than working longest | The top 10% of tracked users averaged 52 minutes of work to 17 minutes of break | [DeskTime time-tracking study (2014)](https://desktime.com/blog/17-52-ratio-most-productive-people) |
+| A repeated behaviour takes months, not weeks, to become automatic | Median 66 days to peak automaticity; range 18–254 days | [Lally et al., *European Journal of Social Psychology* (2010)](https://doi.org/10.1002/ejsp.674) |
+
+None of these studies tested the 25/5 split itself. Read them as support for
+the *shape* of the method — bounded effort, real breaks, patience with the
+habit — rather than for any particular number on the timer.
+
 ## Where it falls down
 
 Being honest about this matters more than selling it:

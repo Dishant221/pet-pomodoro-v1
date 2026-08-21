@@ -94,6 +94,23 @@ while you focus and wants feeding and fuss during breaks — the break has
 *content*, a small pleasant job with its own shape, rather than a grey gap
 you're tempted to fill with either more work or the entire internet.
 
+## What the numbers say
+
+The claim that external time structure helps ADHD is not just anecdote — the
+underlying findings are well replicated, even though the Pomodoro Technique
+itself has not been trialled as an ADHD intervention:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| ADHD is common in children worldwide | ~7.2% prevalence across 175 studies | [Thomas et al., *Pediatrics* (2015)](https://doi.org/10.1542/peds.2014-3482) |
+| It persists into adulthood far more often than assumed | ~2.5% prevalence in adults | [Simon et al., *British Journal of Psychiatry* (2009)](https://doi.org/10.1192/bjp.bp.107.048827) |
+| Time perception measurably differs in ADHD | Consistent deficits in estimating and reproducing durations, across age groups | [Ptacek et al., *Medical Science Monitor* (2019)](https://doi.org/10.12659/MSM.914225) |
+| The timing deficit shows up across tasks and in imaging | Review of neurocognitive and neuroimaging evidence for impaired timing in ADHD | [Noreika et al., *Neuropsychologia* (2013)](https://doi.org/10.1016/j.neuropsychologia.2012.09.036) |
+
+The last two rows are the mechanism this whole article leans on: if duration
+is genuinely harder to sense, a visible external interval is not a crutch —
+it is a correction, like glasses.
+
 ## How to run the experiment honestly
 
 Treat it as an experiment, not a verdict on your character. Pick one task,

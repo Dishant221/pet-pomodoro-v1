@@ -1,0 +1,141 @@
+---
+/**
+ * In-article table of contents, rendered at the top of every post.
+ *
+ * The sidebar already carries an "On this page" list, but the rail stacks
+ * below the article on small screens — which is where most readers are — so
+ * the index nobody scrolls down to find lives here, before the first heading.
+ * h2s are the numbered entries; h3s nest under their parent h2, so the index
+ * mirrors the article heading by heading.
+ *
+ * Anchors are the ids Astro already puts on markdown headings; no extra
+ * JavaScript is involved.
+ */
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// Group h3s under the h2 they follow. Anything deeper than h3 is noise in an
+// index; anything before the first h2 has no parent and is dropped.
+type Entry = { slug: string; text: string; children: Array<{ slug: string; text: string }> };
+const entries: Entry[] = [];
+for (const h of headings) {
+  if (h.depth === 2) {
+    entries.push({ slug: h.slug, text: h.text, children: [] });
+  } else if (h.depth === 3 && entries.length > 0) {
+    entries[entries.length - 1].children.push({ slug: h.slug, text: h.text });
+  }
+}
+---
+
+{
+  entries.length >= 2 && (
+    <nav class="pp-card pp-posttoc" aria-labelledby="pp-posttoc-h">
+      <h2 id="pp-posttoc-h" class="pp-posttoc-label">
+        <span aria-hidden="true">🗂️</span> In this article
+      </h2>
+      <ol class="pp-posttoc-list">
+        {entries.map((e) => (
+          <li>
+            <a href={`#${e.slug}`} class="pp-focus-ring rounded">
+              {e.text}
+            </a>
+            {e.children.length > 0 && (
+              <ul class="pp-posttoc-sub">
+                {e.children.map((c) => (
+                  <li>
+                    <a href={`#${c.slug}`} class="pp-focus-ring rounded">
+                      {c.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .pp-posttoc {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
+    background: color-mix(in srgb, var(--accent) 6%, var(--bg-elev));
+  }
+  .pp-posttoc-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+  .pp-posttoc-list {
+    display: grid;
+    gap: 0.45rem;
+    list-style: none;
+    padding: 0;
+    font-size: 0.88rem;
+    counter-reset: posttoc;
+  }
+  /* Two columns once there is room; each entry keeps its sub-list with it. */
+  @media (min-width: 40rem) {
+    .pp-posttoc-list {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 1.5rem;
+    }
+  }
+  .pp-posttoc-list > li::before {
+    counter-increment: posttoc;
+    content: counter(posttoc);
+    flex: none;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--accent) 55%, var(--bg-elev));
+    border-radius: 999px;
+    width: 1.15rem;
+    height: 1.15rem;
+    display: grid;
+    place-items: center;
+    margin-top: 0.15rem;
+  }
+  .pp-posttoc-list > li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .pp-posttoc-list a {
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .pp-posttoc-list a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pp-posttoc-sub {
+    flex-basis: 100%;
+    display: grid;
+    gap: 0.3rem;
+    list-style: none;
+    padding: 0.3rem 0 0 1.65rem;
+    font-size: 0.8rem;
+  }
+  .pp-posttoc-sub a {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+</style>

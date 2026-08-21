@@ -79,6 +79,22 @@ decorations behind coins you earn by focusing for roughly this reason: the
 fiddling is downstream of the sessions, so the displacement activity has to
 pass through actual work to happen at all.
 
+## The fortnight, in numbers
+
+The abandonment window this article keeps calling "a fortnight" is visible in
+both the app-industry data and the habit research:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Most apps lose most users almost immediately | The average app loses ~77% of its daily users within 3 days of install, and ~90% within 30 days | [Quettra retention data, via Andrew Chen](https://andrewchen.com/new-data-shows-why-losing-80-of-your-mobile-users-is-normal-and-that-the-best-apps-do-much-better/) |
+| Habits take months to become automatic | Median 66 days to peak automaticity; range 18–254 days across participants | [Lally et al., *European Journal of Social Psychology* (2010)](https://doi.org/10.1002/ejsp.674) |
+| Missing a day does not destroy a forming habit | In the same study, single missed repetitions had no meaningful effect on the habit curve | [Lally et al., *European Journal of Social Psychology* (2010)](https://doi.org/10.1002/ejsp.674) |
+
+Put the first two rows together and the mismatch is stark: apps lose their
+users in days, habits form in months. The third row is the quiet indictment
+of streaks — the science says a missed day is harmless, and the streak
+mechanic punishes it anyway.
+
 ## What a forgiving design looks like
 
 Put the three failures together and the shape of the fix is visible. A tool

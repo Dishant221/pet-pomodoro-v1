@@ -1599,3 +1599,105 @@ html[data-reduced-motion='true'] .pp-companion { cursor: default; }
   color: var(--ink-soft);
 }
 .pp-post-credit a { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Article prose — markdown output from blog posts, and the About page which
+   is styled as an article. Markdown output needs its own rhythm; the app's
+   utility classes never touch it because the HTML comes from the compiler,
+   not from a template. Body text is a real reading size (~17px on a ~1.7
+   line). Moved here from [...slug].astro so /about can share it. */
+.pp-prose {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+/* The opening paragraph is the lede: a touch larger and in full ink, so the
+   article starts with a voice instead of a grey block. */
+.pp-prose > p:first-child {
+  font-size: 1.16rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.pp-prose h2 {
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 1.4rem;
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  padding-bottom: 0.4rem;
+  letter-spacing: -0.015em;
+  border-bottom: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  /* Anchored headings shouldn't hide under the sticky nav. */
+  scroll-margin-top: calc(var(--pp-nav) + 1rem);
+}
+.pp-prose h3 {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1.12rem;
+  margin-top: 0.75rem;
+  scroll-margin-top: calc(var(--pp-nav) + 1rem);
+}
+.pp-prose ul,
+.pp-prose ol {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: 1.3rem;
+}
+.pp-prose ul { list-style: disc; }
+.pp-prose ol { list-style: decimal; }
+.pp-prose li::marker { color: var(--accent); font-weight: 700; }
+.pp-prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pp-prose strong { color: var(--ink); }
+.pp-prose blockquote {
+  padding: 0.8rem 1.1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 calc(var(--radius) * 0.6) calc(var(--radius) * 0.6) 0;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--ink);
+  font-style: italic;
+}
+.pp-prose blockquote p + p { margin-top: 0.5rem; }
+.pp-prose hr {
+  border: 0;
+  height: 1px;
+  background: var(--border);
+  margin-block: 0.5rem;
+}
+/* Tables (research/metrics tables in posts) scroll inside their own box on
+   narrow screens instead of stretching the page. */
+.pp-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+.pp-prose th,
+.pp-prose td {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.pp-prose th {
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elev));
+  color: var(--ink);
+}
+@media (max-width: 40rem) {
+  .pp-prose table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+.pp-prose code {
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.pp-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}

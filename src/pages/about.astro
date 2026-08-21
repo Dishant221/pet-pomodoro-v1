@@ -1,53 +1,77 @@
 ---
+import { getCollection } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
+import BlogSidebar from '../components/BlogSidebar.astro';
+import PostToc from '../components/PostToc.astro';
 import { SITE } from '../site';
+import { sortByDate, tagLabel, tagSlug } from '../blog/util';
+import heroShot from '../assets/about/cat-napping-on-desk.jpg';
+import companionsShot from '../assets/about/dog-and-cat-napping.jpg';
 
 /**
- * The About page, written as a real article rather than a card grid.
+ * The About page, styled and structured as a blog article — same breadcrumb,
+ * hero image with CC attribution, prose typography, in-article index and
+ * right rail as every post — so the whole site reads as one publication.
  *
  * Two audiences read an about page and both are looking for the same thing:
- * evidence that a person stands behind the site. A visitor deciding whether to
- * trust it with a daily habit, and a search engine's quality systems deciding
- * whether the site has E-E-A-T — experience, expertise, authority, trust.
- * Google's reviewer guidelines explicitly send raters to the about page to
- * find out who runs a site, which is why this page names the maker instead of
- * hiding behind the product.
+ * evidence that a person stands behind the site. A visitor deciding whether
+ * to trust it with a daily habit, and a search engine's quality systems
+ * deciding whether the site has E-E-A-T. Google's reviewer guidelines
+ * explicitly send raters to the about page to find out who runs a site,
+ * which is why this page names the maker instead of hiding behind the
+ * product.
  *
- * Written answer-first, like FocusLanding: every heading is a question or a
- * claim, and the first sentence under it is the answer. That is what an AI
- * assistant quoting this page will lift verbatim, and it is also the clearest
- * way to write.
+ * It is also the page that states, in one place, what the site is *about* —
+ * the Pomodoro Technique, ADHD-friendly time structure, and the gentler
+ * mental-health corner of productivity — with the research table and the
+ * internal links that anchor those topics. Written answer-first: every
+ * heading is a question or a claim, and the first sentence under it is the
+ * answer.
  *
- * IMAGES — none are shipped yet, deliberately. Each slot below is a
- * commented-out <figure> with the exact file path, dimensions, subject and
- * alt text already decided, so adding an image is: save the file at the path,
- * uncomment the import and the figure, done. All images must be same-origin
- * (the CSP allows img-src 'self' only) — put them in src/assets/about/ so
- * Astro fingerprints, optimises and sets width/height on them, which is what
- * prevents layout shift (CLS), a Core Web Vitals ranking factor.
- *
- * When the images exist, uncomment these imports too:
+ * Images are same-origin (CSP allows img-src 'self' only) and CC-licensed
+ * from Openverse with visible attribution, same pipeline as the blog covers.
  */
-// import { Image } from 'astro:assets';
-// import heroShot from '../assets/about/petpomo-focus-session.png';
-// import scenesShot from '../assets/about/petpomo-scenes.png';
-// import moodsShot from '../assets/about/petpomo-pet-moods.png';
-// import makerPhoto from '../assets/about/dishant-totade.jpg';
 
 const canonical = new URL('/about/', Astro.site).href;
+
+const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+
+// The topics this page (and the whole site) is about — rendered as the same
+// tag chips articles carry, linking into the topic archives.
+const topics = ['pomodoro', 'adhd', 'mental health', 'focus'];
+
+// The in-article index, in the same component posts use. Anchors must match
+// the section ids below — the id/heading pairs are what Google uses for
+// "jump to" sitelinks in results.
+const headings = [
+  { depth: 2, slug: 'what-is-petpomo', text: 'What is PetPomo?' },
+  { depth: 2, slug: 'what-it-does', text: 'What PetPomo does' },
+  { depth: 3, slug: 'the-timer', text: 'The timer' },
+  { depth: 3, slug: 'the-pet', text: 'The pet' },
+  { depth: 3, slug: 'the-world', text: 'The world' },
+  { depth: 2, slug: 'research', text: 'The research PetPomo leans on' },
+  { depth: 2, slug: 'who-its-for', text: 'Who it is for' },
+  { depth: 2, slug: 'privacy-and-security', text: 'Your data, privacy and security' },
+  { depth: 2, slug: 'how-its-built', text: 'How it is built' },
+  { depth: 2, slug: 'accessibility', text: 'Accessibility' },
+  { depth: 2, slug: 'about-the-maker', text: 'Who makes it' },
+  { depth: 2, slug: 'project-faq', text: 'Questions about the project' },
+];
+
+const ogAsset = await getImage({ src: heroShot, width: 1200, format: 'jpg' });
+const ogImage = new URL(ogAsset.src, Astro.site).href;
 
 /**
  * AboutPage + Person + BreadcrumbList + FAQPage.
  *
- * The FAQ here deliberately asks different questions from the homepage's
- * FAQPage — those are product questions ("is it free", "does it work
- * offline"), these are project questions ("who made it", "how is it funded").
+ * The FAQ deliberately asks different questions from the homepage's FAQPage —
+ * those are product questions ("is it free", "does it work offline"), these
+ * are project questions ("who made it", "does it help with ADHD").
  * Duplicating the same Q&A markup on two URLs is the one way to get FAQ
- * structured data ignored.
+ * structured data ignored. Every question here mirrors the visible dl below.
  *
- * The Person entity is what ties the site to a human for E-E-A-T. Its `url`
- * points at the maker's own site; keep it in step with the visible link in
- * the maker section below.
+ * The Person entity is what ties the site to a human for E-E-A-T.
  */
 const schema = [
   {
@@ -57,7 +81,8 @@ const schema = [
     url: canonical,
     inLanguage: 'en',
     description:
-      'What PetPomo is, how the free pomodoro timer with a virtual pet works, how your data is protected, and who builds it.',
+      'What PetPomo is: a free pomodoro timer with a virtual pet, built around the research on focus, ADHD time perception and gentler mental-health design. How it works, how your data is protected, and who builds it.',
+    image: ogImage,
     mainEntity: {
       '@type': 'WebApplication',
       name: SITE.name,
@@ -65,6 +90,7 @@ const schema = [
       applicationCategory: 'ProductivityApplication',
       operatingSystem: 'Any (web browser)',
       isAccessibleForFree: true,
+      keywords: 'pomodoro timer, pomodoro technique, ADHD focus timer, virtual pet, study timer, mental health, focus',
     },
   },
   {
@@ -73,9 +99,12 @@ const schema = [
     name: 'Dishant Totade',
     url: 'https://tenzinnomad.com',
     jobTitle: 'Software developer',
-    knowsAbout: ['Web development', 'Productivity software', 'The Pomodoro Technique'],
-    // sameAs is where social/profile URLs go when there are ones worth
-    // claiming — GitHub, LinkedIn, X. Add them as absolute URLs.
+    knowsAbout: [
+      'Web development',
+      'Productivity software',
+      'The Pomodoro Technique',
+      'ADHD-friendly design',
+    ],
     sameAs: ['https://tenzinnomad.com'],
   },
   {
@@ -96,6 +125,14 @@ const schema = [
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'PetPomo is a solo project by Dishant Totade, a software developer. Everything — the timer, the animals, the scenes and the sounds — is built by one person.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does PetPomo help with ADHD?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Many people with ADHD find a visible pomodoro countdown genuinely useful, because time-perception differences in ADHD are well documented and an external timer supplies the structure an internal clock does not. PetPomo is a timer, not a treatment, and nothing on the site is medical advice.',
         },
       },
       {
@@ -125,312 +162,352 @@ const schema = [
     ],
   },
 ];
-
-/**
- * The on-page index. Anchors must match the section ids below — the TOC is
- * how a long page stays scannable, and the id/heading pairs are what Google
- * uses for "jump to" sitelinks in results.
- */
-const TOC = [
-  { href: '#what-is-petpomo', label: 'What is PetPomo?' },
-  { href: '#what-it-does', label: 'What it does' },
-  { href: '#who-its-for', label: 'Who it is for' },
-  { href: '#privacy-and-security', label: 'Your data, privacy and security' },
-  { href: '#how-its-built', label: 'How it is built' },
-  { href: '#accessibility', label: 'Accessibility' },
-  { href: '#about-the-maker', label: 'Who makes it' },
-  { href: '#project-faq', label: 'Questions about the project' },
-];
 ---
 
 <Layout
-  title="About PetPomo — Free Pomodoro Timer with a Virtual Pet"
-  description="What PetPomo is, how the free pomodoro timer with a virtual pet works, how your data stays on your device, and who builds it — a solo project by Dishant Totade."
+  title="About PetPomo — a Pomodoro Timer for Focus, ADHD & Calmer Work"
+  description="PetPomo is a free pomodoro timer with a virtual pet — built around the research on focus, ADHD time blindness and gentler mental-health design. What it does, how your data stays yours, and who makes it."
   schema={schema}
+  ogImage={ogImage}
 >
-  {/* .pp-landing for its prose typography; the border-top it carries on the
-      homepage is a seam between the game and the copy, which this page does
-      not have, and main already provides the top spacing. */}
-  <div class="pp-landing" style="border-top: 0; background: transparent;">
-    <article class="pp-landing-inner" style="padding-top: 0;">
-      <header>
-        <h1 id="about-petpomo">About PetPomo</h1>
-        <p class="pp-lede">
-          PetPomo is a free pomodoro timer where a virtual pet keeps you company while you work.
-          Your cat sleeps through each focus session in a hand-painted world that follows your real
-          time of day, your local weather and the season — and this page is about the project
-          itself: what it does, why it exists, how it treats your data, and who builds it.
+  {/* Same article + right-rail grid as every blog post. */}
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+    <article class="grid min-w-0 gap-5">
+      <header class="grid gap-2">
+        <nav aria-label="Breadcrumb" class="text-xs" style="color: var(--ink-soft)">
+          <a href="/" class="pp-focus-ring rounded underline underline-offset-2">Home</a>
+          <span aria-hidden="true"> › </span>
+          <span aria-current="page">About</span>
+        </nav>
+        <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">About PetPomo</h1>
+        <p class="flex flex-wrap gap-1.5">
+          {topics.map((t) => (
+            <a href={`/blog/topic/${tagSlug(t)}/`} class="pp-focus-ring pp-tag-chip">
+              {tagLabel(t)}
+            </a>
+          ))}
         </p>
       </header>
 
-      <nav aria-label="On this page">
-        <h2 class="sr-only">On this page</h2>
-        <ul class="pp-scenes">
-          {TOC.map((item) => (
-            <li><a href={item.href}>{item.label}</a></li>
-          ))}
-        </ul>
-      </nav>
-
-      <h2 id="what-is-petpomo">What is PetPomo?</h2>
-      <p>
-        PetPomo is a <a href="/">pomodoro focus timer</a> and a virtual pet in one page. The
-        Pomodoro Technique — 25 minutes of work, a 5-minute break, a longer break every fourth
-        round — works because it turns an endless task into a bounded one. PetPomo adds the half
-        the technique usually loses: a reason to actually take the break. When the bell rings,
-        someone small and furry has been waiting for you.
-      </p>
-      <p>
-        There is nothing to install and no account to create. Open the page, press Start, and your
-        pet curls up beside the countdown. It runs in any modern browser and keeps working with the
-        internet switched off.
-      </p>
-
-      {/* ── IMAGE SLOT 1 · hero screenshot ─────────────────────────────────
-          File:    src/assets/about/petpomo-focus-session.png
-          Size:    1600×900 (16:9), PNG or WebP, under ~250 KB
-          Subject: a real gameplay screenshot — the garden scene at golden
-                   hour, the cat asleep, the timer mid-session. This is the
-                   one image that shows what the product IS; take it from the
-                   live site at a clean 1600×900 browser window.
-          Why:     the first image on the page is what Google Images and
-                   Discover surface for "petpomo"; it should be gameplay,
-                   not a logo.
-          To ship: save the file, uncomment the `Image` and `heroShot`
-                   imports in the frontmatter, then this figure. */}
-      {/*
-      <figure>
+      <figure class="pp-post-hero">
         <Image
           src={heroShot}
-          alt="PetPomo mid-session: a cat sleeps in a hand-painted garden at golden hour while the pomodoro timer counts down"
+          alt="A fluffy white cat asleep on top of paperwork on a busy desk"
+          width={1280}
           loading="eager"
           fetchpriority="high"
         />
-        <figcaption>A focus session in the garden scene, late afternoon.</figcaption>
+        <figcaption class="pp-post-credit">
+          <a href="https://www.flickr.com/photos/93969271@N03/13628519445" rel="noopener nofollow" target="_blank">
+            Photo: 'Lazy Thing' by MarLeah Joy, CC BY 2.0
+          </a>
+        </figcaption>
       </figure>
-      */}
 
-      <h2 id="what-it-does">What PetPomo does</h2>
+      <PostToc headings={headings} />
 
-      <h3>The timer</h3>
-      <p>
-        A pomodoro timer with configurable focus and break lengths, a countdown that also runs in
-        the browser tab title, and an end time stored as an absolute moment — so it stays accurate
-        through page refreshes, backgrounded tabs and a laptop lid closed mid-session. Focused
-        minutes earn coins; abandoned sessions are simply not counted.
-      </p>
+      <div class="pp-prose grid gap-5" style="color: var(--ink-soft)">
+        <p>
+          PetPomo is a free pomodoro timer where a virtual pet keeps you company while you work.
+          Your cat sleeps through each focus session in a hand-painted world that follows your real
+          time of day, your local weather and the season — and this page is about the project
+          itself: what it does, the research on focus, ADHD and mental health it leans on, how it
+          treats your data, and who builds it.
+        </p>
 
-      <h3>The pet</h3>
-      <p>
-        Your pet has a mood you can read at a glance, and that mood is the sum of how you have
-        treated it, not a random number. It sleeps while you focus, wakes and celebrates when the
-        bell rings, gets hungry between sessions, purrs when stroked and plays when poked. Skip
-        your breaks and it notices. Coins buy new animals, snacks, scenes and themes in the{' '}
-        <a href="/shop">shop</a>.
-      </p>
+        <h2 id="what-is-petpomo">What is PetPomo?</h2>
+        <p>
+          PetPomo is a <a href="/">pomodoro focus timer</a> and a virtual pet in one page. The{' '}
+          <a href="/what-is-the-pomodoro-technique/">Pomodoro Technique</a> — 25 minutes of work, a
+          5-minute break, a longer break every fourth round — works because it turns an endless
+          task into a bounded one. PetPomo adds the half the technique usually loses: a reason to
+          actually take the break. When the bell rings, someone small and furry has been waiting
+          for you.
+        </p>
+        <p>
+          There is nothing to install and no account to create. Open the page, press Start, and
+          your pet curls up beside the countdown. It runs in any modern browser and keeps working
+          with the internet switched off.
+        </p>
 
-      {/* ── IMAGE SLOT 2 · pet moods strip ─────────────────────────────────
-          File:    src/assets/about/petpomo-pet-moods.png
-          Size:    1600×600, PNG or WebP, under ~200 KB
-          Subject: the cat in four or five poses side by side — sleeping,
-                   waking, eating, petted, sad. The pose SVGs already exist
-                   in src/assets/pet/, so this can be composed from them
-                   rather than screenshotted.
-          Why:     shows the emotional range of the pet, which is the
-                   product's actual differentiator. */}
-      {/*
-      <figure>
-        <Image
-          src={moodsShot}
-          alt="The PetPomo cat in five moods: sleeping through a session, waking, eating a snack, being petted, and sad after a skipped break"
-          loading="lazy"
-        />
-        <figcaption>The same cat, depending on how the day went.</figcaption>
-      </figure>
-      */}
+        <h2 id="what-it-does">What PetPomo does</h2>
 
-      <h3>The world</h3>
-      <p>
-        The scenes are painted, not photographed, and never quite the same twice. The world runs on
-        your device's clock, so dawn is dawn where you are; it reads your local weather and paints
-        it — cloud, fog, rain you can hear, snow, storms with distant lightning; and it follows the
-        season the right way round for your hemisphere. Every sound is synthesised in the browser,
-        so nothing is downloaded and nothing plays until you allow it.
-      </p>
+        <h3 id="the-timer">The timer</h3>
+        <p>
+          A pomodoro timer with configurable focus and break lengths, a countdown that also runs in
+          the browser tab title, and an end time stored as an absolute moment — so it stays
+          accurate through page refreshes, backgrounded tabs and a laptop lid closed mid-session.
+          Focused minutes earn coins; abandoned sessions are simply not counted.
+        </p>
 
-      {/* ── IMAGE SLOT 3 · scenes collage ──────────────────────────────────
-          File:    src/assets/about/petpomo-scenes.png
-          Size:    1600×900, 2×2 grid, PNG or WebP, under ~300 KB
-          Subject: four scenes at four times of day — e.g. garden at dawn,
-                   mountain at noon, treehouse at dusk, snow scene at night
-                   with stars. Screenshots from the live site, or composed
-                   from src/assets/scenes/.
-          Why:     "aesthetic study timer" searches are image-led; this is
-                   the image that earns those clicks. */}
-      {/*
-      <figure>
-        <Image
-          src={scenesShot}
-          alt="Four PetPomo scenes: the garden at dawn, the mountain at noon, the treehouse at dusk and the snow scene under a starry night"
-          loading="lazy"
-        />
-        <figcaption>The world follows your clock, your weather and your season.</figcaption>
-      </figure>
-      */}
+        <h3 id="the-pet">The pet</h3>
+        <p>
+          Your pet has a mood you can read at a glance, and that mood is the sum of how you have
+          treated it, not a random number. It sleeps while you focus, wakes and celebrates when the
+          bell rings, gets hungry between sessions, purrs when stroked and plays when poked. Skip
+          your breaks and it notices. Coins buy new animals, snacks, scenes and themes in the{' '}
+          <a href="/shop">shop</a>.
+        </p>
 
-      <h2 id="who-its-for">Who PetPomo is for</h2>
-      <p>
-        PetPomo sits in a particular corner of productivity software: it is a cosy focus tool, not
-        a dashboard. If a spreadsheet of your own output motivates you, there are excellent apps
-        for that. PetPomo is for the people it quietly leaves behind:
-      </p>
-      <ul class="pp-scenes">
-        <li>
-          <strong>Students</strong> who want an aesthetic study timer they can leave open beside
-          their notes — something that makes a two-hour library session feel kept-company rather
-          than surveilled.
-        </li>
-        <li>
-          <strong>Remote workers</strong> whose day has no natural edges, and who need the break
-          bell more than the focus bell.
-        </li>
-        <li>
-          <strong>People with ADHD</strong> who work better against an external clock than against
-          their own sense of time. A visible countdown gives a task an edge and a finish that
-          arrives regardless — though PetPomo is a timer, not a treatment, and nothing here is
-          medical advice.
-        </li>
-        <li>
-          <strong>Anyone who abandons habit apps</strong>, because a streak counter never noticed
-          they were gone. A pet does. That is the whole design bet: a habit accumulates more easily
-          in a relationship than in a number.
-        </li>
-      </ul>
+        <figure>
+          <Image
+            src={companionsShot}
+            alt="A dog and a black-and-white cat curled up asleep together in a shared pet bed"
+            loading="lazy"
+          />
+          <figcaption class="pp-post-credit">
+            Company while you rest — the other half of the method.{' '}
+            <a href="https://www.flickr.com/photos/81724454@N00/276327711" rel="noopener nofollow" target="_blank">
+              Photo: 'Hugs / Abrazos' by Marianne Perdomo, CC BY-SA 2.0
+            </a>
+          </figcaption>
+        </figure>
 
-      <h2 id="privacy-and-security">Your data, privacy and security</h2>
-      <p>
-        <strong>Everything lives in your browser's local storage.</strong> There is no account, no
-        tracking pixel, no analytics script, and nothing is uploaded. Cloud sync is opt-in: turn it
-        on in <a href="/settings">Settings</a> and your save is stored under a random code that
-        only your browser holds, so the server keeps a save without ever learning whose it is.
-      </p>
-      <p>
-        The weather feature never asks for your location. It uses the approximate area our host
-        already attaches to every web request, rounded to about eleven kilometres before use — and
-        the site's security policy denies itself the geolocation permission outright, so that is a
-        guarantee the browser enforces rather than a promise.
-      </p>
-      <p>
-        The same posture runs through the whole site: a strict Content-Security-Policy so only the
-        site's own code can run, no third-party scripts or fonts, HTTPS enforced with two-year
-        HSTS, and the page refuses to be embedded in other sites' frames. The details are in the{' '}
-        <a href="/privacy">privacy policy</a>.
-      </p>
+        <h3 id="the-world">The world</h3>
+        <p>
+          The scenes are painted, not photographed, and never quite the same twice. The world runs
+          on your device's clock, so dawn is dawn where you are; it reads your local weather and
+          paints it — cloud, fog, rain you can hear, snow, storms with distant lightning; and it
+          follows the season the right way round for your hemisphere. Every sound is synthesised in
+          the browser, so nothing is downloaded and nothing plays until you allow it.
+        </p>
 
-      <h2 id="how-its-built">How PetPomo is built</h2>
-      <p>
-        Astro renders every page to static HTML, Preact runs the game, GSAP animates it, Tailwind
-        styles it, and Cloudflare Pages serves it. The animals and scenes are hand-authored SVG,
-        inlined into the bundle so the whole game works offline after the first load. Every sound
-        effect — the bell, the rain, the purr, the meow — is synthesised with the Web Audio API in
-        your browser; no audio files are shipped at all.
-      </p>
-      <p>
-        More on the thinking behind it, and on the technique itself, on the{' '}
-        <a href="/blog">blog</a>.
-      </p>
+        <h2 id="research">Pomodoro, ADHD and mental health: the research PetPomo leans on</h2>
+        <p>
+          PetPomo is a timer, not a treatment — but its design choices are not arbitrary. The
+          bounded interval, the enforced break, the visible countdown and the small creature are
+          each borrowed from findings that have held up:
+        </p>
 
-      <h2 id="accessibility">Accessibility</h2>
-      <p>
-        Reduced motion is honoured automatically from your OS setting and can be forced on in
-        Settings — it disables parallax, particles and every looping animation while keeping each
-        pose readable. Audio starts muted and never plays without consent. All controls are
-        keyboard reachable, and the page works as plain readable text before any script runs.
-      </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Finding</th>
+              <th>Key numbers</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Brief breaks keep attention from decaying over long tasks</td>
+              <td>Performance held steady across 50 minutes only with two short breaks</td>
+              <td>
+                <a href="https://doi.org/10.1016/j.cognition.2010.12.007" rel="noopener" target="_blank">Ariga &amp; Lleras, <em>Cognition</em> (2011)</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Time perception measurably differs in ADHD, which is why external timers help</td>
+              <td>Consistent deficits in estimating and reproducing durations</td>
+              <td>
+                <a href="https://doi.org/10.12659/MSM.914225" rel="noopener" target="_blank">Ptacek et al., <em>Medical Science Monitor</em> (2019)</a>
+              </td>
+            </tr>
+            <tr>
+              <td>ADHD is common — in children and in adults</td>
+              <td>~7.2% of children; ~2.5% of adults</td>
+              <td>
+                <a href="https://doi.org/10.1542/peds.2014-3482" rel="noopener" target="_blank">Thomas et al., <em>Pediatrics</em> (2015)</a>;{' '}
+                <a href="https://doi.org/10.1192/bjp.bp.107.048827" rel="noopener" target="_blank">Simon et al., <em>Br J Psychiatry</em> (2009)</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Interacting with animals lowers stress markers</td>
+              <td>Review of 69 studies: reduced cortisol, blood pressure and heart rate</td>
+              <td>
+                <a href="https://doi.org/10.3389/fpsyg.2012.00234" rel="noopener" target="_blank">Beetz et al., <em>Frontiers in Psychology</em> (2012)</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Loneliness is a genuine health risk, not a mood</td>
+              <td>Meta-analysis of 70 studies: ~26% higher mortality risk</td>
+              <td>
+                <a href="https://doi.org/10.1177/1745691614568352" rel="noopener" target="_blank">Holt-Lunstad et al., <em>Perspect Psychol Sci</em> (2015)</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Habits take months, not a fortnight — so returning must stay cheap</td>
+              <td>Median 66 days to automaticity; a single missed day did no harm</td>
+              <td>
+                <a href="https://doi.org/10.1002/ejsp.674" rel="noopener" target="_blank">Lally et al., <em>Eur J Soc Psychol</em> (2010)</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h2 id="about-the-maker">Who makes PetPomo</h2>
-      {/*
-        TODO(dishant): this section is written in your voice with only the
-        facts that are safely true — verify and expand it yourself before it
-        ships. A sentence about why YOU built it, in your own words, is worth
-        more for trust (and for Google's E-E-A-T raters) than anything
-        generated. If you add a claim (years of experience, past projects),
-        make sure it is accurate — this page is the one raters check.
-      */}
-      <p>
-        PetPomo is a solo project. I'm <strong>Dishant Totade</strong>, a software developer, and I
-        build, draw and maintain all of it — the timer, the animals, the scenes and the synthesised
-        sounds. It exists because I wanted a focus timer that felt like a place rather than a
-        stopwatch, and because the break is the half of the Pomodoro Technique everyone skips,
-        including me.
-      </p>
-      {/*
-        NOTE(dishant): tenzinnomad.com currently serves an unpublished
-        "waiting to be published" placeholder (checked 2026-08-22). Linking to
-        a blank page from the trust section of an about page does more harm
-        than good — for a visitor and for Google. The link below is therefore
-        commented out. When the site is live: uncomment it, describe in one
-        honest sentence what the site actually is, and keep the Person
-        schema's `url`/`sameAs` above in step with it.
-      */}
-      {/*
-      <p>
-        Away from PetPomo I write at{' '}
-        <a href="https://tenzinnomad.com" rel="me noopener noreferrer">tenzinnomad.com</a>.
-      </p>
-      */}
-      <p>
-        The best way to reach me about PetPomo — a bug, an idea, an animal you wish existed — is
-        the <a href="/contact">contact page</a>.
-      </p>
+        <p>
+          The blog goes deeper on each thread: <a href="/pomodoro-technique-adhd/">whether the
+          Pomodoro Technique works for ADHD</a>, <a href="/adhd-time-blindness/">time blindness and
+          how to make time visible</a>, <a href="/why-a-virtual-pet-helps-you-focus/">why a virtual
+          pet makes focus timers stick</a>, and <a href="/can-a-virtual-pet-help-with-loneliness/">
+          an honest look at virtual pets and loneliness</a>. The honest caveats live there too —
+          the animal studies used real animals, and nothing here is medical advice.
+        </p>
 
-      {/* ── IMAGE SLOT 4 · maker photo (optional but valuable) ─────────────
-          File:    src/assets/about/dishant-totade.jpg
-          Size:    800×800 square, JPG, under ~120 KB
-          Subject: a real photo of Dishant — casual is fine; a real face is
-                   the point. An illustrated avatar in the site's art style
-                   also works if a photo is not wanted, but it must be
-                   consistent everywhere it appears.
-          Why:     a named maker with a face is the strongest E-E-A-T signal
-                   an about page can carry. If used, also add the image URL
-                   to the Person schema above as `image`. */}
-      {/*
-      <figure style="max-width: 16rem;">
-        <Image src={makerPhoto} alt="Dishant Totade, the developer of PetPomo" loading="lazy" />
-      </figure>
-      */}
+        <h2 id="who-its-for">Who PetPomo is for</h2>
+        <p>
+          PetPomo sits in a particular corner of productivity software: it is a cosy focus tool,
+          not a dashboard. If a spreadsheet of your own output motivates you, there are excellent
+          apps for that. PetPomo is for the people it quietly leaves behind:
+        </p>
+        <ul>
+          <li>
+            <strong>Students</strong> who want an aesthetic study timer they can leave open beside
+            their notes — something that makes a two-hour library session feel kept-company rather
+            than surveilled.
+          </li>
+          <li>
+            <strong>Remote workers</strong> whose day has no natural edges, and who need the break
+            bell more than the focus bell — the <a href="/working-from-home-isolation/">isolation
+            nobody schedules for</a> is real, and ambient presence is part of the answer.
+          </li>
+          <li>
+            <strong>People with ADHD</strong> who work better against an external clock than
+            against their own sense of time. A visible countdown gives a task an edge and a finish
+            that arrives regardless — though PetPomo is a timer, not a treatment, and nothing here
+            is medical advice.
+          </li>
+          <li>
+            <strong>Anyone minding their mental health at work</strong> — who wants the day to
+            alternate between honest effort and honest rest, without a tool that shames the thin
+            weeks. The cat gets sad; it never dies, and nothing is ever destroyed.
+          </li>
+          <li>
+            <strong>Anyone who abandons habit apps</strong>, because a streak counter never noticed
+            they were gone. A pet does. That is the whole design bet: a habit accumulates more
+            easily in a relationship than in a number.
+          </li>
+        </ul>
 
-      <h2 id="project-faq">Questions about the project</h2>
-      <dl class="pp-faq">
-        <dt>Who made PetPomo?</dt>
-        <dd>
-          One person — Dishant Totade, a software developer. There is no company and no team behind
-          it.
-        </dd>
+        <h2 id="privacy-and-security">Your data, privacy and security</h2>
+        <p>
+          <strong>Everything lives in your browser's local storage.</strong> There is no account,
+          no tracking pixel, no analytics script, and nothing is uploaded. Cloud sync is opt-in:
+          turn it on in <a href="/settings">Settings</a> and your save is stored under a random
+          code that only your browser holds, so the server keeps a save without ever learning
+          whose it is.
+        </p>
+        <p>
+          The weather feature never asks for your location. It uses the approximate area our host
+          already attaches to every web request, rounded to about eleven kilometres before use —
+          and the site's security policy denies itself the geolocation permission outright, so that
+          is a guarantee the browser enforces rather than a promise.
+        </p>
+        <p>
+          The same posture runs through the whole site: a strict Content-Security-Policy so only
+          the site's own code can run, no third-party scripts or fonts, HTTPS enforced with
+          two-year HSTS, and the page refuses to be embedded in other sites' frames. The details
+          are in the <a href="/privacy">privacy policy</a>.
+        </p>
 
-        <dt>How is PetPomo funded?</dt>
-        <dd>
-          It is a personal project that costs very little to run. There is nothing to buy: coins
-          are earned by focusing and can only be spent inside the game.
-        </dd>
+        <h2 id="how-its-built">How PetPomo is built</h2>
+        <p>
+          Astro renders every page to static HTML, Preact runs the game, GSAP animates it,
+          Tailwind styles it, and Cloudflare Pages serves it. The animals and scenes are
+          hand-authored SVG, inlined into the bundle so the whole game works offline after the
+          first load. Every sound effect — the bell, the rain, the purr, the meow — is synthesised
+          with the Web Audio API in your browser; no audio files are shipped at all.
+        </p>
+        <p>
+          More on the thinking behind it, and on the technique itself, on the{' '}
+          <a href="/blog">blog</a>.
+        </p>
 
-        <dt>Does PetPomo collect or sell my data?</dt>
-        <dd>
-          No. Your progress lives in your own browser, sync is opt-in and pseudonymous, and nothing
-          is sold or shared with anyone. The <a href="/privacy">privacy policy</a> is short because
-          there is little to disclose.
-        </dd>
+        <h2 id="accessibility">Accessibility</h2>
+        <p>
+          Reduced motion is honoured automatically from your OS setting and can be forced on in
+          Settings — it disables parallax, particles and every looping animation while keeping each
+          pose readable. Audio starts muted and never plays without consent. All controls are
+          keyboard reachable, and the page works as plain readable text before any script runs.
+        </p>
 
-        <dt>How do I report a bug or suggest a feature?</dt>
-        <dd>
-          Through the <a href="/contact">contact page</a>. Reports that mention your browser and
-          what you were doing when it happened get fixed fastest.
-        </dd>
-      </dl>
+        <h2 id="about-the-maker">Who makes PetPomo</h2>
+        {/*
+          TODO(dishant): this section is written in your voice with only the
+          facts that are safely true — verify and expand it yourself before it
+          ships. A sentence about why YOU built it, in your own words, is worth
+          more for trust (and for Google's E-E-A-T raters) than anything
+          generated. If you add a claim (years of experience, past projects),
+          make sure it is accurate — this page is the one raters check.
+        */}
+        <p>
+          PetPomo is a solo project. I'm <strong>Dishant Totade</strong>, a software developer, and
+          I build, draw and maintain all of it — the timer, the animals, the scenes and the
+          synthesised sounds. It exists because I wanted a focus timer that felt like a place
+          rather than a stopwatch, and because the break is the half of the Pomodoro Technique
+          everyone skips, including me.
+        </p>
+        {/*
+          NOTE(dishant): tenzinnomad.com currently serves an unpublished
+          "waiting to be published" placeholder (checked 2026-08-22). Linking
+          to a blank page from the trust section of an about page does more
+          harm than good. When the site is live: add the link here and keep
+          the Person schema's url/sameAs in step with it.
+        */}
+        <p>
+          The best way to reach me about PetPomo — a bug, an idea, an animal you wish existed — is
+          the <a href="/contact">contact page</a>.
+        </p>
 
-      <p class="pp-landing-more">
-        Ready to try it? <a href="/">Start a focus session</a> — your pet is already waiting.
-      </p>
+        {/* ── IMAGE SLOT · maker photo (optional but valuable) ───────────────
+            File:    src/assets/about/dishant-totade.jpg
+            Size:    800×800 square, JPG, under ~120 KB
+            Subject: a real photo of Dishant — casual is fine; a real face is
+                     the point.
+            Why:     a named maker with a face is the strongest E-E-A-T signal
+                     an about page can carry. If used, also add the image URL
+                     to the Person schema above as `image`. */}
+
+        <h2 id="project-faq">Questions about the project</h2>
+        <dl class="pp-faq">
+          <dt>Who made PetPomo?</dt>
+          <dd>
+            One person — Dishant Totade, a software developer. There is no company and no team
+            behind it.
+          </dd>
+
+          <dt>Does PetPomo help with ADHD?</dt>
+          <dd>
+            Many people with ADHD find a visible pomodoro countdown genuinely useful — time
+            perception differences in ADHD are well documented, and an external timer supplies the
+            structure an internal clock does not. The honest, mixed answer is in{' '}
+            <a href="/pomodoro-technique-adhd/">the full article</a>. PetPomo is a timer, not a
+            treatment, and nothing on this site is medical advice.
+          </dd>
+
+          <dt>How is PetPomo funded?</dt>
+          <dd>
+            It is a personal project that costs very little to run. There is nothing to buy: coins
+            are earned by focusing and can only be spent inside the game.
+          </dd>
+
+          <dt>Does PetPomo collect or sell my data?</dt>
+          <dd>
+            No. Your progress lives in your own browser, sync is opt-in and pseudonymous, and
+            nothing is sold or shared with anyone. The <a href="/privacy">privacy policy</a> is
+            short because there is little to disclose.
+          </dd>
+
+          <dt>How do I report a bug or suggest a feature?</dt>
+          <dd>
+            Through the <a href="/contact">contact page</a>. Reports that mention your browser and
+            what you were doing when it happened get fixed fastest.
+          </dd>
+        </dl>
+
+        <p>
+          Ready to try it? <a href="/">Start a focus session</a> — your pet is already waiting.
+        </p>
+      </div>
+
+      <aside class="pp-card p-5 text-sm" style="color: var(--ink-soft)">
+        <p>
+          <strong style="color: var(--ink)">PetPomo</strong> is a free pomodoro timer with a cat
+          who naps while you focus. <a href="/" class="underline underline-offset-2">Start a
+          session</a> — no account needed.
+        </p>
+      </aside>
     </article>
+
+    <BlogSidebar posts={posts} headings={headings} />
   </div>
 </Layout>

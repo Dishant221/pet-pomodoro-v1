@@ -106,6 +106,21 @@ cat is deliberately boring. It changes state exactly when the information
 changes, and does nothing in between — which is all you want from an
 instrument you'll be sitting next to for half an hour.
 
+## The research behind the metaphor
+
+"An instrument that reads wrong" is a metaphor, but the mismeasurement it
+points at is one of the better-documented findings in the ADHD literature:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Timing deficits in ADHD appear across duration estimation, reproduction and discrimination tasks | Review of neurocognitive and neuroimaging studies, children and adults | [Noreika et al., *Neuropsychologia* (2013)](https://doi.org/10.1016/j.neuropsychologia.2012.09.036) |
+| The time-perception gap has direct clinical consequences — missed deadlines, chronic lateness, misjudged task lengths | Review of time-perception studies and their day-to-day implications | [Ptacek et al., *Medical Science Monitor* (2019)](https://doi.org/10.12659/MSM.914225) |
+| The population affected is large | ~7.2% of children and ~2.5% of adults meet ADHD criteria | [Thomas et al., *Pediatrics* (2015)](https://doi.org/10.1542/peds.2014-3482); [Simon et al., *British Journal of Psychiatry* (2009)](https://doi.org/10.1192/bjp.bp.107.048827) |
+
+Note what the research does *not* say: it does not say practice fixes it.
+Which is the argument for externalising time rather than training the sense —
+and the argument of the next section.
+
 ## You don't fix the sense; you furnish the room
 
 Nobody practises their way into a normal time-sense, and the attempt mostly

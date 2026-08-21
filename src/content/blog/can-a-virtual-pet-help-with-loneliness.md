@@ -98,6 +98,23 @@ improving solitude — making chosen aloneness warmer, more structured, more
 inhabited. It is only mildly useful against loneliness, and useless against
 the severe kind.
 
+## What the studies actually show
+
+The research picture matches the honest answer above — real effects, narrow
+scope, and nothing that supports the word "cure":
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Loneliness is a genuine health risk, not a mood | Meta-analysis of 70 studies: loneliness raised mortality risk ~26%, social isolation ~29%, living alone ~32% | [Holt-Lunstad et al., *Perspectives on Psychological Science* (2015)](https://doi.org/10.1177/1745691614568352) |
+| A companion robot measurably reduced loneliness in a randomized trial | Residents of a care facility who spent time with the PARO robot showed decreased loneliness versus controls | [Robinson et al., *JAMDA* (2013)](https://doi.org/10.1016/j.jamda.2013.02.007) |
+| Interaction with animals has measurable calming effects | Review of 69 studies: lower cortisol, blood pressure and heart rate; effects strongest with real animals | [Beetz et al., *Frontiers in Psychology* (2012)](https://doi.org/10.3389/fpsyg.2012.00234) |
+
+Two caveats belong next to that table. The robot study was run with elderly
+residents and an expensive, touch-responsive robot — a browser cat is a much
+smaller intervention. And the first row cuts both ways: loneliness being a
+real health risk is exactly why the severe kind deserves a professional, not
+an app.
+
 ## Where it honestly fits
 
 Think of it as one small, cheap layer in a larger arrangement: real people

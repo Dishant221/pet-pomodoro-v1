@@ -69,6 +69,25 @@ feel like a reunion, not an inspection.
 
 A tool that makes you dread opening it is not a productivity tool.
 
+## What the research offers
+
+Nobody has run a trial on pixel cats and pomodoros specifically. What exists
+is solid research on the ingredients — care, presence, and how long habits
+actually take:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Interacting with animals lowers stress hormones and raises bonding ones | Review of 69 studies: reduced cortisol, blood pressure and heart rate; oxytocin proposed as the shared mechanism | [Beetz et al., *Frontiers in Psychology* (2012)](https://doi.org/10.3389/fpsyg.2012.00234) |
+| An animal's presence beats a friend's for staying calm under pressure | Stress reactivity during hard tasks was lowest with a pet present — lower than with a friend or spouse | [Allen et al., *Psychosomatic Medicine* (2002)](https://doi.org/10.1097/00006842-200209000-00005) |
+| People treat even robotic pets as social companions | Children directed real social behaviour at a robot dog, not just at live dogs | [Melson et al., *Journal of Social Issues* (2009)](https://doi.org/10.1111/j.1540-4560.2009.01613.x) |
+| Habits need far longer than a fortnight to stick | Median 66 days to automaticity (range 18–254) — most apps are abandoned long before the habit had a chance | [Lally et al., *European Journal of Social Psychology* (2010)](https://doi.org/10.1002/ejsp.674) |
+
+The honest reading: the calming effects are best documented for real animals,
+and a virtual pet inherits them only partially. The Melson finding is the
+interesting one — the social response survives the animal being artificial —
+and the Lally numbers explain why a reason to come back matters more than any
+feature.
+
 ## Does it actually work?
 
 For some people, plainly yes; for others a bare timer is better, and there is

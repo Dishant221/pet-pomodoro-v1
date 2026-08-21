@@ -90,6 +90,22 @@ as anyone [hunting focus between meetings](/focus-blocks-between-meetings/)
 already knows. One clean session in a fragmented day outweighs a whole
 morning of interleaved everything.
 
+## The tax, measured
+
+The reload cost is not a productivity-blog invention; it is one of the most
+consistently measured effects in attention research:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Interrupted office work takes a long time to resume | Field studies found workers took on the order of 23 minutes to return to an interrupted task | [Mark, Gudith & Klocke, *CHI* (2008)](https://doi.org/10.1145/1357054.1357072) |
+| People compensate by working faster — and pay in stress | Interrupted work was completed faster but with significantly higher stress, frustration and time pressure | [Mark, Gudith & Klocke, *CHI* (2008)](https://doi.org/10.1145/1357054.1357072) |
+| Task switching carries measurable time costs even in the lab | Switch costs rose with task complexity; repeated switching can consume a large share of productive time | [Rubinstein, Meyer & Evans, *JEP: Human Perception and Performance* (2001)](https://doi.org/10.1037/0096-1523.27.4.763) |
+| Attention doesn't fully move on — part of it stays behind | "Attention residue" from an unfinished task measurably degrades performance on the next one | [Leroy, *Organizational Behavior and Human Decision Processes* (2009)](https://doi.org/10.1016/j.obhdp.2009.04.002) |
+
+Leroy's finding is the scientific version of this article's opening claim:
+you pay for the reload, not the glance — and you start paying before you
+even notice you switched.
+
 ## The notification question
 
 Which leaves notifications, the industrial machinery of the context switch.

@@ -109,6 +109,21 @@ attached replaces the *texture* of the office, not the people. The people
 still need their own arrangements — the standing call with a friend, the
 co-working afternoon, the lunch that actually happens.
 
+## How big the gap really is
+
+The missing kettle queue sounds trivial until you put numbers on what its
+absence does:
+
+| Finding | Key numbers | Source |
+| --- | --- | --- |
+| Loneliness is a persistent top struggle of remote work | Around a quarter of remote workers name loneliness as their biggest difficulty, year after year | [Buffer, State of Remote Work](https://buffer.com/state-of-remote-work) |
+| Loneliness is a health risk on the scale of the famous ones | Meta-analysis of 70 studies: ~26% higher mortality risk with loneliness, ~29% with social isolation | [Holt-Lunstad et al., *Perspectives on Psychological Science* (2015)](https://doi.org/10.1177/1745691614568352) |
+| Time with animals measurably lowers stress markers | Review of 69 studies: reduced cortisol, blood pressure and heart rate during and after animal contact | [Beetz et al., *Frontiers in Psychology* (2012)](https://doi.org/10.3389/fpsyg.2012.00234) |
+
+The third row is the modest scientific basis for the "ambient presence"
+section above — with the honest footnote that the studies were done with real
+animals, and a pixel cat borrows the mechanism rather than replicating it.
+
 ## Schedule the unscheduled
 
 The isolation of remote work persists because it sits in the gap between
