@@ -454,6 +454,31 @@ export function playCoin(): void {
   });
 }
 
+/**
+ * A soft UI tap for button presses.
+ *
+ * Deliberately tiny: two quick triangle blips a hair apart, low peak and a
+ * short decay, so it reads as a tactile "tick" rather than a game sound. It
+ * plays on every button, so anything with a tail or a pitch that draws
+ * attention would wear out its welcome by the third click.
+ */
+export function playTap(): void {
+  if (!ready() || !ctx) return;
+  const c = ctx;
+  const t = c.currentTime;
+  [1180, 1560].forEach((hz, i) => {
+    const osc = c.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = hz;
+    const g = c.createGain();
+    env(g, 0.05, 0.002, 0.045, t + i * 0.012);
+    osc.connect(g);
+    g.connect(bus()!);
+    osc.start(t + i * 0.012);
+    osc.stop(t + i * 0.012 + 0.07);
+  });
+}
+
 /** Session-complete bell: struck partials with a long tail. */
 export function playBell(): void {
   if (!ready() || !ctx) return;

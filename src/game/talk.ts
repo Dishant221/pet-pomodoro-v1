@@ -79,6 +79,32 @@ export const ALLOWED_REPLIES = new Set<string>([
 /** Whether this browser can transcribe. False is not an error — typing works. */
 export const canListen = speechAvailable;
 
+/**
+ * A quick, happy reaction to a plain UI interaction — a button press, not a
+ * sentence. It reuses the same reaction pipeline the conversation uses (bump
+ * `seq` with a whitelisted behaviour and whichever pet is mounted performs it),
+ * and gives the animal its voice: a meow, a bark, whatever this species says.
+ *
+ * Throttled hard, because buttons get clicked in bursts and a pet that yelps on
+ * every one of ten rapid clicks is a nuisance, not a delight. The tap *sound*
+ * itself is not throttled — that lives in `audio.playTap` and is fine to repeat.
+ */
+const POKE_BEHAVIOURS = ['jump', 'play', 'celebrate', 'sit', 'stretch'];
+let lastPokeAt = 0;
+
+export function pokePet(): void {
+  const now = Date.now();
+  if (now - lastPokeAt < 600) return;
+  lastPokeAt = now;
+
+  const behaviour = POKE_BEHAVIOURS[Math.floor(Math.random() * POKE_BEHAVIOURS.length)];
+  patch({ seq: $talk.get().seq + 1, behaviour, tone: 'happy' });
+
+  if (!$profile.get().settings.muted) {
+    void audio.unlock().then(() => audio.playVoice(undefined, { force: true }));
+  }
+}
+
 let handle: ListenHandle | null = null;
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null;
 

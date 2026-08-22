@@ -4,15 +4,26 @@ import Legal from '../layouts/Legal.astro';
 
 <Legal
   title="Cookie Notice"
-  description="PetPomo sets no cookies. Here is exactly what it stores in your browser instead, and why."
-  updated="2026-08-16"
-  intro="PetPomo sets no cookies at all. This page explains what it does use, so you can check for yourself."
+  description="PetPomo sets one strictly-necessary session cookie, and only if you sign in. Here is that cookie, and everything else it stores in your browser."
+  updated="2026-08-22"
+  intro="PetPomo sets exactly one cookie — an essential login-session cookie, and only if you sign in. No advertising or analytics cookies. This page explains that, and what else it uses, so you can check for yourself."
 >
-  <h2>No cookies</h2>
+  <h2>The one cookie: your login session</h2>
   <p>
-    There is no cookie banner here because there is nothing to consent to. PetPomo sets no cookies — not for
-    analytics, not for advertising, not for sessions. You can confirm this in your browser's developer tools under
-    <em>Application → Cookies</em>.
+    If you <a href="/privacy">sign in</a>, the login system sets a single <strong>strictly-necessary session
+    cookie</strong>. It is what keeps you logged in as you move between pages — without it, signing in could not work.
+    It holds only a reference to a session stored on our server, not your details.
+  </p>
+  <ul>
+    <li><strong>HttpOnly</strong> — scripts on the page cannot read it, which limits what a bug could leak.</li>
+    <li><strong>Secure</strong> — it is only ever sent over an encrypted (HTTPS) connection.</li>
+    <li><strong>SameSite</strong> — it is not sent along with requests from other sites.</li>
+  </ul>
+  <p>
+    Because it is strictly necessary to a feature you asked for by signing in, no consent banner is required for it
+    under the GDPR and the ePrivacy rules. Sign out, or never sign in, and it is not set at all. There are
+    <strong>no advertising, analytics or third-party tracking cookies</strong> — you can confirm this in your
+    browser's developer tools under <em>Application → Cookies</em>.
   </p>
 
   <h2>What it does use: local storage</h2>
@@ -39,15 +50,14 @@ import Legal from '../layouts/Legal.astro';
   <p>
     No third-party scripts run on this site — no analytics, no ad network, no embedded widgets, no external fonts.
     The requests the site makes on your behalf all go to its own endpoints: <code>/api/weather</code> for the sky,
-    <code>/api/sync</code> if you turn cloud sync on, and <code>/api/ask</code> when you talk to the pet. All three are
+    <code>/api/sync</code> if you turn cloud sync on, and the sign-in endpoints if you use an account. These are
     described in the <a href="/privacy">privacy policy</a>.
   </p>
   <p>
-    There is one exception worth stating plainly, and it is not a cookie. If you press the microphone button to talk to
-    your pet <strong>in Chrome or Edge</strong>, the browser itself sends the audio to Google's speech service to turn
-    it into text. That is the browser doing it rather than a script of ours, but the effect on you is the same, so it
-    is written down here as well as in the <a href="/privacy">privacy policy</a>. It happens only while you hold that
-    feature open, and never otherwise.
+    One thing worth stating plainly: the <a href="/gifts">Gifts page</a> shows outbound affiliate links to other
+    merchants. PetPomo sets no cookie for these, but <strong>the merchant's own site may set cookies once you click
+    through</strong> to it — the same as following any link to that shop. That happens on their site, under their
+    policy, not here. The <a href="/disclosure">affiliate disclosure</a> covers how those links work.
   </p>
   <p>
     If advertising is added later it will very likely involve cookies. This page and the privacy policy will be

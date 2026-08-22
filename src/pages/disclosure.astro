@@ -1,0 +1,65 @@
+---
+import Legal from '../layouts/Legal.astro';
+---
+
+<Legal
+  title="Affiliate Disclosure"
+  description="Some links on the PetPomo Gifts page are affiliate links. Here is exactly how they work, and what they mean for you."
+  updated="2026-08-22"
+  intro="Some of the links on the Gifts page earn PetPomo a commission. It costs you nothing extra, and here is the whole of how it works."
+>
+  <h2>The short version</h2>
+  <p>
+    The <a href="/gifts">Gifts page</a> — "letters from Mochi" — shows offers, coupons and sponsorships from real
+    merchants. Some of those outbound links are <strong>affiliate links</strong>. If you follow one and buy something,
+    PetPomo may earn a small commission from that merchant.
+  </p>
+  <ul>
+    <li><strong>It costs you nothing extra.</strong> You pay the same price you would by going to the merchant directly.</li>
+    <li><strong>The links are labelled.</strong> Sponsored and affiliate links are marked as such, right where they appear, and they carry <code>rel="sponsored nofollow noopener"</code>.</li>
+    <li><strong>You are never obliged to use them.</strong> The whole game is free and works with or without ever visiting the Gifts page.</li>
+  </ul>
+
+  <h2>Why the disclosure is here and next to the links</h2>
+  <p>
+    The US Federal Trade Commission's endorsement rules (<a href="https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255" rel="noopener noreferrer nofollow" target="_blank">16 CFR Part 255</a>)
+    require a material connection like a commission to be disclosed clearly and near the recommendation, not buried on
+    a page no one reads. So the disclosure sits in two places: at the top of the Gifts page itself, above the letters,
+    and here in full. Each letter also states its kind, and any sponsored letter is stamped as sponsored.
+  </p>
+
+  <h2>How we decide what to feature</h2>
+  <p>
+    Earning a commission never buys a place on the Gifts page. The rule we hold ourselves to is simple: we only feature
+    something we would genuinely point a friend to. A commission does not change whether an offer is worth showing, and
+    an offer we would not recommend is not shown because it pays well. These are the house rules recorded in the
+    project's <code>AFFILIATES.md</code>, which also keeps an append-only ledger of every commercial link the site has
+    ever shown, so the trail is auditable.
+  </p>
+
+  <h2>What this does and does not collect</h2>
+  <p>
+    We do not run any tracking or link-injecting script for this. The links are plain redirects to the merchant. When
+    you click one, <strong>the merchant's own site may set its own cookies</strong> and see the referral, the same as
+    following any link to a shop — that happens on their site, under their policy. PetPomo is not told what you go on to
+    buy; the merchant reports back only anonymous, aggregated commissions.
+  </p>
+  <p>
+    Which offers are shown at all is decided only from the approximate country your host (Cloudflare) attaches to the
+    request, so a US-only deal is not dangled at someone it cannot ship to. That country is used in the moment and not
+    stored. More on all of this is in the <a href="/privacy">privacy policy</a> and the <a href="/cookies">cookie notice</a>.
+  </p>
+
+  <h2>The deal itself is with the merchant</h2>
+  <p>
+    An affiliate link is an introduction, not a sale by us. Any order, payment, delivery, warranty or refund is
+    strictly between you and the merchant, under their terms — see the <a href="/terms">terms of service</a>. Prices
+    and offers are the merchant's and can change or end without notice.
+  </p>
+
+  <h2>Changes and questions</h2>
+  <p>
+    If this ever changes — a new network, a new kind of offer — this page is updated first, and the date above will say
+    when. Questions go to <a href="/contact">the contact page</a>.
+  </p>
+</Legal>

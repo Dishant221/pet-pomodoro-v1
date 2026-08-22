@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { SITE } from '../site';
+import { installButtonFx } from '../game/buttonFx';
 
 /**
  * The 💬 that reaches a human.
@@ -31,6 +32,13 @@ export default function SupportWidget() {
   useEffect(() => {
     if (open) msgRef.current?.focus();
   }, [open]);
+
+  // Global button feedback (tap sound + pet reaction) is installed from here
+  // because this widget mounts on every route and gates on nothing — the one
+  // island guaranteed to be present wherever a button might be pressed.
+  useEffect(() => {
+    installButtonFx();
+  }, []);
 
   const send = (e: Event) => {
     e.preventDefault();

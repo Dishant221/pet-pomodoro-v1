@@ -5,8 +5,8 @@ import Legal from '../layouts/Legal.astro';
 <Legal
   title="Privacy Policy"
   description="What PetPomo stores, what it does not, and why the weather feature needs no location permission."
-  updated="2026-08-16"
-  intro="The short version: your save file lives in your browser, there is no account, and we never learn who you are."
+  updated="2026-08-22"
+  intro="The short version: your save file lives in your browser, an account is optional, and we collect as little as we can to run the game."
 >
   <h2>What is stored on your device</h2>
   <p>
@@ -28,6 +28,37 @@ import Legal from '../layouts/Legal.astro';
     <li>Lose the code and the save is unreachable — for you and for us.</li>
   </ul>
 
+  <h2>Accounts, if you choose to make one</h2>
+  <p>
+    An account is <strong>entirely optional</strong>. The game plays in full without one — an account only lets your
+    save follow you from one device to another instead of relying on a sync code. You can sign up with an email
+    address and a password, or use <strong>Continue with Google</strong>. Accounts are handled by the
+    <a href="https://www.better-auth.com" rel="noopener noreferrer nofollow" target="_blank">better-auth</a> library
+    running on our own server.
+  </p>
+  <p>What we store for an account:</p>
+  <ul>
+    <li>Your email address and a display name.</li>
+    <li>
+      If you sign up with a password, only a <strong>securely hashed</strong> version of it — never the plaintext, so
+      no one, us included, can read your password back.
+    </li>
+    <li>
+      If you use Continue with Google, a Google account identifier and the basic profile Google returns (your email
+      and name). We do not receive your Google password.
+    </li>
+  </ul>
+  <p>
+    While you are signed in, your session lives on the server in a Cloudflare
+    <abbr title="Key-Value store">KV</abbr> namespace and is referenced by a single session <strong>cookie</strong> in
+    your browser. That cookie is essential to keeping you logged in; the <a href="/cookies">cookie notice</a> describes
+    it in full.
+  </p>
+  <p>
+    You can delete your account at any time. Ask from <a href="/contact">the contact page</a> using the email address
+    on the account, and we will remove the account, its sessions and any save attached to it.
+  </p>
+
   <h2>Weather and your location</h2>
   <p>
     The world in the game follows the real weather where you are. Getting that <strong>does not use your device's
@@ -45,56 +76,64 @@ import Legal from '../layouts/Legal.astro';
     this at all, blocking <code>/api/weather</code> is harmless — the game falls back to fair weather.
   </p>
 
-  <h2>Talking to your pet</h2>
+  <h2>Comments and community</h2>
   <p>
-    You can say something to the animal and have it react. This is <strong>off unless you press the microphone
-    button</strong>, and it is off again as soon as it has heard one sentence — there is no setting that leaves it
-    listening, on purpose. While the microphone is open the button stays lit, and pressing it again stops it.
+    The forum and the comments under blog posts let you post text publicly. To post, you need an account, so a comment
+    is tied to your display name. The content you write, and any message you send us through the
+    <a href="/contact">contact page</a>, is stored in our database (Cloudflare D1) so it can be shown and replied to.
   </p>
   <p>
-    Please read this part carefully, because it is the one place where something leaves your device.
-    In Chrome and Edge, turning your speech into text is <strong>done by the browser, not by us, and not on your
-    computer</strong>: Chrome streams the audio to Google's speech service and sends the text back. It looks like a
-    feature that runs locally and it does not. That is Google's processing under
-    <a href="https://policies.google.com/privacy" rel="noopener noreferrer nofollow" target="_blank">their privacy
-    policy</a>, and it is the main reason this feature is opt-in every single time. Firefox and Safari have no such
-    facility. You can also simply <strong>type</strong> to the pet in any browser, which involves no microphone and no
-    audio at all — the text box is always there, next to the microphone button.
+    Contributions pass through a <strong>moderation queue</strong> — we review posts and can edit or remove anything
+    that breaks the <a href="/terms">rules</a>. Please do not put anything sensitive about yourself into a public
+    comment. You can ask us to delete something you posted from the contact page.
+  </p>
+
+  <h2>Deals, offers and affiliate links</h2>
+  <p>
+    The <a href="/gifts">Gifts page</a> ("letters from Mochi") shows offers, coupons and sponsorships from real
+    merchants. Some of those outbound links are <strong>affiliate links</strong>: if you buy something after following
+    one, PetPomo may earn a commission, at no extra cost to you. Those links are marked as sponsored and carry
+    <code>rel="sponsored nofollow noopener"</code>.
   </p>
   <p>
-    What <em>we</em> receive is only the text, never the audio. It is sent to <code>/api/ask</code>, passed to a small
-    language model running on Cloudflare's network to choose which behaviour the animal performs, and then discarded.
-    What you said is not stored, not written to the database, and not logged. The reply is an animation and a short
-    line of narration — the pet answers in meows, never in words.
-  </p>
-  <p>
-    One thing <em>is</em> written, and it is fair that you know: a counter, so that this feature cannot be used to run
-    up a bill on our account. Each request bumps a row holding a number and an expiry time. That row is keyed by a
-    shortened one-way hash of your IP address mixed with the time window — not the address itself, and not anything
-    that can be linked to your save, your sync code or what you said. The rows are deleted once their window passes,
-    which is minutes for the burst counter and a day for the daily one.
-  </p>
-  <p>
-    If you would rather not have any of this, simply never press the button. Blocking <code>/api/ask</code> is also
-    harmless: the pet falls back to reacting on its own.
+    We do not run any tracking script for this. The links are plain redirects — when you click one, the merchant's own
+    site may set its own cookies, but PetPomo does not, and we are not told what you go on to buy. Whether a given
+    offer is shown at all is decided only from the approximate country your host (Cloudflare) attaches to the request;
+    that country is used in the moment and not stored. The full details are on the
+    <a href="/disclosure">affiliate disclosure page</a>.
   </p>
 
   <h2>What we do not do</h2>
   <ul>
-    <li>No accounts, no passwords, no email addresses.</li>
-    <li>No advertising or analytics trackers, and no third-party cookies.</li>
-    <li>No selling or sharing of personal information, because we do not collect any.</li>
+    <li>No advertising or analytics trackers, and no third-party tracking cookies.</li>
+    <li>No selling of personal information, and no sharing beyond the processors listed below.</li>
     <li>No profiling and no automated decision-making about you.</li>
   </ul>
+
+  <h2>Who processes data for us</h2>
   <p>
-    If advertising is introduced later, this page will be updated <em>before</em> it goes live, and the change will be
-    described plainly rather than buried.
+    We keep the list of third parties short and name every one:
   </p>
+  <ul>
+    <li>
+      <strong><a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer nofollow" target="_blank">Cloudflare</a></strong>
+      — hosts the site and its database, and handles server-side sessions.
+    </li>
+    <li>
+      <strong><a href="https://policies.google.com/privacy" rel="noopener noreferrer nofollow" target="_blank">Google</a></strong>
+      — only if you choose Continue with Google, to sign you in.
+    </li>
+    <li>
+      <strong><a href="https://open-meteo.com" rel="noopener noreferrer nofollow" target="_blank">Open-Meteo</a></strong>
+      — receives the rounded coordinates described above to return the weather.
+    </li>
+  </ul>
 
   <h2>Cookies</h2>
   <p>
-    PetPomo sets no cookies. Local storage is used instead, and it is used only for your own game data. See the
-    <a href="/cookies">cookie notice</a> for detail.
+    The only cookie PetPomo sets is the essential session cookie for staying signed in. There are no advertising or
+    analytics cookies. Everything else about the game is kept in your browser's local storage. See the
+    <a href="/cookies">cookie notice</a> for the full detail.
   </p>
 
   <h2>Server logs</h2>
@@ -105,15 +144,17 @@ import Legal from '../layouts/Legal.astro';
 
   <h2>Children</h2>
   <p>
-    PetPomo is suitable for all ages and collects no personal information from anyone, children included.
+    PetPomo is suitable for all ages and can be played with no account and no personal information at all. Accounts,
+    which do involve an email address, are meant for those old enough to hold one under their local rules.
   </p>
 
   <h2>Your rights</h2>
   <p>
-    Because we hold no personal data, there is normally nothing to request, correct or erase. If you use cloud sync
-    and want that save deleted, send us the sync code from
-    <a href="/contact">the contact page</a> and we will delete the row. Since we cannot verify who owns a code, please
-    do not send one that is not yours.
+    If you have no account and use no cloud sync, we hold nothing personal about you, so there is normally nothing to
+    request, correct or erase. If you have an account, you can ask us to show, correct or delete what it holds from
+    <a href="/contact">the contact page</a>, using the email on the account so we can be sure it is yours. If you use
+    cloud sync without an account, send us the sync code and we will delete that row — since we cannot verify who owns
+    a code, please do not send one that is not yours.
   </p>
 
   <h2>Changes</h2>
