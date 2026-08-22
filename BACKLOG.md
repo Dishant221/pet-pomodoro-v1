@@ -178,7 +178,9 @@ totadedishant@gmail.com) → Add property → **Domain** → `pomodoropet.com` �
 the `google-site-verification=…` value it shows → Cloudflare → `pomodoropet.com`
 → DNS → Records → Add record: **TXT, Name `@`, Content = that value, TTL Auto**
 → Save → back in Search Console click **Verify** → then **Sitemaps** → submit
-`sitemap-index.xml` (live at https://www.pomodoropet.com/sitemap-index.xml). The
+`sitemap.xml` (live at https://www.pomodoropet.com/sitemap.xml — since
+2026-08-22 the build copies the single sitemap chunk there, so the plain name
+works; `sitemap-index.xml` and `sitemap-0.xml` also still exist). The
 token is not secret and Search Console re-shows the same value each visit;
 multiple `google-site-verification` TXT records can coexist, so a stale one is
 harmless. Optional: also add analytics (Cloudflare Web Analytics — no cookies,

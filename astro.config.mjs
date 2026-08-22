@@ -1,5 +1,5 @@
 // @ts-check
-import { readdirSync, readFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
@@ -49,6 +49,31 @@ const futureSlugs = blogFiles
     return m ? new Date(m[1]).getTime() > buildTime : false;
   })
   .map((f) => f.replace(/\.mdx?$/, ''));
+
+/**
+ * @astrojs/sitemap only ever writes sitemap-index.xml plus numbered chunks
+ * (sitemap-0.xml, one per 45,000 URLs) — it has no option to emit a plain
+ * /sitemap.xml, which is where people and some tools look first. This site is
+ * a few dozen URLs, a single chunk for the foreseeable future, so the chunk is
+ * copied to /sitemap.xml after the build; robots.txt points crawlers there.
+ * Registered after sitemap() below because build:done hooks run in
+ * registration order — the chunk must exist before it can be copied.
+ */
+const sitemapAlias = {
+  name: 'sitemap-alias',
+  hooks: {
+    /** @param {{ dir: URL }} options */
+    'astro:build:done': ({ dir }) => {
+      const chunk = new URL('./sitemap-0.xml', dir);
+      // Preview builds filter every page out and emit no sitemap at all.
+      if (!existsSync(chunk)) return;
+      if (existsSync(new URL('./sitemap-1.xml', dir))) {
+        throw new Error('sitemap grew to multiple chunks; /sitemap.xml would be incomplete — serve sitemap-index.xml instead');
+      }
+      copyFileSync(chunk, new URL('./sitemap.xml', dir));
+    },
+  },
+};
 
 export default defineConfig({
   site,
@@ -139,6 +164,7 @@ export default defineConfig({
       changefreq: 'weekly',
       lastmod: new Date(),
     }),
+    sitemapAlias,
   ],
   vite: {
     plugins: [tailwindcss()],
