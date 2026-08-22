@@ -6,6 +6,7 @@ import AdSlot from '../components/AdSlot.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
 import PostCard from '../components/PostCard.astro';
 import PostToc from '../components/PostToc.astro';
+import Comments from '../islands/Comments.tsx';
 import { SITE, legalName } from '../site';
 import { fmtDate, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } from '../blog/util';
 
@@ -171,6 +172,11 @@ const schema = [
     </aside>
 
     <AdSlot variant="rectangle" slotId="post-bottom" />
+
+    {/* Comments, at the bottom of every post. client:visible: readers who
+        never scroll here never load a byte of it. The island posts to
+        /api/comments; everything waits for admin approval (MODERATION.md). */}
+    <Comments client:visible target={post.id} />
 
     {
       related.length > 0 && (

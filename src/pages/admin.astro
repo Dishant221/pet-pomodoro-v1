@@ -1,19 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AdminApp from '../islands/AdminApp.tsx';
 
 /**
- * Placeholder for the admin dashboard (moderation queue, users, analytics —
- * the next phase). The static page holds no admin data: everything sensitive
- * lives behind /api/admin/*, which checks the session's role server-side.
+ * The admin dashboard shell. This static page is PUBLIC and deliberately
+ * empty: every piece of admin data arrives at runtime from /api/admin/*,
+ * which re-checks the session's role server-side on every request
+ * (worker/src/admin.ts). The island (src/islands/AdminApp.tsx) probes that
+ * gate and explains itself to non-admins. noindex, obviously.
  */
 ---
 
-<Layout title="Admin — PetPomo" description="PetPomo admin." noindex>
-  <section class="pp-card mx-auto max-w-md p-6 text-center">
-    <h1 class="text-xl font-extrabold tracking-tight">Admin</h1>
-    <p class="mt-2 text-sm" style="color: var(--ink-soft)">
-      The dashboard — moderation queue, users, analytics — arrives with the community phase.
-      The role gate is already live: <code>/api/admin/ping</code> answers only an admin session.
-    </p>
-  </section>
+<Layout title="Admin — PetPomo" description="PetPomo admin dashboard." noindex>
+  <AdminApp client:only="preact" />
 </Layout>

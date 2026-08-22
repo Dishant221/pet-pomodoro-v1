@@ -109,6 +109,12 @@ id = "b7ec452e4c994b679352d4962fce60de"
 [env.preview.vars]
 ALLOWED_ORIGINS = ""
 ASK_MODEL = ""
+# Email plumbing (worker/src/mail.ts) — BOTH empty until Workers Paid +
+# Email Sending domain onboarding exist; every email path no-ops cleanly.
+# MAIL_FROM: the verified sender, e.g. "support@pomodoropet.com".
+# ADMIN_EMAIL: where contact-form and moderation-digest notifications go.
+MAIL_FROM = ""
+ADMIN_EMAIL = ""
 AUTH_ORIGIN = "https://petpomo-preview.totadedishant.workers.dev"
 
 # ---------------------------------------------------------------------------

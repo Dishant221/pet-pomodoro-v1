@@ -17,22 +17,23 @@ export interface MailBindings {
   };
   /** Verified sender, e.g. "support@pomodoropet.com". Unset = sending off. */
   MAIL_FROM?: string;
+  /** Where admin notifications (contact form, moderation digest) go — the
+   * owner's inbox. Unset = those notifications are skipped (the data is in
+   * D1 either way; the admin dashboard is the source of truth). */
+  ADMIN_EMAIL?: string;
 }
 
-/** Returns true only when a mail actually went out. */
-export async function sendMail(env: MailBindings, to: string, subject: string, url: string): Promise<boolean> {
-  if (!env.SEND_EMAIL || !env.MAIL_FROM) return false;
+/** Returns true only when a mail actually went out. `text` is the whole
+ * body — callers own their wording (auth links add their own "ignore this
+ * if it wasn't you", the contact form forwards the message verbatim). */
+export async function sendMail(env: MailBindings, to: string, subject: string, text: string): Promise<boolean> {
+  if (!env.SEND_EMAIL || !env.MAIL_FROM || !to) return false;
   try {
-    await env.SEND_EMAIL.send({
-      to,
-      from: env.MAIL_FROM,
-      subject,
-      text: `${subject}\n\n${url}\n\nIf you didn't ask for this, ignore this email.`,
-    });
+    await env.SEND_EMAIL.send({ to, from: env.MAIL_FROM, subject, text });
     return true;
   } catch {
     // Beta service down, quota hit, domain not onboarded — all expected
-    // states. The auth flow this rode on must not break.
+    // states. The flow this rode on must not break.
     return false;
   }
 }

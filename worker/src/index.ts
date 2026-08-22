@@ -21,7 +21,7 @@ import { getAuth, type AuthBindings, type AuthedUser } from './auth';
 /** Accounts, sessions, email — DB, KV_SESSIONS, AUTH_ORIGIN, the GOOGLE_*
  * and BETTER_AUTH_SECRET secrets, TURNSTILE_SECRET and SEND_EMAIL all come
  * from AuthBindings (worker/src/auth.ts / mail.ts). */
-type Bindings = AuthBindings & {
+export type Bindings = AuthBindings & {
   /** Comma-separated origin allowlist. Unset means "same-origin only". */
   ALLOWED_ORIGINS?: string;
   /**
@@ -54,11 +54,11 @@ interface RateLimiter {
 }
 
 /** Codes are generated client-side by newSyncCode(); keep this in step with it. */
-const CODE_RE = /^[a-z0-9]{16,64}$/;
+export const CODE_RE = /^[a-z0-9]{16,64}$/;
 /** A profile with 1000 sessions is ~120 KB of JSON; 256 KB is generous. */
-const MAX_BODY = 256 * 1024;
+export const MAX_BODY = 256 * 1024;
 /** Minimum gap between writes for one code. Blunt, but enough to stop a loop. */
-const MIN_WRITE_INTERVAL_MS = 1000;
+export const MIN_WRITE_INTERVAL_MS = 1000;
 
 /**
  * Per-IP write limits.
@@ -151,7 +151,7 @@ app.get('/api/geo', (c) => {
  * changes nothing — and the alternative is a Durable Object per IP, which is
  * a lot of machinery and cost to defend a free save file.
  */
-async function overLimit(bucket: string, limit: number, ttlSeconds: number): Promise<boolean> {
+export async function overLimit(bucket: string, limit: number, ttlSeconds: number): Promise<boolean> {
   if (!edgeCache) return false;
   const key = new Request(`https://petpomo.internal/rl/${bucket}`);
   try {
@@ -172,7 +172,7 @@ async function overLimit(bucket: string, limit: number, ttlSeconds: number): Pro
 }
 
 /** Caller identity for rate limiting only. Never stored, never logged. */
-function clientKey(c: { req: { header(name: string): string | undefined } }): string {
+export function clientKey(c: { req: { header(name: string): string | undefined } }): string {
   return c.req.header('cf-connecting-ip') ?? 'unknown';
 }
 
@@ -192,7 +192,7 @@ function clientKey(c: { req: { header(name: string): string | undefined } }): st
  * and wants to test whether one specific address was seen. It stops the table
  * from being a readable list of visitors, which is the actual risk.
  */
-async function rateKey(scope: string, ip: string, window: number): Promise<string> {
+export async function rateKey(scope: string, ip: string, window: number): Promise<string> {
   const data = new TextEncoder().encode(`${scope}|${ip}|${window}`);
   const digest = await crypto.subtle.digest('SHA-256', data);
   const bytes = new Uint8Array(digest).subarray(0, 12);
@@ -222,7 +222,7 @@ async function rateKey(scope: string, ip: string, window: number): Promise<strin
  * down when the database has a bad second is a worse outcome than a few extra
  * inferences. The daily cap behind it is the backstop.
  */
-async function bumpLimit(
+export async function bumpLimit(
   db: D1Database | undefined,
   bucket: string,
   limit: number,
@@ -256,7 +256,7 @@ async function bumpLimit(
  * per address per day forever. Run rarely and after the response has been
  * handed back, so no player ever waits for housekeeping.
  */
-function sweepRates(db: D1Database | undefined, now: number): Promise<unknown> | null {
+export function sweepRates(db: D1Database | undefined, now: number): Promise<unknown> | null {
   if (!db || Math.random() > 0.02) return null;
   return db
     .prepare('DELETE FROM rate WHERE reset_at <= ?1')
@@ -393,7 +393,7 @@ interface EdgeCache {
 const edgeCache = (caches as unknown as { default?: EdgeCache }).default;
 /** `cf` on both Request and RequestInit is likewise Workers-only. */
 type CfInit = RequestInit & { cf?: { cacheTtl?: number; cacheEverything?: boolean } };
-const cfOf = (r: Request) => (r as unknown as { cf?: IncomingRequestCfProperties }).cf;
+export const cfOf = (r: Request) => (r as unknown as { cf?: IncomingRequestCfProperties }).cf;
 
 type Condition = 'clear' | 'cloudy' | 'overcast' | 'fog' | 'rain' | 'snow' | 'storm';
 
@@ -582,7 +582,7 @@ interface WorkersAi {
 }
 
 /** Turnstile, when it is configured. Absent secret means the check is skipped. */
-async function turnstileOk(secret: string | undefined, token: unknown, ip: string): Promise<boolean> {
+export async function turnstileOk(secret: string | undefined, token: unknown, ip: string): Promise<boolean> {
   if (!secret) return true;
   if (typeof token !== 'string' || !token) return false;
   try {
@@ -718,7 +718,7 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => getAuth(c.env).handler(c.req.raw))
 
 /** The session on this request, or null. Never throws — a broken cookie is a
  * logged-out visitor, not an error. */
-async function sessionUser(c: { env: Bindings; req: { raw: Request } }): Promise<AuthedUser | null> {
+export async function sessionUser(c: { env: Bindings; req: { raw: Request } }): Promise<AuthedUser | null> {
   try {
     const s = await getAuth(c.env).api.getSession({ headers: c.req.raw.headers });
     return (s?.user as AuthedUser | undefined) ?? null;
@@ -793,18 +793,10 @@ app.put('/api/me/save', async (c) => {
   return c.json({ ok: true, updatedAt: now });
 });
 
-/**
- * GET /api/admin/ping — the smallest possible admin-gated endpoint. It exists
- * so the role gate is testable before the moderation dashboard (next phase)
- * hangs anything real behind it.
- */
-app.get('/api/admin/ping', async (c) => {
-  const user = await sessionUser(c);
-  if (!user) return c.json({ error: 'sign in required' }, 401);
-  if (user.role !== 'admin') return c.json({ error: 'forbidden' }, 403);
-  return c.json({ ok: true });
-});
-
-app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
+// NOTE: the /api catch-all 404 that used to live here moved to entry.ts —
+// the community and admin routers (community.ts, admin.ts) import shared
+// guards from THIS module, so they must be mounted by the entry point, after
+// which the catch-all is registered last. Registering it here would shadow
+// every route mounted later.
 
 export default app;

@@ -83,6 +83,28 @@ step that causes them runs — same policy as sync.mjs's expected 429.
 one command) — they share the server's per-IP write buckets and interleave
 into rate-limit flakes otherwise.
 
+## `community.mjs` — 23 checks
+
+The moderation pipeline at the API level (same server as sync/auth):
+
+```bash
+npm run test:community
+```
+
+Covers what MODERATION.md promises: seven sanitizer rejection classes
+(plain/`www.`/bare-domain URLs, @handles, zero-width- and fullwidth-cloaked
+URLs, angle brackets), the target allowlist, pending → approve → visible,
+the admin gate refusing the signed-out, live-session bans (a fresh ban
+refuses an already-signed-in member immediately and bulk-rejects their
+pending posts), the contact honeypot storing nothing while answering
+success, and the comment rate limit tripping on a burst.
+
+Rerun hygiene: valid submissions share a 5-per-10-min-per-IP budget in the
+local D1's `rate` table, so a rerun inside the window starts pre-spent —
+`npx wrangler d1 execute petpomo --local --command "DELETE FROM rate"` resets
+it. POSTs to /api/auth/* need an `Origin` header (better-auth's CSRF check);
+the suite's helper sends one, mimicking a browser.
+
 ## `sync.mjs` — 10 checks
 
 Needs the API, which only exists inside the Worker:

@@ -106,12 +106,22 @@ function buildAuth(env: AuthBindings) {
       // — until then a verification mail could never reach a real user.
       requireEmailVerification: false,
       sendResetPassword: async ({ user, url }) => {
-        await sendMail(env, user.email, 'Reset your PetPomo password', url);
+        await sendMail(
+          env,
+          user.email,
+          'Reset your PetPomo password',
+          `Reset your password:\n\n${url}\n\nIf you didn't ask for this, ignore this email.`,
+        );
       },
     },
     emailVerification: {
       sendVerificationEmail: async ({ user, url }) => {
-        await sendMail(env, user.email, 'Verify your PetPomo email', url);
+        await sendMail(
+          env,
+          user.email,
+          'Verify your PetPomo email',
+          `Confirm this address belongs to you:\n\n${url}\n\nIf you didn't create a PetPomo account, ignore this email.`,
+        );
       },
     },
 

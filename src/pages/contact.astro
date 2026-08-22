@@ -48,8 +48,9 @@ import { SITE, hasContact } from '../site';
       <>
         <h2>Write to us</h2>
         <p>
-          Fill this in and it opens a ready-addressed email to {SITE.contactEmail} in your own mail app — nothing is
-          sent or stored by this site.
+          Messages go straight to the site owner. What you type here is stored so it can be read and answered
+          (see the <a href="/privacy">privacy policy</a>); if the site cannot be reached, the form falls back to
+          opening a ready-addressed email in your own mail app instead.
         </p>
         <form class="pp-contact-form" data-to={SITE.contactEmail} novalidate>
           {/* Honeypot: invisible to people, irresistible to form-filling bots.
@@ -81,7 +82,7 @@ import { SITE, hasContact } from '../site';
 
           <p class="pp-cf-error" role="alert" hidden />
 
-          <button type="submit" class="pp-cf-send">Open email to send</button>
+          <button type="submit" class="pp-cf-send">Send message</button>
         </form>
       </>
     )
@@ -107,12 +108,16 @@ import { SITE, hasContact } from '../site';
 
 <script>
   /**
-   * The form has no server behind it, deliberately: it validates locally and
-   * composes a mailto for the user's own client, so there is no endpoint to
-   * flood, nothing stored, and nothing to inject into. What remains to defend
-   * is the mailto URL itself (everything user-typed is encodeURIComponent'd,
-   * so newlines cannot smuggle headers) and bot noise (a honeypot field plus
-   * a submit-too-fast gate, both failing silently so a bot learns nothing).
+   * The form now has a server behind it: POST /api/contact stores the message
+   * for the admin dashboard (and emails the owner once sending is configured
+   * — worker/src/community.ts documents the pipeline). The old mailto
+   * composer stays as the FALLBACK for when the API is unreachable, so the
+   * page degrades to exactly what it was before.
+   *
+   * Bot defences are layered client + server: the honeypot field and the
+   * submit-too-fast gate here (both failing silently, so a bot learns
+   * nothing), then the server's honeypot check, per-IP rate limit and — once
+   * configured — Turnstile.
    */
   const form = document.querySelector<HTMLFormElement>('.pp-contact-form');
   if (form) {
@@ -121,7 +126,7 @@ import { SITE, hasContact } from '../site';
 
     const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       error.hidden = true;
 
@@ -138,6 +143,28 @@ import { SITE, hasContact } from '../site';
         error.textContent = 'Please fill in every field, with a valid email address.';
         error.hidden = false;
         return;
+      }
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name, email, subject, message, website: '' }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (res.ok) {
+          form.reset();
+          error.textContent = 'Sent — thank you. It is one person reading these, so a reply may take a few days.';
+          error.hidden = false;
+          return;
+        }
+        if (data.error) {
+          error.textContent = data.error;
+          error.hidden = false;
+          return;
+        }
+      } catch {
+        /* API unreachable — fall through to the mailto composer below. */
       }
 
       const to = form.dataset.to!;

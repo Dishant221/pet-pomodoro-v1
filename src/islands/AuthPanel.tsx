@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
 import { $session, refreshSession } from '../stores/session';
 import { signIn, signInGoogle, signUp } from '../game/account';
+import { TURNSTILE_SITE_KEY, mountTurnstile } from '../game/turnstile';
 
 /**
  * Sign in / create account, on /login.
@@ -17,17 +18,8 @@ import { signIn, signInGoogle, signUp } from '../game/account';
  */
 
 const GOOGLE_ENABLED = (import.meta.env.PUBLIC_GOOGLE_LOGIN as string | undefined) === '1';
-const TURNSTILE_KEY = (import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined) ?? '';
 
 type Mode = 'signin' | 'signup';
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render(el: HTMLElement, opts: { sitekey: string; callback: (token: string) => void; 'expired-callback'?: () => void }): string;
-    };
-  }
-}
 
 /** The official multi-colour G, inline so the CSP needs no image origin. */
 function GoogleG() {
@@ -61,32 +53,14 @@ export default function AuthPanel() {
     if (session.status === 'in') window.location.replace('/profile/');
   }, [session.status]);
 
-  // Turnstile, explicit render. The script is CSP-allowed but only ever
-  // requested when a site key exists.
+  // Turnstile via the shared loader (src/game/turnstile.ts): no site key at
+  // build time, no widget — mirrors the server skipping verification.
   useEffect(() => {
-    if (!TURNSTILE_KEY || !captchaHost.current) return;
-    const mount = () => {
-      if (window.turnstile && captchaHost.current) {
-        window.turnstile.render(captchaHost.current, {
-          sitekey: TURNSTILE_KEY,
-          callback: (token) => {
-            captchaToken.current = token;
-          },
-          'expired-callback': () => {
-            captchaToken.current = '';
-          },
-        });
-      }
-    };
-    if (window.turnstile) {
-      mount();
-      return;
+    if (captchaHost.current) {
+      mountTurnstile(captchaHost.current, (token) => {
+        captchaToken.current = token;
+      });
     }
-    const s = document.createElement('script');
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    s.async = true;
-    s.onload = mount;
-    document.head.appendChild(s);
   }, []);
 
   const submit = async (e: Event) => {
@@ -183,7 +157,7 @@ export default function AuthPanel() {
           />
         </label>
 
-        {TURNSTILE_KEY && <div ref={captchaHost} class="min-h-[65px]" />}
+        {TURNSTILE_SITE_KEY && <div ref={captchaHost} class="min-h-[65px]" />}
 
         <button type="submit" class="pp-btn pp-btn-primary w-full" disabled={busy}>
           {mode === 'signin' ? 'Sign in' : 'Create account'}

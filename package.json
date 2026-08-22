@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/make-slugs.mjs && astro build",
     "check": "astro check",
     "preview": "astro preview",
     "astro": "astro",
@@ -20,6 +20,7 @@
     "test:sync": "node tests/sync.mjs",
     "test:talk": "node tests/verify-talk.mjs",
     "test:auth": "node tests/auth.mjs",
+    "test:community": "node tests/community.mjs",
     "og": "node scripts/make-og.mjs",
     "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com astro build && wrangler deploy --env production",
     "deploy:preview": "cross-env PUBLIC_SITE_URL=https://petpomo-preview.totadedishant.workers.dev astro build && wrangler deploy --env preview"

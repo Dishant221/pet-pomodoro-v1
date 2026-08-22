@@ -161,6 +161,19 @@ and write a new migration by hand.
 
 ---
 
+## 6. Community & moderation
+
+Comments (blog + homepage), the approval queue and the admin dashboard at
+`/admin`. **The full runbook is MODERATION.md** — pipeline, admin workflow,
+infrastructure map, operating notes. Infrastructure summary: content and the
+queue live in D1 (`posts`, migration 0004); Llama Guard pre-screens via the
+existing `AI` binding (advisory only); the moderation digest rides the
+`[triggers]` cron in wrangler.toml; email notifications and Turnstile are
+config-gated and currently off. The comment-target allowlist regenerates as
+part of `npm run build` (scripts/make-slugs.mjs).
+
+---
+
 ## ⚠️ Going live on www.pomodoropet.com — read before merging to `main`
 
 **As of 22 Aug 2026, do not merge `testing` into `main`.** Everything on
