@@ -1,0 +1,103 @@
+---
+/**
+ * Share links — used at the foot of blog posts (thread pages render their
+ * own Preact twin inside ThreadView with the same intents). Everything here
+ * is CSP-safe by construction: the network buttons are plain <a> navigations
+ * to the platforms' share intents (no SDKs, no third-party JS, nothing
+ * fetched), and the copy / native-share buttons are wired by a processed
+ * Astro script, which the build hashes into the CSP automatically.
+ */
+interface Props {
+  url: string;
+  title: string;
+}
+const { url, title } = Astro.props;
+const e = encodeURIComponent;
+
+const intents = [
+  { label: 'X', href: `https://twitter.com/intent/tweet?url=${e(url)}&text=${e(title)}` },
+  { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}` },
+  { label: 'WhatsApp', href: `https://wa.me/?text=${e(`${title} ${url}`)}` },
+  { label: 'Reddit', href: `https://www.reddit.com/submit?url=${e(url)}&title=${e(title)}` },
+];
+---
+
+<div class="pp-share" role="group" aria-label="Share this page">
+  <span class="pp-share-label">Share</span>
+  {intents.map((i) => (
+    <a class="pp-focus-ring pp-share-chip" href={i.href} target="_blank" rel="noopener nofollow">
+      {i.label}
+    </a>
+  ))}
+  <button type="button" class="pp-focus-ring pp-share-chip" data-share-copy data-url={url}>
+    Copy link
+  </button>
+  <button type="button" class="pp-focus-ring pp-share-chip" data-share-native data-url={url} data-title={title} hidden>
+    Share…
+  </button>
+</div>
+
+<script>
+  // One delegated handler for every ShareBar on the page.
+  document.querySelectorAll<HTMLButtonElement>('[data-share-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.url ?? location.href);
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = original;
+        }, 1600);
+      } catch {
+        /* clipboard denied — the address bar still exists */
+      }
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-share-native]').forEach((btn) => {
+    if (!navigator.share) return;
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      navigator.share({ url: btn.dataset.url, title: btn.dataset.title }).catch(() => {});
+    });
+  });
+</script>
+
+<style>
+  .pp-share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pp-share-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-right: 0.15rem;
+  }
+  .pp-share-chip {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .pp-share-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pp-share-chip,
+    .pp-share-chip:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

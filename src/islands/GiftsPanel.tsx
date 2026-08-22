@@ -15,6 +15,7 @@ import {
   type GiftStatus,
 } from '../game/gifts';
 import * as audio from '../game/audio';
+import { track } from '../game/events';
 
 const TABS: { id: GiftKind | 'all'; label: string; icon: string }[] = [
   { id: 'all', label: 'All', icon: '🎁' },
@@ -101,6 +102,8 @@ export default function GiftsPanel({ showSamples = false }: { showSamples?: bool
 
   const open = (g: Gift) => {
     setOpened(markOpened(g.id).opened);
+    // Analytics: which letters get opened at all — AE-only, high volume.
+    track({ type: 'letter_open', giftId: g.id });
     if (!calm) {
       setBursting((b) => [...b, g.id]);
       setTimeout(() => setBursting((b) => b.filter((id) => id !== g.id)), 1800);
@@ -325,6 +328,18 @@ export default function GiftsPanel({ showSamples = false }: { showSamples?: bool
                           rel="sponsored nofollow noopener"
                           class="pp-btn pp-focus-ring px-3 py-2 text-center text-sm font-bold"
                           style="background: var(--accent); color: var(--accent-ink); border-color: transparent;"
+                          onClick={() =>
+                            // The revenue-attribution beacon (AFFILIATES.md):
+                            // sendBeacon survives the navigation this click
+                            // starts. gift_clicks in D1 is the permanent record.
+                            'network' in g &&
+                            track({
+                              type: 'gift_click',
+                              giftId: g.id,
+                              network: (g as { network: string }).network,
+                              campaignId: (g as { campaignId?: string }).campaignId,
+                            })
+                          }
                         >
                           {g.kind === 'sponsorship' ? 'Visit sponsor' : `Open ${'merchant' in g ? g.merchant : 'deal'}`} ↗
                         </a>

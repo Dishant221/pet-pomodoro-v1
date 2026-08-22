@@ -83,7 +83,7 @@ step that causes them runs — same policy as sync.mjs's expected 429.
 one command) — they share the server's per-IP write buckets and interleave
 into rate-limit flakes otherwise.
 
-## `community.mjs` — 23 checks
+## `community.mjs` — 32 checks
 
 The moderation pipeline at the API level (same server as sync/auth):
 
@@ -97,7 +97,7 @@ URLs, angle brackets), the target allowlist, pending → approve → visible,
 the admin gate refusing the signed-out, live-session bans (a fresh ban
 refuses an already-signed-in member immediately and bulk-rejects their
 pending posts), the contact honeypot storing nothing while answering
-success, and the comment rate limit tripping on a burst.
+success, the comment rate limit tripping on a burst, and the forum: member-only threads/replies, pending threads staying unlisted, and the Worker-rendered thread page carrying its own og:title, data island and server-rendered body.
 
 Rerun hygiene: valid submissions share a 5-per-10-min-per-IP budget in the
 local D1's `rate` table, so a rerun inside the window starts pre-spent —

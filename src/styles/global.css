@@ -1841,3 +1841,79 @@ html[data-reduced-motion='true'] .pp-companion { cursor: default; }
   border-radius: var(--radius);
   border: 1px solid var(--border);
 }
+
+/* --- Display type (2026-08-22 UI pass) --------------------------------------
+   Nunito, self-hosted (public/fonts/, CSP font-src 'self') as the DISPLAY
+   face only: headings, the brand, buttons. Body text stays on the system
+   stack — a webfont on every paragraph costs more than it gives, and the
+   rounded system stacks already read well. One 39 KB latin variable file,
+   font-display: swap so text never blocks on it. */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/nunito-latin-var.woff2') format('woff2');
+}
+
+h1, h2, h3,
+.pp-btn,
+.pp-display {
+  font-family: 'Nunito', ui-rounded, 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* --- Motion (2026-08-22 UI pass) ---------------------------------------------
+   Three moves, used everywhere, and all of them off under reduced motion:
+   1. pp-fade-up — content pages breathe in on load (never the game stage:
+      the selector matches only the non-wide <main>).
+   2. .pp-lift — cards and chips rise a breath on hover.
+   3. nav links get a growing underline instead of nothing. */
+@keyframes pp-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+main.max-w-5xl > * {
+  animation: pp-fade-up 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+main.max-w-5xl > *:nth-child(2) { animation-delay: 60ms; }
+main.max-w-5xl > *:nth-child(3) { animation-delay: 120ms; }
+
+.pp-lift {
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.pp-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.pp-card {
+  transition: box-shadow 180ms ease;
+}
+
+.pp-nav a[aria-current='page'] { position: relative; }
+.pp-nav a:not([aria-current='page']) {
+  position: relative;
+  transition: color 140ms ease;
+}
+.pp-nav a:not([aria-current='page'])::after {
+  content: '';
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.2rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
+.pp-nav a:not([aria-current='page']):hover { color: var(--ink); }
+.pp-nav a:not([aria-current='page']):hover::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  main.max-w-5xl > * { animation: none; }
+  .pp-lift, .pp-lift:hover { transition: none; transform: none; }
+  .pp-nav a:not([aria-current='page'])::after { transition: none; }
+}

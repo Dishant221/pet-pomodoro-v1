@@ -4,6 +4,7 @@ import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
 import PaintedWall from '../components/PaintedWall.astro';
+import PaintedFrame from '../components/PaintedFrame.astro';
 import PostToc from '../components/PostToc.astro';
 import { SITE } from '../site';
 import { sortByDate, tagLabel, tagSlug } from '../blog/util';
@@ -209,9 +210,20 @@ const schema = [
         </figcaption>
       </figure>
 
+      {/* The gallery wall: the game's own worlds as framed paintings —
+          generated at build time by the same pipeline that paints the stage.
+          Decoration with provenance, not stock art. */}
+      <div class="flex flex-wrap items-end justify-center gap-6 py-2" aria-label="Paintings of the game's world">
+        <PaintedFrame scene="garden" phase="dusk" caption="The garden at dusk" />
+        <PaintedFrame scene="mountain" phase="dawn" caption="Mountains at dawn" />
+        <PaintedFrame scene="snow" phase="night" season="winter" caption="Snowfall at night" />
+      </div>
+
       <PostToc headings={headings} />
 
-      <div class="pp-prose grid gap-5" style="color: var(--ink-soft)">
+      {/* var(--ink), not --ink-soft: this page sits on the painted wallpaper,
+          and the owner asked for full-strength text here (2026-08-22). */}
+      <div class="pp-prose grid gap-5" style="color: var(--ink)">
         <p>
           PetPomo is a free pomodoro timer where a virtual pet keeps you company while you work.
           Your cat sleeps through each focus session in a hand-painted world that follows your real

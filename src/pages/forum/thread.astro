@@ -1,0 +1,26 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PaintedWall from '../../components/PaintedWall.astro';
+import ThreadView from '../../islands/ThreadView.tsx';
+
+/**
+ * The SHELL for Worker-rendered thread pages — built once at /forum/thread/,
+ * never linked to directly. worker/src/threadPage.ts fetches this file from
+ * the asset store for every /forum/thread/<id>/ request and rewrites it:
+ * the placeholder <title>/OG meta become the thread's own, #pp-thread-data
+ * gets the thread JSON (an inert application/json block), and
+ * #pp-thread-ssr gets the server-rendered article for scrapers. The island
+ * then hydrates from the data block without a second fetch.
+ *
+ * Everything the real pages need (hashed CSS and island scripts, theme
+ * tokens, header, footer, wallpaper) comes from being a normal Astro page —
+ * zero duplicated markup between static and Worker-rendered routes.
+ */
+---
+
+<Layout title="Thread — PetPomo Forum" description="A PetPomo community thread.">
+  <PaintedWall scene="jungle" phase="afternoon" season="summer" veil={0.72} />
+  <script type="application/json" id="pp-thread-data" is:inline></script>
+  <div id="pp-thread-ssr"><!-- threadPage.ts injects the server-rendered thread here --></div>
+  <ThreadView client:load />
+</Layout>

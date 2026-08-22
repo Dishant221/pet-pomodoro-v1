@@ -2,6 +2,7 @@
 import type { GetStaticPaths, Page } from 'astro';
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import PaintedWall from '../../components/PaintedWall.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import PostCard from '../../components/PostCard.astro';
 import { SITE } from '../../site';
@@ -90,6 +91,7 @@ const pageHref = (n: number) => (n === 1 ? '/blog/' : `/blog/${n}/`);
   description="Writing about focus, the pomodoro technique, virtual pets and habits that actually stick. Search every article or browse by topic."
   schema={schema}
 >
+  <PaintedWall scene="treehouse" phase="afternoon" season="autumn" veil={0.86} />
   <header class="mb-6 grid gap-4">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">The PetPomo Blog 🐾</h1>

@@ -46,6 +46,18 @@ export type Bindings = AuthBindings & {
    * per-colo and read-then-write, and this is the endpoint that spends money.
    */
   ASK_LIMIT?: RateLimiter;
+  /**
+   * The static asset store ([assets] binding in wrangler.toml). Used by
+   * threadPage.ts to fetch the /forum/thread/ shell it rewrites — the one
+   * place this Worker serves HTML. Narrow type, like everything here.
+   */
+  ASSETS?: { fetch(input: Request | string): Promise<Response> };
+  /**
+   * Workers Analytics Engine (worker/src/analytics.ts). Optional like AI:
+   * absent binding (local dev) means events vanish and nothing breaks — the
+   * durable aggregates in D1 are written regardless.
+   */
+  EVENTS?: { writeDataPoint(point: { indexes?: string[]; blobs?: string[]; doubles?: number[] }): void };
 };
 
 /** Declared narrowly, like the edge cache and Workers AI above. */

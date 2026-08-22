@@ -1,6 +1,6 @@
 # Community & moderation — how it works and how to run it
 
-How comments (and, next phase, forum threads) get onto this site, what stands
+How comments and forum threads get onto this site, what stands
 between a visitor's keyboard and the page, and what the admin's job actually
 is. Written 2026-08-22, alongside the code it describes.
 

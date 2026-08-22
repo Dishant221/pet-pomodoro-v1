@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PaintedWall from '../../components/PaintedWall.astro';
+import Forum from '../../islands/Forum.tsx';
+
+/**
+ * The forum index. The static page carries the SEO-facing copy; the island
+ * fetches the live thread list. Threads themselves live at
+ * /forum/thread/<id>/ — rendered by the Worker (worker/src/threadPage.ts)
+ * so each shared link gets its own social card.
+ */
+---
+
+<Layout
+  title="Forum — PetPomo"
+  description="The PetPomo community forum: share how you focus, what your pet routine looks like, and what helps on the hard days."
+>
+  <PaintedWall scene="jungle" phase="afternoon" season="summer" veil={0.72} />
+  <div class="grid gap-6">
+    <header class="grid gap-1">
+      <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">Forum</h1>
+      <p class="max-w-2xl text-sm" style="color: var(--ink-soft)">
+        Share how you focus — routines, streaks, hard days, and what your pet gets up to while you
+        work. Plain text only, and a human reads everything before it appears.
+      </p>
+    </header>
+    <Forum client:load />
+  </div>
+</Layout>

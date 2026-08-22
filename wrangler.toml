@@ -27,7 +27,11 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = "dist"
 binding = "ASSETS"
-run_worker_first = ["/api/*"]
+# /api/* is the API; /forum/thread/* are the Worker-RENDERED thread pages
+# (worker/src/threadPage.ts) — dynamic ids a static build cannot emit, each
+# needing its own social-card meta. Everything else is served straight from
+# the asset store.
+run_worker_first = ["/api/*", "/forum/thread/*"]
 
 # Cron stub, handled by the no-op scheduled() in worker/src/entry.ts.
 # Analytics rollups and the moderation digest will land here in later phases.
@@ -102,6 +106,14 @@ migrations_dir = "worker/migrations"
 [env.preview.ai]
 binding = "AI"
 
+# Workers Analytics Engine — the event firehose (plays, gift opens/clicks).
+# Free tier: 100k data points/day, 3-month retention; the DURABLE aggregates
+# live in D1 (user_stats_daily, gift_clicks). worker/src/analytics.ts writes
+# here; absent binding = events are simply not recorded (local dev).
+[[env.preview.analytics_engine_datasets]]
+binding = "EVENTS"
+dataset = "petpomo_events"
+
 [[env.preview.kv_namespaces]]
 binding = "KV_SESSIONS"
 id = "b7ec452e4c994b679352d4962fce60de"
@@ -136,6 +148,10 @@ migrations_dir = "worker/migrations"
 
 [env.production.ai]
 binding = "AI"
+
+[[env.production.analytics_engine_datasets]]
+binding = "EVENTS"
+dataset = "petpomo_events"
 
 [[env.production.kv_namespaces]]
 binding = "KV_SESSIONS"

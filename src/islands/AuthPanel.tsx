@@ -191,12 +191,8 @@ export default function AuthPanel() {
         {status}
       </p>
 
-      {mode === 'signin' && (
-        <p class="mt-1 text-center text-xs" style="color: var(--ink-soft)">
-          Forgot your password? Reset emails aren't switched on yet — use Google sign-in if you
-          created the account with Google, or <a class="underline" href="/contact/">contact support</a>.
-        </p>
-      )}
+      {/* No forgot-password link by owner's request (2026-08-22) — reset
+          emails aren't switched on yet anyway; support goes via /contact. */}
     </div>
   );
 }

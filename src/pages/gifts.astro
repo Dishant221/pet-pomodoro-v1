@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PaintedWall from '../components/PaintedWall.astro';
 import GiftsPanel from '../islands/GiftsPanel';
 import { isProductionBuild } from '../site';
 
@@ -15,6 +16,7 @@ const showSamples = !isProductionBuild(Astro.site);
   title="Gifts — PetPomo"
   description="Letters from your pet: free coins, plus deals, coupons and offers from pet-friendly brands — picked for your region, sealed with a paw."
 >
+  <PaintedWall scene="garden" phase="morning" season="spring" veil={0.85} />
   <GiftsPanel client:only="preact" showSamples={showSamples} />
 </Layout>
 

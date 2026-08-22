@@ -145,6 +145,34 @@ time), no SEND_EMAIL binding = no verification/reset emails (accounts still
 work; `requireEmailVerification` stays false until the sending domain is
 onboarded).
 
+### Turning on "Continue with Google" (owner setup, ~10 minutes)
+
+1. https://console.cloud.google.com → create a project (e.g. "PetPomo").
+2. **APIs & Services → OAuth consent screen**: External; app name "PetPomo";
+   your gmail as support + developer contact. Scopes: only the defaults
+   (openid, email, profile) — these are non-sensitive, so Google requires no
+   app verification. Publish the app (in "Testing" mode refresh tokens are
+   short-lived and users are capped at 100).
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   type "Web application", name "PetPomo Web". Authorized redirect URIs —
+   one per origin that serves auth:
+   - `https://petpomo-preview.totadedishant.workers.dev/api/auth/callback/google`
+   - `https://www.pomodoropet.com/api/auth/callback/google` (for the cutover)
+4. Copy the Client ID and Client secret it shows, then per environment:
+   ```bash
+   npx wrangler secret put GOOGLE_CLIENT_ID --env preview
+   npx wrangler secret put GOOGLE_CLIENT_SECRET --env preview
+   ```
+5. Show the button: set `PUBLIC_GOOGLE_LOGIN: '1'` in the build env — in
+   `.github/workflows/deploy.yml`'s build step and in the `deploy*` scripts
+   in package.json — and deploy. The button follows Google's branding rules
+   (official G, "Continue with Google") and hides itself wherever the env
+   var is unset.
+6. Later, for the branded consent screen (name + logo instead of the raw
+   client id): verify the domain in Google Search Console and link the
+   privacy policy at `https://www.pomodoropet.com/privacy/` — needs the
+   custom domain live first.
+
 **Admin promotion** (one-time, per environment; sessions cache the user, so
 the role applies at the account's next sign-in):
 

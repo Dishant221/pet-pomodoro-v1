@@ -60,6 +60,7 @@ const NAV = [
   { href: '/gifts', label: 'Gifts', icon: '🎁' },
   { href: '/settings', label: 'Settings', icon: '⚙️' },
   { href: '/blog', label: 'Blog', icon: '📖' },
+  { href: '/forum', label: 'Forum', icon: '🗨️' },
   { href: '/about', label: 'About', icon: '💡' },
 ];
 
@@ -100,6 +101,9 @@ const year = new Date().getFullYear();
     <meta name="theme-color" content="#fff7ed" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    {/* The display face (headings/buttons). Preloaded because it paints the
+        largest text on every page; font-display swap keeps text unblocked. */}
+    <link rel="preload" href="/fonts/nunito-latin-var.woff2" as="font" type="font/woff2" crossorigin />
     {/* Site-wide so readers and aggregators can find the feed from any page. */}
     <link rel="alternate" type="application/rss+xml" title="PetPomo" href="/rss.xml" />
     <meta name="generator" content={Astro.generator} />

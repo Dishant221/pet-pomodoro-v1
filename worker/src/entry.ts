@@ -23,11 +23,16 @@
 import app from './index';
 import { community } from './community';
 import { admin } from './admin';
+import { analytics } from './analytics';
+import { threadPage } from './threadPage';
 import { sendMail } from './mail';
 import type { D1Database } from '@cloudflare/workers-types';
 
 app.route('/api', community);
+app.route('/api', analytics);
 app.route('/api/admin', admin);
+// Worker-rendered forum thread pages (run_worker_first routes them here).
+app.route('/', threadPage);
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 
 /**

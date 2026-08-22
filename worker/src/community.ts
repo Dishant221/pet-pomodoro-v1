@@ -173,6 +173,190 @@ community.get('/comments', async (c) => {
   );
 });
 
+// --- forum --------------------------------------------------------------------
+// Threads and replies live in the same `posts` table as comments (kind =
+// 'thread' | 'reply'), through the same pipeline and the same single
+// moderation queue. Members only — the forum is the signed-in community;
+// guests can read everything and comment on articles instead.
+
+const THREAD_TITLE_MAX = 120;
+const THREAD_BODY_MAX = 4000;
+const REPLY_MAX = 2000;
+/** Threads are heavier moderation work than replies; both protect the queue. */
+const THREADS_PER_HOUR = 3;
+const REPLIES_PER_HOUR = 10;
+
+/** The signed-in, not-banned author, or a Response explaining why not. */
+async function forumUser(c: {
+  env: Bindings;
+  req: { raw: Request };
+}): Promise<{ id: string } | { error: string; status: 401 | 403 }> {
+  const user = await sessionUser(c);
+  if (!user) return { error: 'sign in to post in the forum', status: 401 };
+  const row = await c.env.DB.prepare('SELECT banned FROM "user" WHERE id = ?')
+    .bind(user.id)
+    .first<{ banned: number | null }>();
+  if (row?.banned) return { error: 'this account cannot post', status: 403 };
+  return { id: user.id };
+}
+
+/**
+ * POST /api/threads  { title, body } — members start a discussion. Same
+ * pipeline as comments (sanitize → limit valid submissions → advisory AI
+ * verdict → pending); the title passes the same no-links gate as the body.
+ */
+community.post('/threads', async (c) => {
+  const declared = Number(c.req.header('content-length') ?? 0);
+  if (declared > MAX_BODY) return c.json({ error: 'post too large' }, 413);
+
+  const author = await forumUser(c);
+  if ('error' in author) return c.json({ error: author.error }, author.status);
+
+  let body: { title?: unknown; body?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'malformed json' }, 400);
+  }
+
+  const title = sanitizeUserText(body.title, THREAD_TITLE_MAX);
+  if (!title.ok) return c.json({ error: `title: ${title.reason}` }, 400);
+  const text = sanitizeUserText(body.body, THREAD_BODY_MAX);
+  if (!text.ok) return c.json({ error: text.reason }, 400);
+
+  const now = Date.now();
+  const bucket = await rateKey('thread', author.id, Math.floor(now / 3_600_000));
+  if (await bumpLimit(c.env.DB, bucket, THREADS_PER_HOUR, 3600, now)) {
+    return c.json({ error: 'that is plenty of new threads for one hour — add to one instead?' }, 429, {
+      'retry-after': '3600',
+    });
+  }
+
+  const verdict = await guardVerdict(c.env.AI, `${title.text}\n\n${text.text}`);
+  const ipHash = await rateKey('src', clientKey(c), 0);
+  const inserted = await c.env.DB.prepare(
+    `INSERT INTO posts (kind, target, user_id, title, body, status, ai_verdict, ip_hash, created_at)
+     VALUES ('thread', 'forum', ?, ?, ?, 'pending', ?, ?, ?) RETURNING id`,
+  )
+    .bind(author.id, title.text, text.text, verdict, ipHash, now)
+    .first<{ id: number }>();
+
+  c.executionCtx.waitUntil(Promise.resolve(sweepRates(c.env.DB, now)));
+  return c.json({ ok: true, id: inserted?.id, status: 'pending' }, 201);
+});
+
+/**
+ * GET /api/threads — approved threads, newest first, with author, a plain-
+ * text excerpt and the approved reply count. Public: reading the forum needs
+ * no account.
+ */
+community.get('/threads', async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT p.id, p.title, SUBSTR(p.body, 1, 200) AS excerpt, p.created_at,
+            COALESCE(u.name, 'Member') AS author,
+            (SELECT COUNT(*) FROM posts r WHERE r.thread_id = p.id AND r.status = 'approved') AS replies
+     FROM posts p LEFT JOIN "user" u ON u.id = p.user_id
+     WHERE p.kind = 'thread' AND p.status = 'approved'
+     ORDER BY p.created_at DESC LIMIT 50`,
+  ).all();
+  return c.json({ items: rows.results ?? [] }, 200, { 'cache-control': 'private, max-age=60' });
+});
+
+/**
+ * GET /api/threads/:id — one approved thread with its approved replies,
+ * oldest reply first (conversation order). Also feeds the Worker-rendered
+ * /forum/thread/ page (threadPage.ts), so its shape is the page's data model.
+ */
+community.get('/threads/:id', async (c) => {
+  const id = Number(c.req.param('id'));
+  if (!Number.isInteger(id)) return c.json({ error: 'bad request' }, 400);
+
+  const thread = await c.env.DB.prepare(
+    `SELECT p.id, p.title, p.body, p.created_at, COALESCE(u.name, 'Member') AS author
+     FROM posts p LEFT JOIN "user" u ON u.id = p.user_id
+     WHERE p.id = ? AND p.kind = 'thread' AND p.status = 'approved'`,
+  )
+    .bind(id)
+    .first<{ id: number; title: string; body: string; created_at: number; author: string }>();
+  if (!thread) return c.json({ error: 'not found' }, 404);
+
+  const replies = await c.env.DB.prepare(
+    `SELECT p.id, p.body, p.created_at, COALESCE(u.name, 'Member') AS author
+     FROM posts p LEFT JOIN "user" u ON u.id = p.user_id
+     WHERE p.thread_id = ? AND p.kind = 'reply' AND p.status = 'approved'
+     ORDER BY p.created_at ASC LIMIT 200`,
+  )
+    .bind(id)
+    .all<{ id: number; body: string; created_at: number; author: string }>();
+
+  let pendingOwn = 0;
+  const user = await sessionUser(c);
+  if (user) {
+    const own = await c.env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM posts WHERE user_id = ? AND thread_id = ? AND status = 'pending'`,
+    )
+      .bind(user.id, id)
+      .first<{ n: number }>();
+    pendingOwn = own?.n ?? 0;
+  }
+
+  return c.json(
+    { thread, replies: replies.results ?? [], pendingOwn },
+    200,
+    { 'cache-control': 'private, max-age=60' },
+  );
+});
+
+/** POST /api/threads/:id/replies  { body } — members answer a thread. The
+ * parent must be an approved thread: replying to something unreviewed (or
+ * taken down) would let content ride in behind a closed door. */
+community.post('/threads/:id/replies', async (c) => {
+  const declared = Number(c.req.header('content-length') ?? 0);
+  if (declared > MAX_BODY) return c.json({ error: 'reply too large' }, 413);
+
+  const id = Number(c.req.param('id'));
+  if (!Number.isInteger(id)) return c.json({ error: 'bad request' }, 400);
+
+  const author = await forumUser(c);
+  if ('error' in author) return c.json({ error: author.error }, author.status);
+
+  const parent = await c.env.DB.prepare(
+    `SELECT id FROM posts WHERE id = ? AND kind = 'thread' AND status = 'approved'`,
+  )
+    .bind(id)
+    .first<{ id: number }>();
+  if (!parent) return c.json({ error: 'no such thread' }, 404);
+
+  let body: { body?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'malformed json' }, 400);
+  }
+  const text = sanitizeUserText(body.body, REPLY_MAX);
+  if (!text.ok) return c.json({ error: text.reason }, 400);
+
+  const now = Date.now();
+  const bucket = await rateKey('reply', author.id, Math.floor(now / 3_600_000));
+  if (await bumpLimit(c.env.DB, bucket, REPLIES_PER_HOUR, 3600, now)) {
+    return c.json({ error: 'too many replies this hour — take a break with your pet?' }, 429, {
+      'retry-after': '3600',
+    });
+  }
+
+  const verdict = await guardVerdict(c.env.AI, text.text);
+  const ipHash = await rateKey('src', clientKey(c), 0);
+  const inserted = await c.env.DB.prepare(
+    `INSERT INTO posts (kind, target, thread_id, user_id, body, status, ai_verdict, ip_hash, created_at)
+     VALUES ('reply', '', ?, ?, ?, 'pending', ?, ?, ?) RETURNING id`,
+  )
+    .bind(id, author.id, text.text, verdict, ipHash, now)
+    .first<{ id: number }>();
+
+  c.executionCtx.waitUntil(Promise.resolve(sweepRates(c.env.DB, now)));
+  return c.json({ ok: true, id: inserted?.id, status: 'pending' }, 201);
+});
+
 /**
  * POST /api/contact  { name, email, subject, message, turnstileToken?, website }
  *

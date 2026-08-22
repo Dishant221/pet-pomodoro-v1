@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PaintedWall from '../components/PaintedWall.astro';
 import ShopPanel from '../islands/ShopPanel';
 ---
 
 <Layout title="Shop — PetPomo">
+  <PaintedWall scene="livingroom" phase="afternoon" season="summer" veil={0.85} />
   <ShopPanel client:only="preact" />
 </Layout>

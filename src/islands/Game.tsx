@@ -49,6 +49,7 @@ import { PHASES } from '../world/palette';
 import { SEASONS, type SeasonId } from '../world/season';
 import { MOODS, moodFor, voiceRateFor } from '../game/mood';
 import * as audio from '../game/audio';
+import { track } from '../game/events';
 import { CLOCK_MAX_W, CLOCK_MIN_W } from '../stores/profile';
 import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
@@ -302,6 +303,9 @@ export default function Game() {
     const off = onComplete((e) => {
       audio.playBell();
       recordSession({ at: Date.now(), mode: e.mode, ms: e.ms, completed: true });
+      // Analytics: completions only, focus only — the one number the admin
+      // dashboard's per-user stats are built from. Fire-and-forget.
+      if (e.mode === 'focus') track({ type: 'session_complete', minutes: Math.round(e.ms / 60_000) });
 
       if (e.mode === 'focus') {
         const earned = coinsForFocus(e.ms);

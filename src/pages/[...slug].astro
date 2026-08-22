@@ -6,6 +6,7 @@ import AdSlot from '../components/AdSlot.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
 import PostCard from '../components/PostCard.astro';
 import PostToc from '../components/PostToc.astro';
+import ShareBar from '../components/ShareBar.astro';
 import Comments from '../islands/Comments.tsx';
 import { SITE, legalName } from '../site';
 import { fmtDate, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } from '../blog/util';
@@ -170,6 +171,8 @@ const schema = [
         focus. <a href="/" class="underline underline-offset-2">Start a session</a> — no account needed.
       </p>
     </aside>
+
+    <ShareBar url={url} title={post.data.title} />
 
     <AdSlot variant="rectangle" slotId="post-bottom" />
 

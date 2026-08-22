@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PaintedWall from '../components/PaintedWall.astro';
 import SettingsPanel from '../islands/SettingsPanel';
 ---
 
 <Layout title="Settings — PetPomo">
+  <PaintedWall scene="snow" phase="dusk" season="winter" veil={0.87} />
   <SettingsPanel client:only="preact" />
 </Layout>

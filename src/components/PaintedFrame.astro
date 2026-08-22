@@ -1,0 +1,129 @@
+---
+/**
+ * A framed painting for the site's walls — the game's own painted world
+ * (src/world/paint.ts, rendered at BUILD time, zero JS) hung inside an
+ * ornate classical frame: layered gilt mouldings, corner rosettes and a
+ * laurel crest, drawn with CSS gradients and one small inline SVG. The
+ * gallery-museum accent the UI pass asked for, made from the app's own art
+ * rather than downloaded images (CSP img-src stays untouched).
+ *
+ * Used in rows: <PaintedFrame scene="garden" phase="dusk" caption="…" />
+ */
+import type { SceneId } from '../game/manifest';
+import type { PhaseId } from '../game/world';
+import { PHASES } from '../world/palette';
+import { paintScene } from '../world/paint';
+import { seasonalise, type SeasonId } from '../world/season';
+
+interface Props {
+  scene: SceneId;
+  phase: PhaseId;
+  season?: SeasonId;
+  caption?: string;
+}
+
+const { scene, phase, season = 'summer', caption } = Astro.props;
+const layers = paintScene(scene, seasonalise(PHASES[phase], season));
+const stack = [layers.sky, layers.hills, layers.trees, layers.ground].filter(Boolean);
+---
+
+<figure class="pp-frame">
+  <svg class="pp-frame-laurel" viewBox="0 0 120 36" aria-hidden="true">
+    {/* A laurel crest: two mirrored branches meeting under a rosette. */}
+    <g fill="none" stroke="var(--pp-gold-deep, #a8842c)" stroke-width="2" stroke-linecap="round">
+      <path d="M12 30 Q40 6 58 10" />
+      <path d="M108 30 Q80 6 62 10" />
+    </g>
+    <g fill="var(--pp-gold, #c9a24b)">
+      <ellipse cx="22" cy="24" rx="5" ry="2.4" transform="rotate(-32 22 24)" />
+      <ellipse cx="32" cy="18" rx="5" ry="2.4" transform="rotate(-26 32 18)" />
+      <ellipse cx="43" cy="13.5" rx="5" ry="2.4" transform="rotate(-16 43 13.5)" />
+      <ellipse cx="98" cy="24" rx="5" ry="2.4" transform="rotate(32 98 24)" />
+      <ellipse cx="88" cy="18" rx="5" ry="2.4" transform="rotate(26 88 18)" />
+      <ellipse cx="77" cy="13.5" rx="5" ry="2.4" transform="rotate(16 77 13.5)" />
+      <circle cx="60" cy="10" r="4.5" />
+      <circle cx="60" cy="10" r="2" fill="var(--pp-gold-deep, #a8842c)" />
+    </g>
+  </svg>
+
+  <div class="pp-frame-gilt">
+    <span class="pp-frame-rosette pp-frame-rosette-tl" aria-hidden="true"></span>
+    <span class="pp-frame-rosette pp-frame-rosette-tr" aria-hidden="true"></span>
+    <span class="pp-frame-rosette pp-frame-rosette-bl" aria-hidden="true"></span>
+    <span class="pp-frame-rosette pp-frame-rosette-br" aria-hidden="true"></span>
+    <div class="pp-frame-art" aria-hidden="true">
+      {stack.map((markup) => <div class="pp-frame-layer" set:html={markup} />)}
+      <span class="pp-frame-glaze"></span>
+    </div>
+  </div>
+
+  {caption && <figcaption class="pp-frame-caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .pp-frame {
+    --pp-gold: #c9a24b;
+    --pp-gold-hi: #ecd9a3;
+    --pp-gold-deep: #a8842c;
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    margin: 0;
+  }
+  .pp-frame-laurel {
+    width: 6.5rem;
+    margin-bottom: -0.4rem;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
+  }
+  /* Three nested mouldings, built from borders and gradients — reads as a
+     carved gilt frame at any size, in both light and dark themes. */
+  .pp-frame-gilt {
+    position: relative;
+    padding: 0.55rem;
+    border-radius: 4px;
+    background:
+      linear-gradient(135deg, var(--pp-gold-hi) 0%, var(--pp-gold) 30%, var(--pp-gold-deep) 65%, var(--pp-gold) 100%);
+    box-shadow:
+      inset 0 0 0 2px var(--pp-gold-deep),
+      inset 0 0 0 5px var(--pp-gold-hi),
+      0 6px 18px rgb(20 14 4 / 0.35);
+  }
+  .pp-frame-rosette {
+    position: absolute;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--pp-gold-hi), var(--pp-gold) 45%, var(--pp-gold-deep) 90%);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  }
+  .pp-frame-rosette-tl { top: -0.28rem; left: -0.28rem; }
+  .pp-frame-rosette-tr { top: -0.28rem; right: -0.28rem; }
+  .pp-frame-rosette-bl { bottom: -0.28rem; left: -0.28rem; }
+  .pp-frame-rosette-br { bottom: -0.28rem; right: -0.28rem; }
+  .pp-frame-art {
+    position: relative;
+    width: clamp(11rem, 24vw, 15rem);
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: inset 0 0 10px rgb(10 8 2 / 0.45);
+  }
+  .pp-frame-layer {
+    position: absolute;
+    inset: 0;
+  }
+  /* Old-varnish glaze: warms the painting and sinks it behind the glass. */
+  .pp-frame-glaze {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(160deg, rgb(255 250 235 / 0.18) 0%, transparent 38%),
+      radial-gradient(ellipse at 50% 60%, transparent 55%, rgb(48 30 6 / 0.28) 100%);
+  }
+  .pp-frame-caption {
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+</style>
