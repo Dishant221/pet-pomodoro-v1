@@ -13,6 +13,10 @@
 name = "petpomo-dev"
 main = "worker/src/entry.ts"
 compatibility_date = "2026-05-01"
+# Required by better-auth (AsyncLocalStorage). Inheritable — applies to every
+# environment. Added as its own change and regression-tested before any auth
+# code landed, so a runtime difference could be attributed to it alone.
+compatibility_flags = ["nodejs_compat"]
 
 # Static assets: everything Astro emits into dist. Only /api/* invokes the
 # Worker; every other URL is served straight from the asset store, which is
@@ -53,6 +57,7 @@ crons = ["17 3 * * *"]
 binding = "DB"
 database_name = "petpomo"
 database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
+migrations_dir = "worker/migrations"
 
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API
@@ -80,6 +85,7 @@ workers_dev = true
 binding = "DB"
 database_name = "petpomo-preview"
 database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
+migrations_dir = "worker/migrations"
 
 # Workers AI for /api/ask. Safe to declare here, unlike at the top level:
 # `wrangler dev` reads the top-level config only, so this binding reaches the
@@ -106,6 +112,7 @@ workers_dev = true
 binding = "DB"
 database_name = "petpomo"
 database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
+migrations_dir = "worker/migrations"
 
 [env.production.ai]
 binding = "AI"
