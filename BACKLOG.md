@@ -5,7 +5,7 @@ done twice. **Ask for "the pending list" and this file is the answer.**
 
 Last updated: 22 August 2026. Branch: `testing`.
 
-Numbering runs to 56 and is append-only: an item keeps its number for life, so
+Numbering runs to 61 and is append-only: an item keeps its number for life, so
 "#33" means the same thing in a conversation three months from now.
 
 ---
@@ -64,6 +64,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 53 | Mid-article arcade | One tiny game per post (Focus Five, Unscramble or Memory Pairs, rotated by slug hash), injected client-side after the middle paragraph of 8+-paragraph posts. Win streak in localStorage only; no-JS readers see an uninterrupted article. |
 | 54 | Blog ad placeholders | Labelled 728×90 banner + 300×250 rectangle placeholders (`AdSlot.astro`) on index, topics and posts. Height reserved against CLS; stable `data-ad-slot` ids for later AdSense wiring. Landing-page `.pp-adslot` unchanged. |
 | 55 | Per-post social/SEO meta | og:type=article, article:published_time/tags, per-post og:image from the cover, BreadcrumbList + timeRequired in the BlogPosting schema, reading time on page. |
+| 59 | Gifts section | `/gifts` in the nav: letters from Mochi, sealed with a paw, opened with a petal burst. Sub-category tabs (From Mochi / Deals / Coupons / Offers / Sponsors), Current/Expired chips, geo-filtered by `/api/geo` (Cloudflare IP country, nothing stored) with a "show all regions" toggle. In-game treat letters pay coins via `addCoins`; external letters carry `rel="sponsored nofollow noopener"` + FTC disclosure. Catalog in `src/game/gifts.ts` is the append-only audit ledger — rules in **AFFILIATES.md**. `sample:true` entries render off-production only. 4 new acceptance checks. |
 | 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact` with a validated form (name/email/subject/message, honeypot + time-gate against bots, mailto composed with full URL-encoding); `support@pomodoropet.com` behind the animated 💬 (own island, every page, every mode — not just where the talk bar renders). No mail backend by design. Addresses live in `src/site.ts`. **Delivery depends on #58.** |
 
 ---
@@ -129,6 +130,20 @@ Needs #31 finished first.
 
 **41. Analytics and error reporting.** Nothing currently reports whether the app
 is working in production. This is the largest gap for a live product.
+
+**60. Affiliate account signups.** User action, researched order in
+AFFILIATES.md: FlexOffers first (no traffic minimum, has Chewy US + a
+Promotions API under one account), then Awin ($5 refundable deposit, EU
+coverage), Rakuten, Impact marketplace, Chewy-direct via Partnerize. Hold off
+on Amazon Associates (3 sales in 180 days or the account closes), Skimlinks/
+Sovrn (reject small sites), and CJ ($10/mo dormancy fee). As accounts are
+approved: add rows to the AFFILIATES.md registry and replace the `sample`
+gifts with real entries.
+
+**61. Coupon feed automation.** Once 2+ networks are live, pull deals
+programmatically (FlexOffers Promotions API is free with the account;
+Strackr €10/mo or CouponAPI.org ~$44/mo as aggregators) and generate catalog
+entries instead of hand-writing them. Needs #60 first.
 
 **42. Google Ads policy pass.** Cannot be completed until ads exist. Needs:
 ads.txt, a consent banner for EU/UK traffic, and an ad-density review.

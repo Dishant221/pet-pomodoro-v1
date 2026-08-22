@@ -119,6 +119,7 @@ for (const [path, needle] of [
   ['/', 'pp-stage'],
   ['/stats', 'Stats'],
   ['/shop', 'Shop'],
+  ['/gifts', 'Gifts'],
   ['/settings', 'Settings'],
   ['/about', 'About PetPomo'],
 ]) {
@@ -1124,6 +1125,44 @@ if (swReady) {
   check('game loads and renders offline', okOffline && catOffline, `nav=${okOffline} stage=${catOffline}`);
   await ctx.setOffline(false);
 }
+
+// ------------------------------------------------------------ 19b. gifts
+await page.goto(BASE + '/gifts', { waitUntil: 'networkidle' });
+await page.waitForSelector('.gift-envelope', { timeout: 8000 });
+const sealed = await page.locator('.gift-envelope').count();
+check('gift letters render sealed', sealed >= 1, `${sealed} envelopes`);
+
+// The welcome treat: open the envelope, claim it, and the coins land in the
+// same profile save the shop spends from.
+const coinsBeforeGift = await page.evaluate(
+  () => JSON.parse(localStorage.getItem('petpomo.save.v1') || '{}').coins ?? 0,
+);
+await page.getByRole('button', { name: /A little welcome pouch/ }).click();
+await page.waitForSelector('.gift-letter', { timeout: 4000 });
+await page.getByRole('button', { name: /^Claim/ }).first().click();
+await sleep(800); // profile writes are debounced
+const coinsAfterGift = await page.evaluate(
+  () => JSON.parse(localStorage.getItem('petpomo.save.v1') || '{}').coins ?? 0,
+);
+check(
+  'claiming a treat letter pays its coins',
+  coinsAfterGift === coinsBeforeGift + 30,
+  `${coinsBeforeGift} -> ${coinsAfterGift}`,
+);
+
+// Claiming is once per device: after a reload the letter stays open and the
+// claim button is a "Claimed" label instead.
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.gift-letter', { timeout: 8000 });
+const claimedLabel = await page.getByText('Claimed 🪙 30').count();
+check('claimed treat stays claimed after reload', claimedLabel === 1, `${claimedLabel} labels`);
+
+// Expired letters are never deleted — they live behind the Expired chip,
+// faded and stamped.
+await page.getByRole('button', { name: '🥀 Expired' }).click();
+const expiredEnvelope = await page.getByRole('button', { name: /Sunflower week/ }).count();
+const stamped = await page.locator('.gift-stamp').count();
+check('expired filter shows the wilted letter, stamped', expiredEnvelope >= 1 && stamped >= 1, `env=${expiredEnvelope} stamps=${stamped}`);
 
 // ------------------------------------------------------------ 20. errors
 check('zero console errors', consoleErrors.length === 0, consoleErrors.slice(0, 6).join(' | '));

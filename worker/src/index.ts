@@ -125,6 +125,23 @@ app.use('/api/*', async (c, next) => {
 app.get('/api/health', (c) => c.json({ ok: true }));
 
 /**
+ * GET /api/geo — which country this visitor is in, and nothing else.
+ *
+ * Used by the Gifts page to show region-appropriate deals. Cloudflare already
+ * derived the country from the IP before the request reached us; the browser
+ * is asked nothing, and nothing is stored. `null` (local dev, some VPNs) is a
+ * supported answer — the client then shows worldwide gifts only.
+ *
+ * `private`: the answer is per-visitor, so shared caches must not serve one
+ * person's country to the next.
+ */
+app.get('/api/geo', (c) => {
+  const cf = cfOf(c.req.raw);
+  const country = typeof cf?.country === 'string' ? cf.country : null;
+  return c.json({ country }, 200, { 'cache-control': 'private, max-age=3600' });
+});
+
+/**
  * Count one event against a bucket, and say whether it is over the limit.
  *
  * Read-then-write with no atomicity: two requests landing in the same

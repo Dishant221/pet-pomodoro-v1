@@ -1,0 +1,180 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GiftsPanel from '../islands/GiftsPanel';
+import { isProductionBuild } from '../site';
+
+/**
+ * Sample deals (entries flagged `sample` in src/game/gifts.ts) render only off
+ * production: the preview site gets the full UX to poke at, the real site
+ * never shows a merchant link we don't actually have. See AFFILIATES.md.
+ */
+const showSamples = !isProductionBuild(Astro.site);
+---
+
+<Layout
+  title="Gifts — PetPomo"
+  description="Letters from your pet: free coins, plus deals, coupons and offers from pet-friendly brands — picked for your region, sealed with a paw."
+>
+  <GiftsPanel client:only="preact" showSamples={showSamples} />
+</Layout>
+
+{/* Island is client:only, so Astro's scoped styles would never attach to its
+    markup — these are global on purpose, namespaced with `gift-`. */}
+<style is:global>
+  /* --- sealed envelope ------------------------------------------------- */
+  .gift-envelope {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    width: 100%;
+    min-height: 11rem;
+    padding: 1rem 1rem 1.25rem;
+    cursor: pointer;
+    border-radius: inherit;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--accent) 14%, var(--card, var(--bg))),
+      var(--card, var(--bg)) 55%
+    );
+    transition: transform 0.15s ease;
+  }
+  .gift-envelope:hover:not(:disabled) {
+    transform: translateY(-2px) rotate(-0.5deg);
+  }
+  .gift-envelope:disabled {
+    cursor: default;
+    opacity: 0.75;
+  }
+  /* The flap: a triangle folded down over the top of the card. */
+  .gift-flap {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3.5rem;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    background: color-mix(in srgb, var(--accent) 30%, var(--card, var(--bg)));
+    border-bottom: 1px solid var(--border);
+  }
+  .gift-seal {
+    position: absolute;
+    top: 2.35rem;
+    left: 50%;
+    translate: -50% 0;
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1.15rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f0668c, #c23a5f 70%);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+    color: #fff;
+  }
+  .gift-env-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    text-align: center;
+  }
+
+  /* --- opened letter ----------------------------------------------------- */
+  .gift-letter {
+    position: relative;
+    animation: gift-letter-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+  .gift-hand {
+    font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+    line-height: 1.5;
+  }
+  @keyframes gift-letter-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* --- petal burst -------------------------------------------------------- */
+  .gift-petals {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .gift-petals span {
+    position: absolute;
+    bottom: 40%;
+    font-size: 1.1rem;
+    animation: gift-petal 1s ease-out both;
+  }
+  @keyframes gift-petal {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg) scale(0.6);
+    }
+    15% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx, 0px), -90px) rotate(220deg) scale(1.1);
+    }
+  }
+
+  /* --- ribbons and stamps -------------------------------------------------- */
+  .gift-ribbon {
+    position: absolute;
+    top: 0.85rem;
+    right: -2.1rem;
+    z-index: 6;
+    rotate: 45deg;
+    padding: 0.15rem 2.5rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #f59e0b;
+    color: #451a03;
+  }
+  .gift-stamp {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    z-index: 6;
+    translate: -50% -50%;
+    rotate: -12deg;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #b91c1c;
+    border: 3px double #b91c1c;
+    border-radius: 0.375rem;
+    opacity: 0.75;
+    pointer-events: none;
+  }
+  .gift-expired {
+    filter: saturate(0.55);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gift-letter {
+      animation: none;
+    }
+    .gift-petals {
+      display: none;
+    }
+    .gift-envelope,
+    .gift-envelope:hover:not(:disabled) {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>
