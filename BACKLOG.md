@@ -170,6 +170,21 @@ deploy manually with `npm run deploy` / `npm run deploy:preview`.
 **42. Google Ads policy pass.** Cannot be completed until ads exist. Needs:
 ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 
+**67. Verify the site in Google Search Console + submit the sitemap (user
+action).** Deferred 2026-08-22 — the verification TXT token was mislaid. To do:
+Search Console (search.google.com/search-console, account
+totadedishant@gmail.com) → Add property → **Domain** → `pomodoropet.com` → copy
+the `google-site-verification=…` value it shows → Cloudflare → `pomodoropet.com`
+→ DNS → Records → Add record: **TXT, Name `@`, Content = that value, TTL Auto**
+→ Save → back in Search Console click **Verify** → then **Sitemaps** → submit
+`sitemap-index.xml` (live at https://www.pomodoropet.com/sitemap-index.xml). The
+token is not secret and Search Console re-shows the same value each visit;
+multiple `google-site-verification` TXT records can coexist, so a stale one is
+harmless. Optional: also add analytics (Cloudflare Web Analytics — no cookies,
+no CSP change, no consent banner — is the recommended fit; GA4 would need a
+consent banner, a CSP widening, and privacy/cookie-page edits, so it is its own
+task if ever wanted).
+
 ---
 
 ## Blocked
