@@ -1,17 +1,20 @@
 # Deploying PetPomo
 
-The game is a static Astro site. Cloud sync is a Pages Function backed by D1.
+The game is a static Astro site served by a **Cloudflare Worker with Static
+Assets** (migrated from Cloudflare Pages on 2026-08-22). The same Worker
+answers `/api/*` — the Hono app in `worker/src/index.ts`, entered through
+`worker/src/entry.ts` — backed by D1. `run_worker_first = ["/api/*"]` in
+`wrangler.toml` means every non-API URL is served straight from the asset
+store without invoking the Worker.
 
-**The D1 database is not optional.** An earlier version of this file said the
-site could ship without it; that is wrong. `wrangler pages deploy` bundles the
-Function on every deploy and the API rejects a placeholder id outright —
+**The D1 database is not optional.** The Worker binds it at deploy time and
+wrangler rejects a placeholder id outright, which fails the whole deploy,
+static assets included. Create the database first.
 
-```
-Error 8000022: Invalid database UUID (REPLACE_WITH_YOUR_DATABASE_ID)
-```
-
-— which fails the whole deploy, static assets included. Create the database
-first.
+> **The old Pages project `petpomo` still exists and must not be deleted.**
+> It is the rollback path: `petpomo.pages.dev` and `preview.petpomo.pages.dev`
+> keep serving the last Pages deploy against the same D1 databases. Keep it
+> until well after the domain cutover (§ below) has been stable for weeks.
 
 ---
 
@@ -20,12 +23,14 @@ first.
 ```bash
 cd pet-pomodoro
 npx wrangler login                 # interactive browser flow
-npm run build
-npx wrangler pages deploy dist --project-name petpomo
+npm run deploy:preview             # build + deploy the preview Worker
+npm run deploy                     # build + deploy the production Worker
 ```
 
-That prints your live URL (`https://www.pomodoropet.com`). Done — the game is
-fully playable: timer, all 9 pet states, shop, stats, themes, offline.
+Production serves at `https://petpomo.totadedishant.workers.dev` (and at
+`https://www.pomodoropet.com` once the custom domain is attached to the
+Worker). The game is fully playable: timer, all 9 pet states, shop, stats,
+themes, offline.
 
 ## 2. Cloud sync (optional)
 
@@ -33,18 +38,17 @@ fully playable: timer, all 9 pet states, shop, stats, themes, offline.
 npx wrangler d1 create petpomo
 ```
 
-Copy the `database_id` it prints into `wrangler.toml`, replacing
-`REPLACE_WITH_YOUR_DATABASE_ID`. Then create the table and redeploy:
+Copy the `database_id` it prints into `wrangler.toml` (it appears once per
+environment — top level, `[env.preview]`, `[env.production]`; production and
+local dev share the `petpomo` id). Then create the tables and redeploy:
 
 ```bash
 npm run db:remote                  # applies worker/schema.sql to the live D1
-npx wrangler pages deploy dist --project-name petpomo
+npm run deploy
 ```
 
-Finally, bind the database to the Pages project so the Function can see it:
-
-**Cloudflare dashboard → Workers & Pages → petpomo → Settings → Bindings →
-Add → D1 database.** Variable name `DB`, database `petpomo`. Redeploy once more.
+There is no dashboard binding step: bindings live in `wrangler.toml` only,
+and every deploy applies exactly what the file says.
 
 Verify:
 
@@ -60,11 +64,11 @@ AI, which is bound in `wrangler.toml` per environment — `[env.preview.ai]` and
 `[env.production.ai]`, both named `AI`.
 
 **Do not move that binding to the top level and do not add it in the dashboard.**
-Top level is also what `wrangler pages dev` loads, and Workers AI has no local
+Top level is what `wrangler dev` loads locally, and Workers AI has no local
 emulation, so wrangler opens a remote connection at startup and hangs every
 local request. Adding it in the dashboard instead looks like it works and then
-silently stops: `wrangler pages deploy` replaces the target environment's entire
-config with this file, so a hand-added binding disappears on the next deploy and
+silently stops: `wrangler deploy` replaces the target Worker's entire config
+with this file, so a hand-added binding disappears on the next deploy and
 `/api/ask` quietly starts answering `"model": false`.
 
 Verify which one you are getting — the flag is in the response:
@@ -96,21 +100,20 @@ curl https://www.pomodoropet.com/api/weather
 ```
 
 `"ok": false` means it fell back to fair weather — no geolocation on the
-request (a VPN, a datacentre IP, or `wrangler pages dev` locally), or the
+request (a VPN, a datacentre IP, or `wrangler dev` locally), or the
 upstream was slow. The game is unaffected either way; it is decoration on a
 world that is already correct.
 
-### Why a Pages Function and not a standalone Worker
+### Why one Worker serves both the site and the API
 
-The client calls a bare `/api/*` with no configured base URL. Running the API as
-a Pages Function puts it on the same origin as the site, so there is no CORS
-preflight and no build-time URL to keep in sync — one deploy covers both.
+The client calls a bare `/api/*` with no configured base URL. Serving the
+static assets and the API from the same Worker keeps them on one origin, so
+there is no CORS preflight and no build-time URL to keep in sync — one deploy
+covers both. (Before the 2026-08-22 migration the same effect came from a
+Pages Function; the Hono app is unchanged, only the mounting differs.)
 
-If you'd rather run it as its own Worker, the same Hono app in
-`worker/src/index.ts` exports a default fetch handler. Deploy it separately,
-set `ALLOWED_ORIGINS` to your Pages origin in `wrangler.toml`, then rebuild the
-site with `PUBLIC_API_BASE=https://your-worker.workers.dev` so the client points
-at it.
+If you ever split the API onto its own origin, set `ALLOWED_ORIGINS` in
+`wrangler.toml` and rebuild the site with `PUBLIC_API_BASE` pointing at it.
 
 ---
 
@@ -141,11 +144,13 @@ disallow-all robots.txt, so nothing there can leak into search.
 
 1. **Register the domain** (if not already done) — `pomodoropet.com`, any
    registrar, ideally Cloudflare Registrar since the account is already there.
-2. **Attach it to the Pages project**: Cloudflare dashboard → Workers & Pages
-   → `petpomo` → **Custom domains** → *Set up a custom domain* →
+2. **Attach it to the production Worker** (NOT the old Pages project):
+   Cloudflare dashboard → Workers & Pages → **`petpomo` (the Worker)** →
+   Settings → **Domains & Routes** → *Add* → Custom domain →
    `www.pomodoropet.com`. Cloudflare creates the DNS record itself if the
    domain's DNS is on Cloudflare. Add the apex `pomodoropet.com` as a second
    custom domain (or a redirect rule) so the bare name works too.
+   Rollback, if ever needed, is re-pointing the domain at the Pages project.
 3. **Verify it resolves** before touching git. From any machine:
    ```bash
    curl -sI https://www.pomodoropet.com/ | head -3
@@ -173,61 +178,57 @@ disallow-all robots.txt, so nothing there can leak into search.
    `petpomo.pages.dev` was ever verified as a property, request indexing of a
    few key pages so the canonical transfer is picked up sooner.
 
-Until step 3 passes, keep shipping to `testing` only. The `pages.dev`
-production deploy keeps working the whole time — Cloudflare never turns a
-project's `*.pages.dev` address off, and after cutover it simply becomes a
-mirror whose pages declare the custom domain as canonical.
+Until step 3 passes, keep shipping to `testing` only. The old `pages.dev`
+URLs keep working the whole time — Cloudflare never turns a project's
+`*.pages.dev` address off — and the Workers URLs
+(`petpomo.totadedishant.workers.dev`) serve the current code with canonicals
+pointing at the custom domain.
+
+**One more cutover consequence:** localStorage is per-origin. A player who has
+been playing on a `pages.dev` or `workers.dev` URL will not see their save on
+`www.pomodoropet.com` — the sync code (Settings → Cloud sync), or an account
+once accounts exist, is how a save moves between origins.
 
 ---
 
 ## Environments
 
-Two, both on the one `petpomo` Pages project. Which one a deploy lands in is
-decided solely by `--branch`:
+Two separate Workers, chosen solely by `--env`:
 
-| | Git branch | URL | Database |
-|---|---|---|---|
-| **Production** | `main` | `www.pomodoropet.com` | `petpomo` |
-| **Testing** | `testing` | `preview.petpomo.pages.dev` | `petpomo-preview` |
+| | Git branch | Worker | URL | Database |
+|---|---|---|---|---|
+| **Production** | `main` | `petpomo` | `petpomo.totadedishant.workers.dev` (→ `www.pomodoropet.com` when live) | `petpomo` |
+| **Testing** | `testing` | `petpomo-preview` | `petpomo-preview.totadedishant.workers.dev` | `petpomo-preview` |
 
 **Pushing deploys.** `.github/workflows/deploy.yml` typechecks, builds and
 deploys on every push to those two branches, so the normal workflow is just:
 
 ```bash
-git push origin testing    # -> preview.petpomo.pages.dev
-git push origin main       # -> www.pomodoropet.com
+git push origin testing    # -> petpomo-preview.totadedishant.workers.dev
+git push origin main       # -> production Worker
 ```
 
 It needs two repository secrets, both under **Settings → Secrets and variables
-→ Actions**: `CLOUDFLARE_API_TOKEN` (a token with the *Cloudflare Pages: Edit*
-permission) and `CLOUDFLARE_ACCOUNT_ID`.
-
-Cloudflare's built-in Git integration is deliberately not used. This project was
-created as a Direct Upload project and Cloudflare does not allow one to be
-connected to a repository afterwards — taking that route would mean deleting and
-recreating the project, losing both URLs and the deployment history.
+→ Actions**: `CLOUDFLARE_API_TOKEN` (a token with the **Workers Scripts: Edit**
+permission — the old Pages-scoped token will fail) and `CLOUDFLARE_ACCOUNT_ID`.
 
 The manual path still works and is the fallback if Actions is ever down:
 
 ```bash
-npm run deploy            # -> production
-npm run deploy:preview    # -> testing
+npm run deploy            # -> production Worker
+npm run deploy:preview    # -> preview Worker
 ```
 
-Any *other* branch also deploys as a preview, at `<branch>.petpomo.pages.dev`
-with the same preview database. `preview` is just the fixed branch name the
-script uses so the testing URL never moves.
+Both scripts pass `--env` explicitly. Do not drop it: a bare `wrangler deploy`
+deploys the top-level config, which is the local-dev shape — it is named
+`petpomo-dev` on purpose so that mistake creates an obviously-wrong third
+Worker instead of overwriting production.
 
-Both scripts pass `--branch` explicitly. Do not drop it: with no `--branch`,
-wrangler infers the environment from whatever git branch is checked out, so a
-deploy from a feature branch would quietly go somewhere you did not intend.
+The split is enforced by `[env.preview]` / `[env.production]` in
+`wrangler.toml`, which point the same `DB` binding at different databases.
 
-The split is enforced by `[env.preview]` in `wrangler.toml`, which points the
-same `DB` binding at a different database. Verified by writing a save through
-the preview URL and confirming production returned 404 for that same code.
-
-A custom domain, if one is ever added, attaches to production only — preview
-deploys stay on `*.pages.dev` and are never served from the real domain.
+A custom domain, when added, attaches to the production Worker only — preview
+stays on `*.workers.dev` and is never served from the real domain.
 
 To reset the test data at any point, without touching production:
 
@@ -317,7 +318,7 @@ applies no headers. Verify against the real runtime:
 
 ```bash
 npm run build
-npx wrangler pages dev dist --port 8788
+npx wrangler dev --port 8788
 PETPOMO_BASE=http://localhost:8788 npm run test:e2e
 ```
 
@@ -330,20 +331,19 @@ widening the policy.
 
 ```bash
 npm run dev            # Astro dev server, no API
-npm run db:local       # one-time: create the local D1 table
-npm run dev:full       # build + wrangler pages dev — serves the API too
+npm run db:local       # one-time: create the local D1 tables
+npm run dev:full       # build + wrangler dev on :4332 — serves the API too
 ```
 
 `npm run dev:full` is the only way to exercise sync locally, since the API only
-exists as a Pages Function.
+exists inside the Worker. Port 4332 is what `tests/sync.mjs` expects.
 
 ---
 
 ## Notes
 
-- **`wrangler.toml` is committed with a placeholder `database_id`.** That is
-  deliberate — it is not a secret, but it is account-specific, so the repo
-  shouldn't pretend to know it.
+- **`wrangler.toml` carries the real `database_id`s.** They are not secrets —
+  a database id is useless without an API token for the account.
 - **There are no secrets to configure.** No API keys, no account. A sync code is
   generated in the browser and is the only credential; the server never sees a
   user identity.

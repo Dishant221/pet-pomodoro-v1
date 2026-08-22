@@ -1,22 +1,21 @@
 name: Deploy
 
-# Cloudflare's own Git integration is not available here: this Pages project
-# was created as a Direct Upload project, and Cloudflare does not let one be
-# connected to a repository after the fact. This workflow does the same job —
-# push a branch, get a deploy — while keeping the existing project and its two
-# URLs intact.
+# Deploys to Cloudflare Workers (Static Assets) — migrated from Pages
+# 2026-08-22. Two separate Workers, chosen by the --env flag:
 #
-#   push to main      ->  www.pomodoropet.com        (production, D1 petpomo)
-#   push to testing   ->  preview.petpomo.pages.dev  (preview,    D1 petpomo-preview)
+#   push to main      ->  wrangler deploy --env production  ->  Worker `petpomo`
+#                         petpomo.totadedishant.workers.dev (custom domain
+#                         www.pomodoropet.com attaches here when live)
+#   push to testing   ->  wrangler deploy --env preview     ->  Worker `petpomo-preview`
+#                         petpomo-preview.totadedishant.workers.dev
 #
-# Production is still the Pages project's `main` deployment — the custom
-# domain is attached to it in the Cloudflare dashboard, and petpomo.pages.dev
-# keeps serving the same deploy with a canonical pointing at the domain.
+# Each environment binds its own D1 database in wrangler.toml (petpomo /
+# petpomo-preview). The old Pages project `petpomo` is kept as the rollback
+# path — its pages.dev URLs keep serving the last Pages deploy against the
+# same databases. Do not delete it until well after the domain cutover.
 #
-# The environment is chosen entirely by the --branch flag passed to wrangler.
-# Cloudflare treats the project's production branch (main) as production and
-# every other branch name as preview, and wrangler.toml binds a different D1
-# database to each.
+# The CLOUDFLARE_API_TOKEN repo secret must carry Workers Scripts:Edit
+# permission (the old one was created for Pages deploys and may not).
 
 on:
   push:
@@ -57,7 +56,7 @@ jobs:
       - run: npm run build
         env:
           PUBLIC_SITE_URL: >-
-            ${{ github.ref_name == 'main' && 'https://www.pomodoropet.com' || 'https://preview.petpomo.pages.dev' }}
+            ${{ github.ref_name == 'main' && 'https://www.pomodoropet.com' || 'https://petpomo-preview.totadedishant.workers.dev' }}
 
       # The first-load JS budget, enforced rather than aspired to. Three.js is
       # three quarters of the ceiling on its own, so the split that keeps it out
@@ -65,12 +64,10 @@ jobs:
       # undone — and nothing about the page would look broken when it was.
       - run: npm run budget
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
-            pages deploy dist
-            --project-name petpomo
-            --branch ${{ github.ref_name == 'main' && 'main' || 'preview' }}
+            deploy --env ${{ github.ref_name == 'main' && 'production' || 'preview' }}

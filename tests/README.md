@@ -17,13 +17,13 @@ npx astro preview --port 4330
 npm run test:e2e
 ```
 
-**Run it against the real Pages runtime before shipping anything.** `astro
+**Run it against the real Workers runtime before shipping anything.** `astro
 preview` serves static files and nothing else — it applies none of
-`public/_headers` and serves no `/api` Functions, so a Content-Security-Policy
+`public/_headers` and serves no `/api`, so a Content-Security-Policy
 that blocks the entire game passes cleanly there:
 
 ```bash
-npx wrangler pages dev dist --port 8788
+npx wrangler dev --port 8788
 PETPOMO_BASE=http://localhost:8788 npm run test:e2e
 ```
 
@@ -59,11 +59,11 @@ Three things worth knowing if you edit it:
 
 ## `sync.mjs` — 10 checks
 
-Needs the API, which only exists as a Pages Function:
+Needs the API, which only exists inside the Worker:
 
 ```bash
 npm run db:local           # once
-npm run dev:full           # serves on 4332
+npm run dev:full           # build + wrangler dev on :4332
 npm run test:sync
 ```
 

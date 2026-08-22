@@ -1,115 +1,107 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "petpomo"
+#
+# Workers Static Assets deployment — migrated from Cloudflare Pages 2026-08-22.
+# (Cloudflare: "Start new projects with Workers." Pages also rejected four
+# things this project needs next: Cron Triggers, the rate-limit binding,
+# Email Workers, and defining Durable Objects.)
+#
+# THE TOP LEVEL IS LOCAL DEV ONLY and is never deployed: deploys always pass
+# --env preview or --env production (see package.json and deploy.yml). The
+# name below is deliberately wrong-looking so a stray bare `wrangler deploy`
+# creates an obviously-misnamed third Worker instead of silently overwriting
+# production with a config that has no AI binding.
+name = "petpomo-dev"
+main = "worker/src/entry.ts"
 compatibility_date = "2026-05-01"
-pages_build_output_dir = "dist"
+
+# Static assets: everything Astro emits into dist. Only /api/* invokes the
+# Worker; every other URL is served straight from the asset store, which is
+# also where public/_headers and public/_redirects are honoured. They are NOT
+# applied to Worker-generated responses — exactly as on Pages, where _headers
+# never touched Function responses either. Inheritable, so it applies to both
+# environments below.
+[assets]
+directory = "dist"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+# Cron stub, handled by the no-op scheduled() in worker/src/entry.ts.
+# Analytics rollups and the moderation digest will land here in later phases.
+# Inheritable.
+[triggers]
+crons = ["17 3 * * *"]
 
 # ---------------------------------------------------------------------------
-# Production. Top-level config is what the production branch (main) deploys
-# with, and it is also what `wrangler pages dev` uses locally.
+# Local dev. `wrangler dev` simulates D1 locally (miniflare); the id below is
+# never contacted from here.
 #
-# D1 holds nothing but opaque save blobs keyed by a client-generated secret.
+# Workers AI is DELIBERATELY NOT DECLARED at this level. Unlike D1 it has no
+# local emulation: an [ai] block here makes `wrangler dev` open a *remote*
+# connection at startup, and it was measured hanging every local request on
+# this machine for exactly that reason. It is declared per-environment below,
+# which deploys read and local dev never loads. Local /api/ask falls back to
+# its own reaction table — a tested path, and the same one a deploy without
+# AI takes.
+#
+# Now that this is a Worker (not Pages), an ASK_LIMIT [[ratelimits]] binding
+# is finally *possible* — Pages rejected the key outright. It is still not
+# declared yet: the D1 `bumpLimit` upsert is the tested atomic limiter, and
+# swapping it for the binding is its own change, not part of the migration.
+# worker/src/index.ts already prefers ASK_LIMIT when bound.
 # ---------------------------------------------------------------------------
 [[d1_databases]]
 binding = "DB"
 database_name = "petpomo"
 database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 
-# Workers AI, for /api/ask — the endpoint that decides how the pet reacts to
-# being spoken to. It is the only thing in this project that costs money per
-# call, so the endpoint rate-limits per address and caps per day.
-#
-# DELIBERATELY NOT DECLARED AT THIS LEVEL, because top-level is also what
-# `wrangler pages dev` uses. An `[ai]` block here is not a local binding: unlike
-# D1, Workers AI has no local emulation, so wrangler opens a *remote* connection
-# for it at startup, making `wrangler pages dev` — and with it `npm run
-# test:sync`, which drives the real Pages runtime — depend on being logged in,
-# online, and entitled to Workers AI. It was measured hanging every request on
-# this machine for exactly that reason.
-#
-# It is declared per-environment instead, under `[env.preview.ai]` below, which
-# deploys reach but local dev never loads. Local dev therefore stays clean and
-# /api/ask falls back to its own reaction table there — a tested path, and the
-# same one a deploy without AI takes.
-#
-# DO NOT go back to binding it only in the dashboard. That was the previous
-# advice here and it does not hold: for a Pages project with a config file,
-# `wrangler pages deploy` replaces the whole deployment config for the target
-# environment with what this file says. A dashboard-added AI binding survives
-# until the next deploy and is then silently dropped — observed exactly that
-# way, with /api/ask answering `"model": false` from a preview that had been
-# bound by hand minutes earlier.
-
-# The burst limit on /api/ask was going to be Cloudflare's own rate limiter,
-# bound as ASK_LIMIT, because it is atomic where the edge cache counter is not
-# and every call past the limit is a billed inference.
-#
-# IT CANNOT LIVE HERE. Pages rejects the key outright, and not just the binding
-# — the whole deploy fails validation before a single asset is uploaded:
-#
-#   X [ERROR] Running configuration file validation for Pages:
-#       - Configuration file for Pages projects does not support "ratelimits"
-#
-# So /api/ask runs on the fallback the endpoint already had: the same
-# best-effort edge-cache counter used elsewhere in the Worker, with the daily
-# budget cap unchanged behind it. `c.env.ASK_LIMIT` being undefined is a
-# supported path in worker/src/index.ts, not an accident.
-#
-# A WAF rate-limiting rule is not the way out either, and this is worth writing
-# down because the obvious advice is wrong here. WAF rules are configured per
-# *zone*, and this account has no zones: the site is served from
-# `*.pages.dev`, which is Cloudflare's own domain, not the user's. There is
-# nothing to attach a rule to until a custom domain is added.
-#
-# So both of the usual atomic limiters are unavailable, and the Worker's own
-# counter is the only thing between /api/ask and unmetered billed inference.
-# That is why the burst limit is now an atomic D1 upsert rather than the
-# best-effort edge-cache counter — see `bumpLimit` in worker/src/index.ts.
-
 [vars]
-# Same-origin deploys need no allowlist. Set this only if you split the API onto
-# its own Worker/domain, e.g. "https://www.pomodoropet.com".
+# Same-origin deploys need no allowlist. Set this only if you split the API
+# onto its own origin, e.g. "https://www.pomodoropet.com".
 ALLOWED_ORIGINS = ""
 # Model ids are retired on their own schedule, so this is a var rather than a
 # constant in the source. Empty means "use the default in worker/src/index.ts".
 ASK_MODEL = ""
 
 # ---------------------------------------------------------------------------
-# Preview. Every deploy on a branch other than main lands here, on a
-# *.petpomo.pages.dev preview URL that no custom domain ever points at.
+# Preview. Deployed by `wrangler deploy --env preview` as its own Worker,
+# `petpomo-preview`, on workers.dev. It gets its own database so testing
+# cannot corrupt or read real players' saves.
 #
-# It gets its own database so testing cannot corrupt or read real players'
-# saves. Both blocks below are repeated rather than inherited on purpose:
-# d1_databases and vars are non-inheritable, so overriding either one for an
-# environment means every non-inheritable key must be restated for it.
+# d1_databases and vars are non-inheritable: overriding either one for an
+# environment means every non-inheritable key must be restated for it. That
+# is why both blocks are repeated verbatim-shaped below and again under
+# production.
 # ---------------------------------------------------------------------------
+[env.preview]
+name = "petpomo-preview"
+workers_dev = true
+
 [[env.preview.d1_databases]]
 binding = "DB"
 database_name = "petpomo-preview"
 database_id = "c1ec69f6-c242-4085-8e14-d55335a34a4f"
 
 # Workers AI for /api/ask. Safe to declare here, unlike at the top level:
-# `wrangler pages dev` reads the top-level config only, so this binding reaches
+# `wrangler dev` reads the top-level config only, so this binding reaches the
 # deployed preview without dragging a remote AI connection into local dev.
 [env.preview.ai]
 binding = "AI"
-
-# No `[env.preview.ratelimits]` either — Pages rejects it in any environment,
-# for the reason spelled out above. Preview falls back to the same edge-cache
-# counter, against its own separate database.
 
 [env.preview.vars]
 ALLOWED_ORIGINS = ""
 ASK_MODEL = ""
 
 # ---------------------------------------------------------------------------
-# Production. Declared explicitly rather than inherited from the top level,
-# because the top level is shared with `wrangler pages dev` and the AI binding
-# cannot go there without hanging local dev.
-#
-# Everything is restated: d1_databases and vars are non-inheritable, so a bare
-# `[env.production]` would deploy production with no database at all. The
-# database id below is production's, and must stay different from preview's.
+# Production. Deployed by `wrangler deploy --env production` as the Worker
+# `petpomo`. Serves on workers.dev until www.pomodoropet.com is live, at which
+# point the custom domain attaches to this Worker (dashboard → Workers →
+# petpomo → Settings → Domains & Routes). The old Pages project keeps serving
+# petpomo.pages.dev untouched as the rollback path — do not delete it.
 # ---------------------------------------------------------------------------
+[env.production]
+name = "petpomo"
+workers_dev = true
+
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "petpomo"

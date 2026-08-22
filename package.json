@@ -14,14 +14,14 @@
     "db:local": "wrangler d1 execute petpomo --local --file=worker/schema.sql",
     "db:remote": "wrangler d1 execute petpomo --remote --file=worker/schema.sql",
     "db:preview": "wrangler d1 execute petpomo-preview --remote --file=worker/schema.sql",
-    "dev:full": "astro build && wrangler pages dev dist",
+    "dev:full": "astro build && wrangler dev --port 4332",
     "budget": "node scripts/budget.mjs",
     "test:e2e": "node tests/acceptance.mjs",
     "test:sync": "node tests/sync.mjs",
     "test:talk": "node tests/verify-talk.mjs",
     "og": "node scripts/make-og.mjs",
-    "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com astro build && wrangler pages deploy dist --project-name petpomo --branch main",
-    "deploy:preview": "cross-env PUBLIC_SITE_URL=https://preview.petpomo.pages.dev astro build && wrangler pages deploy dist --project-name petpomo --branch preview"
+    "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com astro build && wrangler deploy --env production",
+    "deploy:preview": "cross-env PUBLIC_SITE_URL=https://petpomo-preview.totadedishant.workers.dev astro build && wrangler deploy --env preview"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.2",

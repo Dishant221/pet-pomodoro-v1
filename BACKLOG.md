@@ -65,6 +65,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 54 | Blog ad placeholders | Labelled 728×90 banner + 300×250 rectangle placeholders (`AdSlot.astro`) on index, topics and posts. Height reserved against CLS; stable `data-ad-slot` ids for later AdSense wiring. Landing-page `.pp-adslot` unchanged. |
 | 55 | Per-post social/SEO meta | og:type=article, article:published_time/tags, per-post og:image from the cover, BreadcrumbList + timeRequired in the BlogPosting schema, reading time on page. |
 | 59 | Gifts section | `/gifts` in the nav: letters from Mochi, sealed with a paw, opened with a petal burst. Sub-category tabs (From Mochi / Deals / Coupons / Offers / Sponsors), Current/Expired chips, geo-filtered by `/api/geo` (Cloudflare IP country, nothing stored) with a "show all regions" toggle. In-game treat letters pay coins via `addCoins`; external letters carry `rel="sponsored nofollow noopener"` + FTC disclosure. Catalog in `src/game/gifts.ts` is the append-only audit ledger — rules in **AFFILIATES.md**. `sample:true` entries render off-production only. 4 new acceptance checks. |
+| 62 | Pages → Workers migration | Site now served by Cloudflare Workers Static Assets: Worker `petpomo` (production) / `petpomo-preview` (testing, petpomo-preview.totadedishant.workers.dev), same Hono app via `worker/src/entry.ts`, `run_worker_first=["/api/*"]`, cron stub wired. Same D1 databases; `_headers`/`_redirects` carried over. Old Pages project kept intact as rollback — do not delete. Unlocks Cron Triggers, rate-limit binding, Email Workers, Durable Objects for the accounts work (#39). Verified: 118/120 acceptance (2 known flaky, #45), 10/10 sync, talk pass, budget 103.5 KB. |
 | 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact` with a validated form (name/email/subject/message, honeypot + time-gate against bots, mailto composed with full URL-encoding); `support@pomodoropet.com` behind the animated 💬 (own island, every page, every mode — not just where the talk bar renders). No mail backend by design. Addresses live in `src/site.ts`. **Delivery depends on #58.** |
 
 ---
@@ -155,8 +156,9 @@ ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 **43. Razorpay payments.** Blocked on business KYC. Architected for, not built.
 
 **56. Merge `testing` → `main` (domain cutover).** Blocked until
-`www.pomodoropet.com` is registered, attached to the `petpomo` Pages project as
-a custom domain, and returning 200. Everything on `testing` declares that
+`www.pomodoropet.com` is registered, attached to the `petpomo` **Worker**
+(since #62 the site is Workers Static Assets, not Pages) as a custom domain,
+and returning 200. Everything on `testing` declares that
 domain as canonical; deploying it to production while the domain is dead would
 make every page point search engines at a host that does not resolve, and the
 site would de-index itself. **The full step-by-step cutover checklist is in
