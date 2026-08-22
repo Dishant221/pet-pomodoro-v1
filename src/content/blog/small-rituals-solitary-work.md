@@ -1,7 +1,7 @@
 ---
 title: Small rituals that make solitary work feel kept company
 description: 'The same mug, the same start sequence, a small creature fed at the bell: how repeated work rituals give solitary days edges and a quiet sense of company.'
-publishedAt: 2026-08-22
+publishedAt: 2026-09-13
 tags: ['loneliness', 'remote work', 'habits', 'companionship']
 image: ../../assets/blog/small-rituals-solitary-work.jpg
 imageAlt: "A stack of books, a mug and reading glasses on an outdoor table"

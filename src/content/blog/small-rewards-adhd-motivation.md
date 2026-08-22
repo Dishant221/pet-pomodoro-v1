@@ -1,7 +1,7 @@
 ---
 title: "Small rewards, right now: motivation that works with ADHD"
 description: Why small, immediate rewards suit ADHD motivation better than distant payoffs — and where honest gamification ends and manipulation begins.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-12
 tags: ['adhd', 'habits', 'focus', 'virtual pet']
 image: ../../assets/blog/small-rewards-adhd-motivation.jpg
 imageAlt: "A jar filled with coins, seen from above"

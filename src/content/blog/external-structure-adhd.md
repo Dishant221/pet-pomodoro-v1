@@ -1,7 +1,7 @@
 ---
 title: "External structure: borrowing a clock when yours is unreliable"
 description: External structure for ADHD means outsourcing time-sense to alarms, visible timers and other people — prosthetics, not crutches, and nothing to apologise for.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-31
 tags: ['adhd', 'focus', 'habits', 'pomodoro']
 image: ../../assets/blog/external-structure-adhd.jpg
 imageAlt: "Scaffolding wrapped around the upper floors of an ornate old building"

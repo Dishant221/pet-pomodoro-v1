@@ -1,7 +1,7 @@
 ---
 title: "Hyperfocus: when the problem is stopping, not starting"
 description: ADHD hyperfocus is focus without brakes — missed meals, lost hours. Why a bell that ends sessions matters as much as the one that starts them.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-03
 tags: ['adhd', 'focus', 'breaks', 'pomodoro']
 image: ../../assets/blog/hyperfocus-needs-a-bell.jpg
 imageAlt: "A red vintage kitchen wall clock"

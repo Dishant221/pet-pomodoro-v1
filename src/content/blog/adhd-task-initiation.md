@@ -1,7 +1,7 @@
 ---
 title: "Task initiation with ADHD: why starting is the hardest part"
 description: Task initiation with ADHD — why the wall between intending and beginning exists, and how a smaller commitment plus a start ritual lowers the cost.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-24
 tags: ['adhd', 'focus', 'habits', 'pomodoro']
 image: ../../assets/blog/adhd-task-initiation.jpg
 imageAlt: "Notebooks and index cards filled with handwritten to-do lists"

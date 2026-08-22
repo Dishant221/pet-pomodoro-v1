@@ -1,7 +1,7 @@
 ---
 title: 'Finishing what you start: closing loops with a bell'
 description: How to finish tasks when everything trails off instead of ending — give work an honest finish line, close the open loops, and let a bell say done.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-01
 tags: ['focus', 'pomodoro', 'habits']
 image: ../../assets/blog/finishing-what-you-start.jpg
 imageAlt: "A runner crossing the finish line arch of a marathon with arms raised"

@@ -1,7 +1,7 @@
 ---
 title: A work-from-home routine built around breaks, not hours
 description: A work from home routine that treats breaks as the skeleton of the day — real edges, breaks that actually restore, and an ending you choose.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-21
 tags: ['remote work', 'breaks', 'habits', 'work']
 image: ../../assets/blog/work-from-home-routine.jpg
 imageAlt: "A home desk with two monitors by a window, surrounded by flowering plants"

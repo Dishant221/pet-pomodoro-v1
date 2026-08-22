@@ -1,7 +1,7 @@
 ---
 title: 'Company without judgement: presence that asks nothing'
 description: 'Why company that cannot judge you is sometimes easier than company that can, and what a silent, undemanding presence actually does for solitary work.'
-publishedAt: 2026-08-22
+publishedAt: 2026-09-10
 tags: ['companionship', 'loneliness', 'focus', 'virtual pet']
 image: ../../assets/blog/presence-without-conversation.jpg
 imageAlt: "A calico cat asleep on a striped cushion"

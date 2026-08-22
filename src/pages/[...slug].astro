@@ -9,7 +9,7 @@ import PostToc from '../components/PostToc.astro';
 import ShareBar from '../components/ShareBar.astro';
 import Comments from '../islands/Comments.tsx';
 import { SITE, legalName } from '../site';
-import { fmtDate, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } from '../blog/util';
+import { fmtDate, isLive, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } from '../blog/util';
 
 /**
  * Blog articles live directly under the root — www.pomodoropet.com/the-slug/ —
@@ -20,7 +20,7 @@ import { fmtDate, readingMinutes, relatedPosts, sortByDate, tagLabel, tagSlug } 
 export async function getStaticPaths() {
   // Drafts are built locally but never published, so a half-finished post
   // cannot leak into the sitemap by being forgotten.
-  const posts = await getCollection('blog', ({ data }) => !data.draft || import.meta.env.DEV);
+  const posts = await getCollection('blog', ({ data }) => isLive(data));
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 
@@ -36,7 +36,7 @@ const { Content, headings } = await render(post);
 const url = new URL(`/${post.id}/`, Astro.site).href;
 const minutes = readingMinutes(post);
 
-const all = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const all = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
 const related = relatedPosts(post, all, 3);
 
 // Social cards want ~1200×630; the same optimised file feeds the schema.

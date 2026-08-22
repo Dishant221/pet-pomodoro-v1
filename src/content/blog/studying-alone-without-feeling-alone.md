@@ -1,7 +1,7 @@
 ---
 title: Studying alone without feeling alone
 description: Studying alone is two jobs — the material and the silence. How to make a room feel inhabited without inviting distraction in, and why it helps.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-15
 tags: ['studying', 'loneliness', 'focus', 'companionship']
 image: ../../assets/blog/studying-alone-without-feeling-alone.jpg
 imageAlt: "A glowing laptop on a desk covered in notes late at night"

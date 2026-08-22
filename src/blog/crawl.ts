@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import { SITE } from '../site';
-import { sortByDate, tagLabel, type Post } from './util';
+import { isLive, sortByDate, tagLabel, type Post } from './util';
 
 /**
  * The article set exposed to crawlers — search engines and AI agents alike.
@@ -11,7 +11,7 @@ import { sortByDate, tagLabel, type Post } from './util';
  * someone forgot.
  */
 export async function crawlablePosts(): Promise<Post[]> {
-  return sortByDate(await getCollection('blog', ({ data }) => !data.draft && data.searchIndex));
+  return sortByDate(await getCollection('blog', ({ data }) => isLive(data) && data.searchIndex));
 }
 
 /**

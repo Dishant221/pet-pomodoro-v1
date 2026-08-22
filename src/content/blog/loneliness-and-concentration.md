@@ -1,7 +1,7 @@
 ---
 title: How loneliness quietly erodes concentration
 description: Loneliness runs in the background and spends the attention you meant for work. How lonely focus gets harder, and the small levers that may help.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-04
 tags: ['loneliness', 'mental health', 'focus']
 image: ../../assets/blog/loneliness-and-concentration.jpg
 imageAlt: "A desk with a glowing lamp and laptop beside a rain-flecked window at night"

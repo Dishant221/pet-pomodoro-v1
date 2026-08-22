@@ -1,7 +1,7 @@
 ---
 title: "ADHD time blindness: making time visible enough to use"
 description: ADHD time blindness is knowing time exists without feeling it pass. How visible countdowns, bells and a sleeping cat turn time into an object you can use.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-25
 tags: ['adhd', 'focus', 'pomodoro', 'habits']
 image: ../../assets/blog/adhd-time-blindness.jpg
 imageAlt: "Close-up of sand falling inside an hourglass"

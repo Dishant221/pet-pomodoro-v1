@@ -6,7 +6,7 @@ import PaintedWall from '../../components/PaintedWall.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import PostCard from '../../components/PostCard.astro';
 import { SITE } from '../../site';
-import { allTags, sortByDate, type Post } from '../../blog/util';
+import { allTags, isLive, sortByDate, type Post } from '../../blog/util';
 
 /**
  * The blog index: searchable, filterable by topic, paginated nine cards a
@@ -14,7 +14,7 @@ import { allTags, sortByDate, type Post } from '../../blog/util';
  * keeps the first page's URL clean, which is the one that ranks.
  */
 export const getStaticPaths = (async ({ paginate }) => {
-  const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+  const posts = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
   return paginate(posts, { pageSize: 9 });
 }) satisfies GetStaticPaths;
 
@@ -23,7 +23,7 @@ interface Props {
 }
 const { page } = Astro.props;
 
-const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const posts = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
 const tags = allTags(posts);
 
 /**

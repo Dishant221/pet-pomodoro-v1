@@ -1,7 +1,7 @@
 ---
 title: Working from home and the isolation nobody schedules for
 description: Offices supplied company nobody planned — kettle queues, overheard jokes. Working from home removed it without replacing it. What to put back, and how.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-22
 tags: ['remote work', 'loneliness', 'work', 'mental health']
 image: ../../assets/blog/working-from-home-isolation.jpg
 imageAlt: "A home desk with a laptop, paperwork and a red mug of coffee"

@@ -1,7 +1,7 @@
 ---
 title: Loneliness and solitude are not the same thing
 description: 'Solitude is aloneness you chose; loneliness is aloneness that happened to you. How structure and small presence can tip an empty room from one to the other.'
-publishedAt: 2026-08-22
+publishedAt: 2026-09-05
 tags: ['loneliness', 'mental health', 'companionship']
 image: ../../assets/blog/loneliness-vs-solitude.jpg
 imageAlt: "A cosy reading corner with an armchair, an open book and warm sunlight"

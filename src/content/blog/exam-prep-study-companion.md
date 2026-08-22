@@ -1,7 +1,7 @@
 ---
 title: Exam prep with a companion who keeps the schedule
 description: Revision is a long campaign where pace beats intensity. How pomodoro sessions and a companion who expects the routine keep exam prep steady for weeks.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-30
 tags: ['studying', 'pomodoro', 'breaks', 'virtual pet']
 image: ../../assets/blog/exam-prep-study-companion.jpg
 imageAlt: "A student taking handwritten notes from an open textbook"

@@ -1,7 +1,7 @@
 ---
 title: Coming back after a bad week
 description: 'The hardest part of a bad week is the return. How to pick tools that greet you instead of auditing you, and why one small session counts as coming back.'
-publishedAt: 2026-08-22
+publishedAt: 2026-08-28
 tags: ['habits', 'mental health', 'focus', 'virtual pet']
 image: ../../assets/blog/coming-back-after-a-bad-week.jpg
 imageAlt: "A laptop and a mug silhouetted against a bright window"

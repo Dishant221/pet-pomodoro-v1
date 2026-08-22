@@ -1,7 +1,7 @@
 ---
 title: Finding real focus blocks between meetings
 description: Forty minutes between meetings is too short for deep work and too long to waste. One pomodoro fits that gap exactly — here is how to defend it.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-02
 tags: ['pomodoro', 'work', 'focus', 'breaks']
 image: ../../assets/blog/focus-blocks-between-meetings.jpg
 imageAlt: "A wall calendar month with plans handwritten in some of the boxes"

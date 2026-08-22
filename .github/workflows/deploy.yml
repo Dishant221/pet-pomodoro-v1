@@ -21,6 +21,14 @@ on:
   push:
     branches: [main, testing]
   workflow_dispatch:
+  # Daily rebuild for the blog drip. The build decides which posts are live by
+  # comparing each post's publishedAt to the build time (src/blog/util.ts
+  # isLive), so with no code change a fresh build each morning is what makes the
+  # day's next post appear. A scheduled run checks out the default branch
+  # (main), so it deploys production. 05:30 UTC — a quiet hour, after midnight
+  # in the Americas so "today's" post is up early everywhere.
+  schedule:
+    - cron: '30 5 * * *'
 
 # A second push while one is mid-deploy would race, and for the same branch the
 # older run's output is already stale, so drop it rather than let it land after.

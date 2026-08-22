@@ -1,7 +1,7 @@
 ---
 title: Making the Pomodoro Technique survive an office job
 description: The Pomodoro Technique was designed for people who control their own time. Here is how to make it survive Slack, meetings and an open-plan office.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-08
 tags: ['pomodoro', 'work', 'focus']
 image: ../../assets/blog/pomodoro-at-work.jpg
 imageAlt: "An office desk with a laptop, an external monitor and an open textbook"

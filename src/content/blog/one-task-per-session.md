@@ -1,7 +1,7 @@
 ---
 title: 'One task per session: the rule that makes pomodoro work'
 description: Pomodoro sessions fail when they carry three tasks. Why naming one task before you press start matters more than the timer itself, and how to slice big work.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-06
 tags: ['pomodoro', 'focus', 'work', 'habits']
 image: ../../assets/blog/one-task-per-session.jpg
 imageAlt: "Sticky notes stuck across two monitors above a keyboard"

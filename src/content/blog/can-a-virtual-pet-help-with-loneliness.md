@@ -1,7 +1,7 @@
 ---
 title: Can a virtual pet actually help with loneliness?
 description: An honest look at whether a virtual pet helps with loneliness — the narrow company it can offer, what it can never replace, and why it still counts.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-27
 tags: ['virtual pet', 'loneliness', 'companionship', 'mental health']
 image: ../../assets/blog/can-a-virtual-pet-help-with-loneliness.jpg
 imageAlt: "A Siamese cat looking into the camera against a bright window"

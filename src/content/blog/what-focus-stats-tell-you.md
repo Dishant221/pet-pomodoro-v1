@@ -1,7 +1,7 @@
 ---
 title: What your focus stats actually tell you — and what they don't
 description: Focus time tracking stats are a mirror, not a scoreboard. Which numbers deserve your trust, which ones flatter you, and how to read a week kindly.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-16
 tags: ['focus', 'pomodoro', 'habits', 'work']
 image: ../../assets/blog/what-focus-stats-tell-you.jpg
 imageAlt: "A smartphone displaying line graphs in a graphing app"

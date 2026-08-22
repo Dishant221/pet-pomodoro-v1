@@ -1,7 +1,7 @@
 ---
 title: Does the Pomodoro Technique work for ADHD?
 description: An honest answer — the Pomodoro Technique helps many people with ADHD and fails others. What the bounded interval supplies, and how to adapt it.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-09
 tags: ['adhd', 'pomodoro', 'focus']
 image: ../../assets/blog/pomodoro-technique-adhd.jpg
 imageAlt: "A small blue egg resting on the face of a garden sundial"

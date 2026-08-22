@@ -1,7 +1,7 @@
 ---
 title: Body doubling, and why even a virtual pet counts as company
 description: What body doubling is, why presence without help works for ADHD focus, and why even a virtual pet asleep beside your timer counts as company.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-26
 tags: ['adhd', 'focus', 'virtual pet', 'companionship']
 image: ../../assets/blog/body-doubling-with-a-virtual-pet.jpg
 imageAlt: "A tabby cat resting quietly under a table, looking at the camera"

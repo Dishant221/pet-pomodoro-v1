@@ -1,7 +1,7 @@
 ---
 title: Why looking after something helps when you feel alone
 description: 'Caring for something — even a small virtual pet — can ease the feeling of being surplus when you are alone. How that works, and where the help runs out.'
-publishedAt: 2026-08-22
+publishedAt: 2026-09-19
 tags: ['loneliness', 'mental health', 'virtual pet', 'companionship']
 image: ../../assets/blog/why-caring-for-something-helps.jpg
 imageAlt: "Close-up of a calico cat with green eyes looking up"

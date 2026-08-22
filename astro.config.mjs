@@ -27,11 +27,26 @@ const isProduction = site === PRODUCTION_ORIGIN;
  * the meta tag says, the sitemap must not advertise it.
  */
 const blogDir = fileURLToPath(new URL('./src/content/blog', import.meta.url));
-const unindexedSlugs = readdirSync(blogDir)
-  .filter((f) => /\.mdx?$/.test(f))
+const blogFiles = readdirSync(blogDir).filter((f) => /\.mdx?$/.test(f));
+/** @param {string} f */
+const frontmatter = (f) => readFileSync(`${blogDir}/${f}`, 'utf8').split(/^---\s*$/m)[1] ?? '';
+
+const unindexedSlugs = blogFiles
+  .filter((f) => /^searchIndex:\s*false\s*$/m.test(frontmatter(f)))
+  .map((f) => f.replace(/\.mdx?$/, ''));
+
+/**
+ * Posts whose publish date has not arrived yet. The blog drips one post a day
+ * (see src/blog/util.ts `isLive`), and a not-yet-due post is not built, so it
+ * must not be advertised in the sitemap either — the two must agree or Search
+ * Console flags a sitemap URL that answers 404. Recomputed every build, which
+ * is why the daily rebuild is what moves a post from "future" to "live".
+ */
+const buildTime = Date.now();
+const futureSlugs = blogFiles
   .filter((f) => {
-    const fm = readFileSync(`${blogDir}/${f}`, 'utf8').split(/^---\s*$/m)[1] ?? '';
-    return /^searchIndex:\s*false\s*$/m.test(fm);
+    const m = frontmatter(f).match(/^publishedAt:\s*['"]?(\d{4}-\d{2}-\d{2})/m);
+    return m ? new Date(m[1]).getTime() > buildTime : false;
   })
   .map((f) => f.replace(/\.mdx?$/, ''));
 
@@ -118,7 +133,9 @@ export default defineConfig({
         !/\/(settings|stats|shop)\/?$/.test(page) &&
         // Articles whose frontmatter says searchIndex: false stay live but
         // out of the sitemap (their pages also carry noindex).
-        !unindexedSlugs.some((slug) => page.endsWith(`/${slug}/`)),
+        !unindexedSlugs.some((slug) => page.endsWith(`/${slug}/`)) &&
+        // Not-yet-due posts in the daily drip are not built, so keep them out.
+        !futureSlugs.some((slug) => page.endsWith(`/${slug}/`)),
       changefreq: 'weekly',
       lastmod: new Date(),
     }),

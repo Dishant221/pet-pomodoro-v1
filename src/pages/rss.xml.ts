@@ -2,6 +2,7 @@ import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
 import { SITE } from '../site';
+import { isLive } from '../blog/util';
 
 /**
  * The feed.
@@ -12,7 +13,7 @@ import { SITE } from '../site';
  * mistake here reaches people who cannot un-read it.
  */
 export async function GET(context: APIContext) {
-  const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  const posts = (await getCollection('blog', ({ data }) => isLive(data))).sort(
     (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
   );
 

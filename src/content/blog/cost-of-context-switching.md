@@ -1,7 +1,7 @@
 ---
 title: The real cost of context switching
 description: The context switching cost that hurts productivity isn't the glance at the other thing — it's the slow reload afterwards. How bounded sessions help.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-29
 tags: ['focus', 'work', 'pomodoro']
 image: ../../assets/blog/cost-of-context-switching.jpg
 imageAlt: "Three juggling balls resting on a wooden table"

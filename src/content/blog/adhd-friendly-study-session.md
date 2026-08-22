@@ -1,7 +1,7 @@
 ---
 title: An ADHD-friendly study session, from first minute to last
 description: One ADHD-friendly study session walked through from first minute to last — one task, a distraction notepad, and a break that actually restores you.
-publishedAt: 2026-08-22
+publishedAt: 2026-08-23
 tags: ['adhd', 'studying', 'focus', 'pomodoro']
 image: ../../assets/blog/adhd-friendly-study-session.jpg
 imageAlt: "Design books, a spiral notebook and a mug of coffee laid out on a desk"

@@ -1,7 +1,7 @@
 ---
 title: Why productivity apps get abandoned within a fortnight
 description: Productivity apps rarely fail on features. They fail because nothing notices when you leave — and because streaks make coming back feel worse.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-20
 tags: ['habits', 'focus', 'virtual pet']
 image: ../../assets/blog/why-productivity-apps-get-abandoned.jpg
 imageAlt: "A hand holding a smartphone showing a list app"

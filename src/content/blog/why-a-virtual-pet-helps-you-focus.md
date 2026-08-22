@@ -1,7 +1,7 @@
 ---
 title: Why a virtual pet makes focus timers stick
 description: Plain timers are easy to abandon because nothing notices. A pet that reacts to your sessions borrows a much older motivation, and that changes the odds.
-publishedAt: 2026-08-16
+publishedAt: 2026-09-18
 tags: ['virtual pet', 'focus', 'habits', 'pomodoro']
 image: ../../assets/blog/why-a-virtual-pet-helps-you-focus.jpg
 imageAlt: "A grey cat sitting on a desk in front of a computer monitor"

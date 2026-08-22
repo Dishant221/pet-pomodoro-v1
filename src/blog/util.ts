@@ -2,6 +2,26 @@ import type { CollectionEntry } from 'astro:content';
 
 export type Post = CollectionEntry<'blog'>;
 
+/**
+ * Whether a post is live right now.
+ *
+ * The blog releases one post a day: every post carries a `publishedAt`, and a
+ * post is not live until that date has arrived. Because the site is a static
+ * build, "arrived" is decided at build time — which is why a scheduled daily
+ * rebuild (see .github/workflows/deploy.yml) is what actually makes the next
+ * day's post appear. Drafts are never live. In `astro dev` everything is live,
+ * drafts and future posts included, so the whole blog can be previewed.
+ *
+ * Every place that lists or builds posts must go through this, or a
+ * not-yet-due post would leak into one surface (the sitemap, the RSS feed, a
+ * topic page) while being absent from the others.
+ */
+export function isLive(data: Post['data'], now: Date = new Date()): boolean {
+  if (import.meta.env.DEV) return true;
+  if (data.draft) return false;
+  return data.publishedAt.getTime() <= now.getTime();
+}
+
 /** "virtual pet" -> "virtual-pet", for the /blog/topic/ URLs. */
 export function tagSlug(tag: string): string {
   return tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

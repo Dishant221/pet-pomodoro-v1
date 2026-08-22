@@ -7,7 +7,7 @@ import PaintedWall from '../components/PaintedWall.astro';
 import PaintedFrame from '../components/PaintedFrame.astro';
 import PostToc from '../components/PostToc.astro';
 import { SITE } from '../site';
-import { sortByDate, tagLabel, tagSlug } from '../blog/util';
+import { isLive, sortByDate, tagLabel, tagSlug } from '../blog/util';
 import heroShot from '../assets/about/cat-napping-on-desk.jpg';
 import companionsShot from '../assets/about/dog-and-cat-napping.jpg';
 
@@ -37,7 +37,7 @@ import companionsShot from '../assets/about/dog-and-cat-napping.jpg';
 
 const canonical = new URL('/about/', Astro.site).href;
 
-const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const posts = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
 
 // The topics this page (and the whole site) is about — rendered as the same
 // tag chips articles carry, linking into the topic archives.

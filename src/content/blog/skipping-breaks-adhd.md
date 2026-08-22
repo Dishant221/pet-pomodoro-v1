@@ -1,7 +1,7 @@
 ---
 title: Why skipping breaks makes ADHD focus worse, not better
 description: Skipping breaks does not bank extra ADHD focus — it borrows from the next session. Why a real break needs content, not just an absence of work.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-11
 tags: ['adhd', 'breaks', 'focus', 'pomodoro']
 image: ../../assets/blog/skipping-breaks-adhd.jpg
 imageAlt: "A cup of black coffee on a saucer with a spoon"

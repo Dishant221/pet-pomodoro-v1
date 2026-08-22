@@ -1,7 +1,7 @@
 ---
 title: Why millions study with strangers on video
 description: Study with me videos are hours of a stranger silently working — and they help. What that quiet company supplies, what it costs, and calmer versions.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-14
 tags: ['studying', 'focus', 'companionship']
 image: ../../assets/blog/study-with-me-quiet-company.jpg
 imageAlt: "A student sitting under a tree with a notebook and a laptop in the grass"

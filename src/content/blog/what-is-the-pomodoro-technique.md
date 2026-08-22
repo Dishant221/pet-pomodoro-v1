@@ -1,7 +1,7 @@
 ---
 title: What is the Pomodoro Technique?
 description: A 25-minute focus timer, a short break, and a rule about what to do when you get distracted. Here is how the method actually works and where it fails.
-publishedAt: 2026-08-16
+publishedAt: 2026-09-17
 tags: ['pomodoro', 'focus', 'productivity']
 image: ../../assets/blog/what-is-the-pomodoro-technique.jpg
 imageAlt: "Boxes of red and yellow tomatoes at a market stall"

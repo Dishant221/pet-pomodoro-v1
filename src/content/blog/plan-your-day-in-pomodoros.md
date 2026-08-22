@@ -1,7 +1,7 @@
 ---
 title: How to plan a workday in pomodoros
 description: A workday holds fewer pomodoros than you think. How to plan by sessions instead of hours, leave slack on purpose, and review the week without guilt.
-publishedAt: 2026-08-22
+publishedAt: 2026-09-07
 tags: ['pomodoro', 'work', 'habits']
 image: ../../assets/blog/plan-your-day-in-pomodoros.jpg
 imageAlt: "A closed notebook with a pen and reading glasses resting on top"

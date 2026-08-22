@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
 import AdSlot from '../../../components/AdSlot.astro';
 import PostCard from '../../../components/PostCard.astro';
-import { allTags, sortByDate, tagSlug, type Post } from '../../../blog/util';
+import { allTags, isLive, sortByDate, tagSlug, type Post } from '../../../blog/util';
 
 /**
  * One crawlable archive page per topic — /blog/topic/adhd/ and so on. These
@@ -11,7 +11,7 @@ import { allTags, sortByDate, tagSlug, type Post } from '../../../blog/util';
  * the client-side search box which they cannot run.
  */
 export async function getStaticPaths() {
-  const posts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+  const posts = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
   return allTags(posts).map((t) => ({
     params: { tag: t.slug },
     props: { label: t.label, tag: t.tag, posts: posts.filter((p) => p.data.tags.includes(t.tag)) },
@@ -25,7 +25,7 @@ interface Props {
 }
 const { label, tag, posts } = Astro.props;
 
-const allPosts = sortByDate(await getCollection('blog', ({ data }) => !data.draft));
+const allPosts = sortByDate(await getCollection('blog', ({ data }) => isLive(data)));
 const tags = allTags(allPosts);
 const url = new URL(`/blog/topic/${tagSlug(tag)}/`, Astro.site).href;
 
