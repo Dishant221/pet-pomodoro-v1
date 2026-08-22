@@ -70,6 +70,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 64 | Comments + moderation + admin dashboard | Comments on every blog post and the homepage (`Comments.tsx`, client:visible, guest name or account, plain-text only). EVERYTHING waits for admin approval — the pipeline (size → identity/ban → Turnstile-when-configured → sanitizer rejecting links/handles/cloaked-unicode/markup → target allowlist → Llama Guard advisory verdict → pending) is documented in **MODERATION.md**. `/admin` dashboard: Queue (AI-flagged first, approve/reject/delete/ban), Users (footprint + ban toggle), Contact inbox. `/contact` form now POSTs to the server (stored always, mailto fallback kept); daily digest cron wired, fail-soft until email exists. D1 migration 0004 (posts, contact_messages, gift_clicks, user_stats_daily, meta). 23-check `tests/community.mjs`. |
 | 62 | Pages → Workers migration | Site now served by Cloudflare Workers Static Assets: Worker `petpomo` (production) / `petpomo-preview` (testing, petpomo-preview.totadedishant.workers.dev), same Hono app via `worker/src/entry.ts`, `run_worker_first=["/api/*"]`, cron stub wired. Same D1 databases; `_headers`/`_redirects` carried over. Old Pages project kept intact as rollback — do not delete. Unlocks Cron Triggers, rate-limit binding, Email Workers, Durable Objects for the accounts work (#39). Verified: 118/120 acceptance (2 known flaky, #45), 10/10 sync, talk pass, budget 103.5 KB. |
 | 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact` with a validated form (name/email/subject/message, honeypot + time-gate against bots, mailto composed with full URL-encoding); `support@pomodoropet.com` behind the animated 💬 (own island, every page, every mode — not just where the talk bar renders). No mail backend by design. Addresses live in `src/site.ts`. **Delivery depends on #58.** |
+| 68 | URL status audit (2026-08-22) | Every route checked live against **https://www.pomodoropet.com** (custom domain confirmed live, apex 301→www). All 25 pages + 7 machine endpoints return 200; 1 of 32 blog posts released so far under drip publishing (rest 404 by design until their release day). Full table in the "URL status audit" section below. |
 
 ---
 
@@ -208,6 +209,105 @@ Email → Email Routing, create custom addresses `support@` and `enquire@`, both
 forwarding to the personal gmail inbox, and verify the destination address.
 Until this is done, mail sent to either address bounces — #57 printed them on
 the site, so this must land with (or before) the #56 cutover.
+
+---
+
+## URL status audit — 2026-08-22 (#68)
+
+Checked live against `https://www.pomodoropet.com` with `curl` on 2026-08-22.
+The custom domain is live: apex `pomodoropet.com` → 301 → `www.pomodoropet.com` → 200.
+
+### Pages — all 200
+
+| URL | Status |
+|-----|--------|
+| / | 200 |
+| /about/ | 200 |
+| /admin/ | 200 |
+| /blog/ | 200 |
+| /blog/topic/companionship/ | 200 |
+| /blog/topic/focus/ | 200 |
+| /blog/topic/virtual-pet/ | 200 |
+| /blog/topic/work/ | 200 |
+| /contact/ | 200 |
+| /cookies/ | 200 |
+| /copyright/ | 200 |
+| /disclosure/ | 200 |
+| /forum/ | 200 |
+| /gifts/ | 200 |
+| /login/ | 200 |
+| /privacy/ | 200 |
+| /profile/ | 200 |
+| /settings/ | 200 |
+| /shop/ | 200 |
+| /stats/ | 200 |
+| /terms/ | 200 |
+
+### Machine endpoints — all 200
+
+| URL | Status |
+|-----|--------|
+| /robots.txt | 200 |
+| /rss.xml | 200 |
+| /llms.txt | 200 |
+| /llms-full.txt | 200 |
+| /sitemap-index.xml | 200 |
+| /sitemap-0.xml | 200 |
+| /api/health | 200 |
+
+### Redirects — working as designed
+
+| URL | Status | Target |
+|-----|--------|--------|
+| https://pomodoropet.com/ (apex) | 301 | https://www.pomodoropet.com/ |
+| /forum/thread/ (no id) | 302 | /forum/ |
+| /blog/\<slug\>/ (64 rules in `_redirects`) | 301 | /\<slug\>/ |
+
+### Blog posts — drip publishing (one released per day since 2026-08-22)
+
+| URL | Status |
+|-----|--------|
+| /a-desk-companion-for-deep-work/ | 200 |
+| /a-desk-companion-for-deep-work.md | 200 |
+| /adhd-friendly-study-session/ | 404 (not yet released) |
+| /adhd-task-initiation/ | 404 (not yet released) |
+| /adhd-time-blindness/ | 404 (not yet released) |
+| /body-doubling-with-a-virtual-pet/ | 404 (not yet released) |
+| /can-a-virtual-pet-help-with-loneliness/ | 404 (not yet released) |
+| /coming-back-after-a-bad-week/ | 404 (not yet released) |
+| /cost-of-context-switching/ | 404 (not yet released) |
+| /exam-prep-study-companion/ | 404 (not yet released) |
+| /external-structure-adhd/ | 404 (not yet released) |
+| /finishing-what-you-start/ | 404 (not yet released) |
+| /focus-blocks-between-meetings/ | 404 (not yet released) |
+| /hyperfocus-needs-a-bell/ | 404 (not yet released) |
+| /loneliness-and-concentration/ | 404 (not yet released) |
+| /loneliness-vs-solitude/ | 404 (not yet released) |
+| /one-task-per-session/ | 404 (not yet released) |
+| /plan-your-day-in-pomodoros/ | 404 (not yet released) |
+| /pomodoro-at-work/ | 404 (not yet released) |
+| /pomodoro-technique-adhd/ | 404 (not yet released) |
+| /presence-without-conversation/ | 404 (not yet released) |
+| /skipping-breaks-adhd/ | 404 (not yet released) |
+| /small-rewards-adhd-motivation/ | 404 (not yet released) |
+| /small-rituals-solitary-work/ | 404 (not yet released) |
+| /study-with-me-quiet-company/ | 404 (not yet released) |
+| /studying-alone-without-feeling-alone/ | 404 (not yet released) |
+| /what-focus-stats-tell-you/ | 404 (not yet released) |
+| /what-is-the-pomodoro-technique/ | 404 (not yet released) |
+| /why-a-virtual-pet-helps-you-focus/ | 404 (not yet released) |
+| /why-caring-for-something-helps/ | 404 (not yet released) |
+| /why-productivity-apps-get-abandoned/ | 404 (not yet released) |
+| /work-from-home-routine/ | 404 (not yet released) |
+| /working-from-home-isolation/ | 404 (not yet released) |
+
+Unreleased posts are 404 by design (drip publishing filters them out of the
+build); the sitemap only lists released posts, so nothing broken is indexed.
+A nonsense URL (`/this-page-does-not-exist/`) correctly returns 404.
+
+Observations, not yet tasks: the sitemap includes `/admin/`, `/login/`,
+`/profile/` and `/forum/thread/` (a 302) — utility pages that arguably should
+be excluded; sitemap URLs are expected to be 200.
 
 ---
 
