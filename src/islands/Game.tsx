@@ -55,7 +55,6 @@ import type { TimerMode } from '../stores/profile';
 import type { PropSpec } from '../three/props';
 import type { PetState } from '../game/manifest';
 import { $talk } from '../game/talk';
-import TalkBar from './TalkBar';
 
 const LAST_SEEN_KEY = 'petpomo.lastSeen.v1';
 
@@ -959,11 +958,6 @@ export default function Game() {
           </div>
         )}
         {showPet && metrics}
-
-        {/* Talking to the animal in its stage. Renders itself only when the pet
-            actually lives here — in `screen` mode the layout's copy is the one
-            on duty, so there is never a second microphone. */}
-        <TalkBar context="stage" />
 
         {floating && showTimer && hud}
 
