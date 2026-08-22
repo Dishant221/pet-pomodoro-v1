@@ -22,8 +22,8 @@
     "test:auth": "node tests/auth.mjs",
     "test:community": "node tests/community.mjs",
     "og": "node scripts/make-og.mjs",
-    "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com astro build && wrangler deploy --env production",
-    "deploy:preview": "cross-env PUBLIC_SITE_URL=https://petpomo-preview.totadedishant.workers.dev astro build && wrangler deploy --env preview"
+    "deploy": "cross-env PUBLIC_SITE_URL=https://www.pomodoropet.com PUBLIC_GOOGLE_LOGIN=1 astro build && wrangler deploy --env production",
+    "deploy:preview": "cross-env PUBLIC_SITE_URL=https://petpomo-preview.totadedishant.workers.dev PUBLIC_GOOGLE_LOGIN=1 astro build && wrangler deploy --env preview"
   },
   "dependencies": {
     "@astrojs/preact": "^6.0.2",

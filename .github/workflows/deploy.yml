@@ -57,6 +57,9 @@ jobs:
         env:
           PUBLIC_SITE_URL: >-
             ${{ github.ref_name == 'main' && 'https://www.pomodoropet.com' || 'https://petpomo-preview.totadedishant.workers.dev' }}
+          # Renders the "Continue with Google" button. Server-side the provider
+          # exists only where the GOOGLE_* secrets are set (both envs, 2026-08-22).
+          PUBLIC_GOOGLE_LOGIN: '1'
 
       # The first-load JS budget, enforced rather than aspired to. Three.js is
       # three quarters of the ceiling on its own, so the split that keeps it out
