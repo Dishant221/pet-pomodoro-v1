@@ -59,6 +59,12 @@ database_name = "petpomo"
 database_id = "f2668cba-dfff-4865-b09a-80dfec61e1e4"
 migrations_dir = "worker/migrations"
 
+# Sessions + better-auth's rate limiter. Local dev simulates KV in miniflare;
+# the id below (the preview namespace's) is never contacted from here.
+[[kv_namespaces]]
+binding = "KV_SESSIONS"
+id = "b7ec452e4c994b679352d4962fce60de"
+
 [vars]
 # Same-origin deploys need no allowlist. Set this only if you split the API
 # onto its own origin, e.g. "https://www.pomodoropet.com".
@@ -66,6 +72,9 @@ ALLOWED_ORIGINS = ""
 # Model ids are retired on their own schedule, so this is a var rather than a
 # constant in the source. Empty means "use the default in worker/src/index.ts".
 ASK_MODEL = ""
+# The origin better-auth trusts and builds callbacks against. MUST match the
+# origin users actually hit — it is restated per environment below.
+AUTH_ORIGIN = "http://localhost:4332"
 
 # ---------------------------------------------------------------------------
 # Preview. Deployed by `wrangler deploy --env preview` as its own Worker,
@@ -93,9 +102,14 @@ migrations_dir = "worker/migrations"
 [env.preview.ai]
 binding = "AI"
 
+[[env.preview.kv_namespaces]]
+binding = "KV_SESSIONS"
+id = "b7ec452e4c994b679352d4962fce60de"
+
 [env.preview.vars]
 ALLOWED_ORIGINS = ""
 ASK_MODEL = ""
+AUTH_ORIGIN = "https://petpomo-preview.totadedishant.workers.dev"
 
 # ---------------------------------------------------------------------------
 # Production. Deployed by `wrangler deploy --env production` as the Worker
@@ -117,6 +131,15 @@ migrations_dir = "worker/migrations"
 [env.production.ai]
 binding = "AI"
 
+[[env.production.kv_namespaces]]
+binding = "KV_SESSIONS"
+id = "9138bb32aead46b18d73f8fa81fa422f"
+
 [env.production.vars]
 ALLOWED_ORIGINS = ""
 ASK_MODEL = ""
+# Origin-bound: rotate to https://www.pomodoropet.com at the #56 domain
+# cutover (with the Google OAuth redirect URI and Turnstile hostnames).
+# Until the domain is live, auth ships on PREVIEW ONLY — this value is the
+# production Worker's own workers.dev origin so nothing breaks if deployed.
+AUTH_ORIGIN = "https://petpomo.totadedishant.workers.dev"

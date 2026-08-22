@@ -1,0 +1,38 @@
+/**
+ * Transactional email, fail-soft by design.
+ *
+ * Cloudflare Email Sending is beta, needs the Workers Paid plan, and cannot
+ * send to arbitrary recipients until pomodoropet.com is onboarded — three
+ * external states this code must not depend on. So: binding absent, sender
+ * unset, or the send throwing all end the same way — the mail is skipped and
+ * the caller's flow (signup, reset) continues. Nothing user-facing may ever
+ * fail because an email could not go out.
+ */
+
+export interface MailBindings {
+  /** Cloudflare Email Sending binding ([[send_email]]). Absent until the
+   * Workers Paid plan + domain onboarding exist. */
+  SEND_EMAIL?: {
+    send(message: { to: string; from: string; subject: string; text?: string; html?: string }): Promise<void>;
+  };
+  /** Verified sender, e.g. "support@pomodoropet.com". Unset = sending off. */
+  MAIL_FROM?: string;
+}
+
+/** Returns true only when a mail actually went out. */
+export async function sendMail(env: MailBindings, to: string, subject: string, url: string): Promise<boolean> {
+  if (!env.SEND_EMAIL || !env.MAIL_FROM) return false;
+  try {
+    await env.SEND_EMAIL.send({
+      to,
+      from: env.MAIL_FROM,
+      subject,
+      text: `${subject}\n\n${url}\n\nIf you didn't ask for this, ignore this email.`,
+    });
+    return true;
+  } catch {
+    // Beta service down, quota hit, domain not onboarded — all expected
+    // states. The auth flow this rode on must not break.
+    return false;
+  }
+}

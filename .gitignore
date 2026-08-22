@@ -19,6 +19,8 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+# wrangler local secrets (BETTER_AUTH_SECRET etc.) — never committed
+.dev.vars
 
 # macOS-specific files
 .DS_Store

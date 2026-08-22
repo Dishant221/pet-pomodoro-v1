@@ -16,9 +16,12 @@ import { cors } from 'hono/cors';
 // Type-only import: pulls in D1Database without dragging the Workers global
 // typings (fetch, Response, ...) into the browser-side program.
 import type { D1Database, IncomingRequestCfProperties } from '@cloudflare/workers-types';
+import { getAuth, type AuthBindings, type AuthedUser } from './auth';
 
-type Bindings = {
-  DB: D1Database;
+/** Accounts, sessions, email — DB, KV_SESSIONS, AUTH_ORIGIN, the GOOGLE_*
+ * and BETTER_AUTH_SECRET secrets, TURNSTILE_SECRET and SEND_EMAIL all come
+ * from AuthBindings (worker/src/auth.ts / mail.ts). */
+type Bindings = AuthBindings & {
   /** Comma-separated origin allowlist. Unset means "same-origin only". */
   ALLOWED_ORIGINS?: string;
   /**
@@ -29,8 +32,6 @@ type Bindings = {
   AI?: WorkersAi;
   /** Overrides the default model id. Model ids are retired on their own schedule. */
   ASK_MODEL?: string;
-  /** Turnstile secret. Unset skips the check; the rate limits still apply. */
-  TURNSTILE_SECRET?: string;
   /**
    * Cloudflare's own rate limiter for /api/ask.
    *
@@ -704,6 +705,104 @@ app.post('/api/ask', async (c) => {
     // that blinks at you.
     return c.json({ ok: true, model: false, ...localReaction(text) });
   }
+});
+
+// --- accounts ----------------------------------------------------------------
+
+/**
+ * All of better-auth's REST surface, mounted under /api/auth/*: sign-up,
+ * sign-in (email + Google), sign-out, get-session, password reset, and the
+ * admin plugin's endpoints. Same-origin like everything else here.
+ */
+app.on(['GET', 'POST'], '/api/auth/*', (c) => getAuth(c.env).handler(c.req.raw));
+
+/** The session on this request, or null. Never throws — a broken cookie is a
+ * logged-out visitor, not an error. */
+async function sessionUser(c: { env: Bindings; req: { raw: Request } }): Promise<AuthedUser | null> {
+  try {
+    const s = await getAuth(c.env).api.getSession({ headers: c.req.raw.headers });
+    return (s?.user as AuthedUser | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * GET /api/me/save — the signed-in user's cloud save.
+ * PUT /api/me/save — upsert it. Same size caps and write-interval rules as
+ * the code-keyed /api/save; the key is the session's user id instead of a
+ * bearer code, so nothing about the row is guessable or enumerable.
+ */
+app.get('/api/me/save', async (c) => {
+  const user = await sessionUser(c);
+  if (!user) return c.json({ error: 'sign in required' }, 401);
+
+  const row = await c.env.DB.prepare('SELECT profile, updated_at FROM user_saves WHERE user_id = ?')
+    .bind(user.id)
+    .first<{ profile: string; updated_at: number }>();
+  if (!row) return c.json({ error: 'not found' }, 404);
+
+  let profile: unknown;
+  try {
+    profile = JSON.parse(row.profile);
+  } catch {
+    return c.json({ error: 'stored save is corrupt' }, 500);
+  }
+  return c.json({ profile, updatedAt: row.updated_at });
+});
+
+app.put('/api/me/save', async (c) => {
+  const declared = Number(c.req.header('content-length') ?? 0);
+  if (declared > MAX_BODY) return c.json({ error: 'save too large' }, 413);
+
+  const user = await sessionUser(c);
+  if (!user) return c.json({ error: 'sign in required' }, 401);
+
+  const who = clientKey(c);
+  const minute = Math.floor(Date.now() / 60_000);
+  if (await overLimit(`save/${who}/${minute}`, WRITES_PER_MINUTE, 120)) {
+    return c.json({ error: 'too many writes, try again shortly' }, 429, { 'retry-after': '60' });
+  }
+
+  let body: { profile?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'malformed json' }, 400);
+  }
+  if (!body.profile || typeof body.profile !== 'object') return c.json({ error: 'missing profile' }, 400);
+
+  const serialized = JSON.stringify(body.profile);
+  if (serialized.length > MAX_BODY) return c.json({ error: 'save too large' }, 413);
+
+  const now = Date.now();
+  const existing = await c.env.DB.prepare('SELECT updated_at FROM user_saves WHERE user_id = ?')
+    .bind(user.id)
+    .first<{ updated_at: number }>();
+  if (existing && now - existing.updated_at < MIN_WRITE_INTERVAL_MS) {
+    return c.json({ error: 'too many writes' }, 429);
+  }
+
+  await c.env.DB.prepare(
+    `INSERT INTO user_saves (user_id, profile, updated_at) VALUES (?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET profile = excluded.profile, updated_at = excluded.updated_at`,
+  )
+    .bind(user.id, serialized, now)
+    .run();
+
+  return c.json({ ok: true, updatedAt: now });
+});
+
+/**
+ * GET /api/admin/ping — the smallest possible admin-gated endpoint. It exists
+ * so the role gate is testable before the moderation dashboard (next phase)
+ * hangs anything real behind it.
+ */
+app.get('/api/admin/ping', async (c) => {
+  const user = await sessionUser(c);
+  if (!user) return c.json({ error: 'sign in required' }, 401);
+  if (user.role !== 'admin') return c.json({ error: 'forbidden' }, 403);
+  return c.json({ ok: true });
 });
 
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
