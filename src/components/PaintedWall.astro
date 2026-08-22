@@ -1,0 +1,71 @@
+---
+/**
+ * A page-wide painted wallpaper, generated at BUILD TIME by the same pipeline
+ * that paints the game's stage (src/world/paint.ts). The layers arrive as
+ * inline SVG behind the page content — zero JavaScript, nothing fetched, so
+ * the strict CSP and the first-load budget are both untouched.
+ *
+ * A theme-aware veil sits on top of the painting: a plain `var(--bg)` sheet
+ * at `veil` opacity (universally supported — no color-mix dependency), plus a
+ * solid fade at the very top so the sticky header always sits on quiet
+ * ground. Text keeps its designed contrast in all four themes because the
+ * veil is the theme's own background colour.
+ */
+import type { SceneId } from '../game/manifest';
+import type { PhaseId } from '../game/world';
+import { PHASES } from '../world/palette';
+import { paintScene } from '../world/paint';
+import { seasonalise, type SeasonId } from '../world/season';
+
+interface Props {
+  scene?: SceneId;
+  phase?: PhaseId;
+  season?: SeasonId;
+  /** 0..1 — how much of the theme background covers the painting. High for
+   * prose pages (readability), low when content sits on opaque cards. */
+  veil?: number;
+}
+
+const { scene = 'garden', phase = 'dusk', season = 'summer', veil = 0.8 } = Astro.props;
+
+const layers = paintScene(scene, seasonalise(PHASES[phase], season));
+const stack = [layers.sky, layers.hills, layers.trees, layers.ground].filter(Boolean);
+---
+
+<div class="pp-wall" aria-hidden="true">
+  {stack.map((markup) => <div class="pp-wall-layer" set:html={markup} />)}
+  <div class="pp-wall-vignette"></div>
+  <div class="pp-wall-veil" style={`opacity:${veil};`}></div>
+  <div class="pp-wall-top"></div>
+</div>
+
+<style>
+  .pp-wall {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .pp-wall-layer {
+    position: absolute;
+    inset: 0;
+  }
+  /* Every reference painting is darker at the edges — same trick as the stage. */
+  .pp-wall-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgb(10 14 20 / 0.22) 100%);
+  }
+  .pp-wall-veil {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+  }
+  .pp-wall-top {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 7rem;
+    background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
+  }
+</style>

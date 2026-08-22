@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
+import PaintedWall from '../components/PaintedWall.astro';
 import PostToc from '../components/PostToc.astro';
 import { SITE } from '../site';
 import { sortByDate, tagLabel, tagSlug } from '../blog/util';
@@ -170,6 +171,10 @@ const schema = [
   schema={schema}
   ogImage={ogImage}
 >
+  {/* The game's own painted world as wallpaper — golden-hour garden, heavily
+      veiled so the prose keeps its contrast. Generated at build time, zero JS. */}
+  <PaintedWall scene="garden" phase="dusk" season="summer" veil={0.68} />
+
   {/* Same article + right-rail grid as every blog post. */}
   <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
     <article class="grid min-w-0 gap-5">

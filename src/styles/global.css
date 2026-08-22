@@ -102,7 +102,10 @@ html {
 .theme-vangogh { color-scheme: dark; }
 
 body {
-  background: var(--bg);
+  /* Transparent on purpose: html above owns the canvas colour. An opaque body
+     background would paint OVER fixed z-index:-1 children — which is exactly
+     where the painted wallpaper (PaintedWall.astro) lives. */
+  background: transparent;
   color: var(--ink);
   font-family: ui-rounded, 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
