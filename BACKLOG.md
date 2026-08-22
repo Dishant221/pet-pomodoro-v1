@@ -146,6 +146,15 @@ programmatically (FlexOffers Promotions API is free with the account;
 Strackr €10/mo or CouponAPI.org ~$44/mo as aggregators) and generate catalog
 entries instead of hand-writing them. Needs #60 first.
 
+**63. Replace the CI deploy token (user action).** Since #62 the deploy
+workflow runs `wrangler deploy`, but the `CLOUDFLARE_API_TOKEN` repo secret
+was created with only *Cloudflare Pages: Edit* — the deploy step fails with a
+permission error (check/build/budget all pass). Fix: Cloudflare dashboard →
+My Profile → API Tokens → create a token with **Account · Workers Scripts ·
+Edit** (keep Pages Edit on it too, for the rollback path), then replace
+`CLOUDFLARE_API_TOKEN` in GitHub → Settings → Secrets → Actions. Until then,
+deploy manually with `npm run deploy` / `npm run deploy:preview`.
+
 **42. Google Ads policy pass.** Cannot be completed until ads exist. Needs:
 ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 
