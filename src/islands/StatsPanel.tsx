@@ -114,28 +114,36 @@ export default function StatsPanel() {
 function Bars({ days }: { days: { label: string; ms: number; dayStart: number }[] }) {
   const max = Math.max(1, ...days.map((d) => d.ms));
   const W = 700;
-  const H = 200;
+  const H = 220;
+  // Top padding is what keeps the tallest bar's value label inside the
+  // viewBox — without it the number over a full-height bar is clipped.
+  const PAD_T = 22;
   const PAD_B = 28;
+  const plotH = H - PAD_T - PAD_B;
+  const baseline = H - PAD_B;
   const slot = W / days.length;
   const barW = Math.min(56, slot * 0.55);
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} class="h-auto w-full" role="img" aria-label="Focus minutes for each of the last seven days">
+      {/* Gridlines sit on the same value scale as the bars: t of max. */}
       {[0.25, 0.5, 0.75, 1].map((t) => (
         <line
           key={t}
           x1="0"
           x2={W}
-          y1={(H - PAD_B) * (1 - t)}
-          y2={(H - PAD_B) * (1 - t)}
+          y1={baseline - plotH * t}
+          y2={baseline - plotH * t}
           stroke="var(--ring-track)"
           stroke-width="1"
         />
       ))}
+      {/* The axis the bars stand on. */}
+      <line x1="0" x2={W} y1={baseline} y2={baseline} stroke="var(--ring-track)" stroke-width="1.5" />
       {days.map((d, i) => {
-        const h = d.ms === 0 ? 0 : Math.max(4, ((H - PAD_B - 8) * d.ms) / max);
+        const h = d.ms === 0 ? 0 : Math.max(4, (plotH * d.ms) / max);
         const x = i * slot + (slot - barW) / 2;
-        const y = H - PAD_B - h;
+        const y = baseline - h;
         return (
           <g key={d.dayStart}>
             <title>{`${d.label}: ${Math.round(d.ms / 60000)} minutes`}</title>

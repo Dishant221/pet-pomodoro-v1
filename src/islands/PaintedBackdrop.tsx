@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { SceneId } from '../game/manifest';
+import { SCENES, type SceneId } from '../game/manifest';
 import type { Condition, PhaseId } from '../game/world';
 import { PHASES, washFor } from '../world/palette';
 import { backdropLift, OVERSCAN, paintScene, type SceneLayers } from '../world/paint';
@@ -220,9 +220,14 @@ export default function PaintedBackdrop(props: PaintedBackdropProps) {
         <div aria-hidden="true" style={layerStyle('front')} dangerouslySetInnerHTML={{ __html: layers.layers.front }} />
       )}
 
-      {wash.precipitation !== 'none' && <Precipitation kind={wash.precipitation} intensity={wash.intensity} reduced={reduced} />}
+      {/* Weather falls outdoors only. Indoors the wash still applies — a grey
+          day dims the room through its windows — but rain inside a living room
+          is a leak, not atmosphere. */}
+      {!SCENES[scene].indoor && wash.precipitation !== 'none' && (
+        <Precipitation kind={wash.precipitation} intensity={wash.intensity} reduced={reduced} />
+      )}
 
-      {condition === 'storm' && <Lightning reduced={reduced} />}
+      {!SCENES[scene].indoor && condition === 'storm' && <Lightning reduced={reduced} />}
 
       {/* Every reference image is darker at the edges. */}
       <div

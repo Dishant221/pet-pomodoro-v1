@@ -64,6 +64,12 @@ export interface SceneSpec {
   dayNight: boolean;
   /** Base hue for the synthesized ambient bed. */
   ambientHz: number;
+  /**
+   * The scene is a room: weather still tints the light (grey days come in
+   * through the windows) but nothing falls from the ceiling — no rain, no
+   * snow, no lightning flash.
+   */
+  indoor?: boolean;
 }
 
 export const PET_STATES: Record<PetState, PetStateSpec> = {
@@ -87,6 +93,7 @@ export const SCENES: Record<SceneId, SceneSpec> = {
     snackSlot: 'snack-slot',
     dayNight: true,
     ambientHz: 110,
+    indoor: true,
   },
   garden: {
     svg: sceneGarden,
