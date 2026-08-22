@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+/**
+ * Placeholder for the admin dashboard (moderation queue, users, analytics —
+ * the next phase). The static page holds no admin data: everything sensitive
+ * lives behind /api/admin/*, which checks the session's role server-side.
+ */
+---
+
+<Layout title="Admin — PetPomo" description="PetPomo admin." noindex>
+  <section class="pp-card mx-auto max-w-md p-6 text-center">
+    <h1 class="text-xl font-extrabold tracking-tight">Admin</h1>
+    <p class="mt-2 text-sm" style="color: var(--ink-soft)">
+      The dashboard — moderation queue, users, analytics — arrives with the community phase.
+      The role gate is already live: <code>/api/admin/ping</code> answers only an admin session.
+    </p>
+  </section>
+</Layout>

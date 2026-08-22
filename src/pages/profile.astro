@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PaintedWall from '../components/PaintedWall.astro';
+import ProfilePanel from '../islands/ProfilePanel.tsx';
+import StatsPanel from '../islands/StatsPanel.tsx';
+
+/**
+ * The account page: who you are, then the same history/stats/streaks panel
+ * the /stats page renders — one derivation, two pages. noindex: it's
+ * per-visitor content with nothing for a search result.
+ */
+---
+
+<Layout
+  title="Your profile — PetPomo"
+  description="Your PetPomo account: sync state, history, stats and streaks."
+  noindex
+>
+  <PaintedWall scene="treehouse" phase="dusk" season="summer" veil={0.72} />
+  <div class="grid gap-8">
+    <ProfilePanel client:load />
+    <StatsPanel client:only="preact" />
+  </div>
+</Layout>

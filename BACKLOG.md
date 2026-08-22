@@ -123,8 +123,17 @@ loaded. Decide which before starting.
 **38. Richer anime interiors.** #29's gap, done properly: posters, rugs, lamps,
 window light, shelves, with climbable geometry.
 
-**39. Accounts and login.** Not started. Sync currently uses a code, not an
-account.
+**39. Accounts and login.** PARTIAL as of 2026-08-22 — moved from Pending in
+place to keep the number. Live on preview: better-auth on D1 + KV
+(migrations, `/api/auth/*`), email+password signup/signin at `/login` (painted
+wallpaper), profile menu in the nav beside fullscreen, `/profile` with
+history/stats/streaks, account-linked auto-syncing saves that ADOPT the local
+save on first login (LWW, legacy sync codes untouched), admin role gate
+(`/api/admin/ping`), 13-check `tests/auth.mjs`. Still gated on user setups:
+Google OAuth client (`PUBLIC_GOOGLE_LOGIN=1` + GOOGLE_* secrets), Turnstile
+widget (PUBLIC_TURNSTILE_SITE_KEY + secret), email verification (Workers
+Paid + domain onboarding). Comments/forum/admin dashboard are the next
+phases of the approved plan.
 
 **40. Monetization.** Ad network integration, premium ad-removal, merchandise.
 Needs #31 finished first.

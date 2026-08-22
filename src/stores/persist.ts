@@ -4,6 +4,9 @@
  * access is allowed.
  */
 export const SAVE_KEY = 'petpomo.save.v1';
+/** When this device last CHANGED the profile (ms). The last-write-wins clock
+ * for account sync: compared against the server row's updated_at on login. */
+export const SAVED_AT_KEY = 'petpomo.savedAt.v1';
 export const TIMER_KEY = 'petpomo.timer.v1';
 
 export const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';

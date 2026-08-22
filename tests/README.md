@@ -57,6 +57,32 @@ Three things worth knowing if you edit it:
   session against a threshold of 70, so reaching `begging` "naturally" takes
   three sessions. Seed `vitals.hunger` instead.
 
+## `auth.mjs` — 13 checks
+
+Accounts end to end, against the same server as sync (`npm run db:local`
+once, then `npm run dev:full`):
+
+```bash
+npm run test:auth
+```
+
+Covers: the login page and its painted wallpaper; create-account landing
+signed-in on /profile; the local save being adopted as the account save
+(coins survive); the nav avatar and sign-out; a wrong password refused in
+words; a second browser context signing in and pulling the account save; the
+admin role gate refusing a normal user and answering after promotion + a
+fresh sign-in (sessions cache the user snapshot in KV, so a role change
+applies at the next sign-in); zero console errors.
+
+Two suite-specific rules: better-auth allows 3 sign-ins per 10 s per address,
+so sign-ins go through a helper that retries once after the window; and the
+deliberate 401/403/404/429 responses are filtered narrowly, only while the
+step that causes them runs — same policy as sync.mjs's expected 429.
+
+**Run sync and auth suites separately from acceptance** (not back-to-back in
+one command) — they share the server's per-IP write buckets and interleave
+into rate-limit flakes otherwise.
+
 ## `sync.mjs` — 10 checks
 
 Needs the API, which only exists inside the Worker:

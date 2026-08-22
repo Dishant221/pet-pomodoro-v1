@@ -3,7 +3,7 @@ import type { SceneId } from '../game/manifest';
 import { SCENE_IDS } from '../game/manifest';
 import type { PetSkinId, SnackId, ThemeId } from '../game/economy';
 import { PET_BY_ID, PET_ITEMS, SNACK_ITEMS, THEME_ITEMS } from '../game/economy';
-import { SAVE_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persist';
+import { SAVE_KEY, SAVED_AT_KEY, debounceWrite, isBrowser, readJSON, writeJSON } from './persist';
 import type { Condition, PhaseId } from '../game/world';
 import type { SeasonId } from '../world/season';
 import { MAX_ZONES, isValidZone } from '../game/zones';
@@ -526,6 +526,16 @@ const flush = debounceWrite(SAVE_KEY, 200);
 export function setProfile(next: Profile): void {
   $profile.set(next);
   flush(next);
+  // The LWW clock for account sync (src/game/account.ts). Stamped on every
+  // local mutation so a login can tell which side — this device or the
+  // server row — moved last. Failure is as ignorable as the save write's.
+  if (isBrowser) {
+    try {
+      localStorage.setItem(SAVED_AT_KEY, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 export function updateProfile(fn: (p: Profile) => Profile): void {

@@ -4,6 +4,7 @@ import { isProductionBuild } from '../site';
 import Companion from '../islands/Companion';
 import TalkBar from '../islands/TalkBar';
 import SupportWidget from '../islands/SupportWidget';
+import ProfileMenu from '../islands/ProfileMenu';
 
 /**
  * The one place every page's `<head>` is assembled.
@@ -185,6 +186,12 @@ const year = new Date().getFullYear();
             </a>
           ))
         }
+
+        {/*
+          The account control — sign-in link when logged out, avatar menu when
+          logged in. Second from the right, just left of fullscreen.
+        */}
+        <ProfileMenu client:idle />
 
         {/*
           Fullscreen. Last in the bar and set apart, because it acts on the

@@ -70,12 +70,19 @@ export default defineConfig({
         "connect-src 'self'",
         "worker-src 'self'",
         "manifest-src 'self'",
+        // Turnstile renders its challenge in an iframe on this origin. The
+        // widget script only ever loads when PUBLIC_TURNSTILE_SITE_KEY is
+        // set, but the policy is static, so the origin is allowed up front.
+        // (Google sign-in needs no CSP change: it is a top-level navigation.)
+        "frame-src 'self' https://challenges.cloudflare.com",
         'upgrade-insecure-requests',
       ],
       scriptDirective: {
         // 'self' covers /boot.js and /sw-register.js, which are real files
         // precisely so they need no hash and cannot drift out of sync.
-        resources: ["'self'"],
+        // challenges.cloudflare.com is Turnstile's widget script (see
+        // frame-src above).
+        resources: ["'self'", 'https://challenges.cloudflare.com'],
       },
       styleDirective: {
         resources: [

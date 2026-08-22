@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PaintedWall from '../components/PaintedWall.astro';
+import AuthPanel from '../islands/AuthPanel.tsx';
+
+/**
+ * Sign in / create account. The wallpaper is the game's own mountain at
+ * dawn, barely veiled: the form sits on an opaque card, so the painting can
+ * carry the page. noindex — an auth form is nothing for a search result.
+ */
+---
+
+<Layout
+  title="Sign in — PetPomo"
+  description="Sign in to PetPomo or create a free account to keep your pet, coins and streaks with you on any device."
+  noindex
+>
+  <PaintedWall scene="mountain" phase="dawn" season="summer" veil={0.35} />
+  <div class="grid min-h-[70vh] items-center py-6">
+    <AuthPanel client:load />
+  </div>
+</Layout>

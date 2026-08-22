@@ -117,6 +117,50 @@ If you ever split the API onto its own origin, set `ALLOWED_ORIGINS` in
 
 ---
 
+## 5. Accounts (better-auth)
+
+Sign-in lives at `/login`; the server half is better-auth mounted at
+`/api/auth/*` (worker/src/auth.ts). Users/accounts in D1, sessions in the
+`KV_SESSIONS` namespace. Schema is managed by **migrations** now:
+
+```bash
+npm run db:local      # wrangler d1 migrations apply petpomo --local
+npm run db:preview    # …petpomo-preview --remote --env preview
+npm run db:remote     # …petpomo --remote --env production
+```
+
+Secrets (per environment, never in wrangler.toml):
+
+```bash
+npx wrangler secret put BETTER_AUTH_SECRET --env preview   # 32+ random chars
+npx wrangler secret put GOOGLE_CLIENT_ID --env preview     # when the OAuth app exists
+npx wrangler secret put GOOGLE_CLIENT_SECRET --env preview
+npx wrangler secret put TURNSTILE_SECRET --env preview     # when the widget exists
+```
+
+Everything degrades by configuration: no GOOGLE_* = no Google button
+(client-side it is gated by the `PUBLIC_GOOGLE_LOGIN=1` build env), no
+TURNSTILE_SECRET = no captcha (pair with `PUBLIC_TURNSTILE_SITE_KEY` at build
+time), no SEND_EMAIL binding = no verification/reset emails (accounts still
+work; `requireEmailVerification` stays false until the sending domain is
+onboarded).
+
+**Admin promotion** (one-time, per environment; sessions cache the user, so
+the role applies at the account's next sign-in):
+
+```bash
+npx wrangler d1 execute petpomo-preview --remote --env preview \
+  --command "UPDATE \"user\" SET role='admin' WHERE email='<your email>'"
+```
+
+better-auth upgrades: the schema in worker/migrations/0002 was verified
+against `@better-auth/core/dist/db/get-tables.mjs` — the standalone
+`@better-auth/cli` is deprecated and emits an OLD schema (missing
+`account.issuer`), which fails at runtime. On upgrade, diff get-tables.mjs
+and write a new migration by hand.
+
+---
+
 ## ⚠️ Going live on www.pomodoropet.com — read before merging to `main`
 
 **As of 22 Aug 2026, do not merge `testing` into `main`.** Everything on
