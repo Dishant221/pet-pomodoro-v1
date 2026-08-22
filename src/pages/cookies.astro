@@ -4,11 +4,11 @@ import Legal from '../layouts/Legal.astro';
 
 <Legal
   title="Cookie Notice"
-  description="PetPomo sets one strictly-necessary session cookie, and only if you sign in. Here is that cookie, and everything else it stores in your browser."
+  description="PetPomo sets one essential login cookie, plus Google Analytics cookies only if you accept them. Here is every cookie and what else it stores in your browser."
   updated="2026-08-22"
-  intro="PetPomo sets exactly one cookie — an essential login-session cookie, and only if you sign in. No advertising or analytics cookies. This page explains that, and what else it uses, so you can check for yourself."
+  intro="PetPomo sets one essential login-session cookie, and Google Analytics cookies only if you accept analytics on the banner. No advertising cookies, ever. Here is the full list, so you can check for yourself."
 >
-  <h2>The one cookie: your login session</h2>
+  <h2>Essential: your login session</h2>
   <p>
     If you <a href="/privacy">sign in</a>, the login system sets a single <strong>strictly-necessary session
     cookie</strong>. It is what keeps you logged in as you move between pages — without it, signing in could not work.
@@ -20,10 +20,24 @@ import Legal from '../layouts/Legal.astro';
     <li><strong>SameSite</strong> — it is not sent along with requests from other sites.</li>
   </ul>
   <p>
-    Because it is strictly necessary to a feature you asked for by signing in, no consent banner is required for it
-    under the GDPR and the ePrivacy rules. Sign out, or never sign in, and it is not set at all. There are
-    <strong>no advertising, analytics or third-party tracking cookies</strong> — you can confirm this in your
-    browser's developer tools under <em>Application → Cookies</em>.
+    Because it is strictly necessary to a feature you asked for by signing in, no consent is required for it under the
+    GDPR and the ePrivacy rules. Sign out, or never sign in, and it is not set at all.
+  </p>
+
+  <h2>Analytics: only if you accept</h2>
+  <p>
+    We use Google Analytics to count visits (see the <a href="/privacy">privacy policy</a>). It is <strong>off by
+    default</strong>: on your first visit a banner asks, and these cookies are set <strong>only if you press
+    Accept</strong>. Press Decline, or ignore it, and none of them are written. Clearing this site's data resets the
+    choice and removes them.
+  </p>
+  <ul>
+    <li><code>_ga</code> — Google Analytics' visitor identifier. Expires after ~2 years.</li>
+    <li><code>_ga_Z25JZX5ZPV</code> — Google Analytics 4 session state for this site. Expires after ~2 years.</li>
+  </ul>
+  <p>
+    There are <strong>no advertising cookies</strong> at all. You can confirm exactly what is set in your browser's
+    developer tools under <em>Application → Cookies</em>.
   </p>
 
   <h2>What it does use: local storage</h2>
@@ -38,6 +52,7 @@ import Legal from '../layouts/Legal.astro';
     <li><code>petpomo.weather.v1</code> — the last weather reading, cached for 30 minutes to avoid re-asking.</li>
     <li><code>petpomo.weather.absent.v1</code> — set only if the weather endpoint is unavailable, so we stop asking.</li>
     <li><code>petpomo.syncCode.v1</code> — your sync code, but only if you turned cloud sync on.</li>
+    <li><code>petpomo.consent.v1</code> — whether you accepted or declined analytics, so the banner is asked once.</li>
   </ul>
 
   <h2>Clearing it</h2>
@@ -48,10 +63,11 @@ import Legal from '../layouts/Legal.astro';
 
   <h2>Third parties</h2>
   <p>
-    No third-party scripts run on this site — no analytics, no ad network, no embedded widgets, no external fonts.
-    The requests the site makes on your behalf all go to its own endpoints: <code>/api/weather</code> for the sky,
-    <code>/api/sync</code> if you turn cloud sync on, and the sign-in endpoints if you use an account. These are
-    described in the <a href="/privacy">privacy policy</a>.
+    The only third-party script that can run is <strong>Google Analytics</strong>, and only after you accept it on the
+    banner (nothing loads before that). There is no ad network, no embedded widgets and no external fonts. The other
+    requests the site makes go to its own endpoints: <code>/api/weather</code> for the sky, <code>/api/sync</code> if
+    you turn cloud sync on, and the sign-in endpoints if you use an account. All are described in the
+    <a href="/privacy">privacy policy</a>.
   </p>
   <p>
     One thing worth stating plainly: the <a href="/gifts">Gifts page</a> shows outbound affiliate links to other

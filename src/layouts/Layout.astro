@@ -138,6 +138,11 @@ const year = new Date().getFullYear();
 
     {/* Blocking, and not inlined — see public/boot.js for why. */}
     <script src="/boot.js" is:inline></script>
+
+    {/* Google Analytics, gated behind opt-in consent. Same-origin file so the
+        strict CSP allows it; it injects gtag.js only after the visitor accepts,
+        and only on the production hostnames. See public/analytics.js. */}
+    <script src="/analytics.js" is:inline defer></script>
   </head>
 
   {/*

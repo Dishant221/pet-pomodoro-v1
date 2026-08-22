@@ -62,12 +62,14 @@ export default defineConfig({
         "base-uri 'none'",
         "object-src 'none'",
         "form-action 'self'",
-        // data: for the CSS theme textures, which are inline SVG noise.
-        "img-src 'self' data: blob:",
+        // data: for the CSS theme textures (inline SVG noise); the Google
+        // Analytics hosts because GA sends some hits as image beacons.
+        "img-src 'self' data: blob: https://www.google-analytics.com https://*.google-analytics.com",
         "font-src 'self'",
-        // Same-origin only. The weather Worker talks to Open-Meteo server-side,
-        // so no third-party origin is ever contacted from the page.
-        "connect-src 'self'",
+        // Same-origin, plus Google Analytics (loaded only after consent — see
+        // public/analytics.js). The weather Worker talks to Open-Meteo
+        // server-side, so that is the only other third-party origin involved.
+        "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
         "worker-src 'self'",
         "manifest-src 'self'",
         // Turnstile renders its challenge in an iframe on this origin. The
@@ -78,11 +80,12 @@ export default defineConfig({
         'upgrade-insecure-requests',
       ],
       scriptDirective: {
-        // 'self' covers /boot.js and /sw-register.js, which are real files
-        // precisely so they need no hash and cannot drift out of sync.
-        // challenges.cloudflare.com is Turnstile's widget script (see
-        // frame-src above).
-        resources: ["'self'", 'https://challenges.cloudflare.com'],
+        // 'self' covers /boot.js, /sw-register.js and /analytics.js, which are
+        // real files precisely so they need no hash and cannot drift out of
+        // sync. challenges.cloudflare.com is Turnstile's widget script (see
+        // frame-src above). googletagmanager.com is gtag.js, injected by
+        // /analytics.js only after the visitor consents.
+        resources: ["'self'", 'https://challenges.cloudflare.com', 'https://www.googletagmanager.com'],
       },
       styleDirective: {
         resources: [

@@ -169,6 +169,52 @@ body {
   outline-offset: 2px;
 }
 
+/* --- Consent banner ---------------------------------------------------------
+   Injected by public/analytics.js only when the visitor has not yet chosen.
+   Fixed to the bottom, unobtrusive, and gone the moment either button is
+   pressed. Deliberately not a full-screen blocker: it informs and offers a
+   real choice without holding the page hostage. */
+.pp-consent {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(40rem, calc(100vw - 2rem));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  color: var(--ink);
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.4);
+}
+.pp-consent-text {
+  flex: 1 1 16rem;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.pp-consent-text a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pp-consent-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.pp-consent-actions .pp-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
 /* --- Lightning ---------------------------------------------------------------
    One soft bloom per strike, not a strobe. A flashing screen can trigger
    seizures; the accessibility guideline is a ceiling of three flashes per
