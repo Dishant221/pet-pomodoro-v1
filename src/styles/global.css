@@ -580,12 +580,12 @@ body {
   flex-direction: column;
 }
 .pp-hud[data-layout='float'] .pp-hud-inner {
-  padding: 0.5rem 0.7rem 0.6rem;
+  padding: 0.4rem 0.6rem 0.5rem;
   flex: 1;
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 0.65rem;
+  gap: 0.45rem;
 }
 /* The card carries every control now, and the right-hand cluster is a nowrap
    row — wider than the card, and `overflow: hidden` was quietly cutting the
@@ -698,14 +698,16 @@ body {
   --clock-scale: 1.38;
 }
 
-/* The floating card is read at a glance from across a desk, not scanned along
-   with a row of controls, so the clock is set larger and tighter there. */
+/* The floating card is a compact square parked in a corner, so the clock is
+   set to carry the card without inflating it — still the biggest thing on it,
+   no longer sized to be read from across the room. Anyone who wants it bigger
+   has the resize handle and the clock-size setting. */
 .pp-hud[data-layout='float'] .pp-hud-clock {
   width: 100%;
   justify-content: center;
 }
 .pp-hud[data-layout='float'] .pp-clock {
-  font-size: calc(clamp(2.4rem, 1.6rem + 3vw, 3.4rem) * var(--clock-scale, 1));
+  font-size: calc(clamp(1.7rem, 1.3rem + 1vw, 2.2rem) * var(--clock-scale, 1));
   letter-spacing: -0.045em;
 }
 .pp-hud[data-layout='left'] .pp-clock {

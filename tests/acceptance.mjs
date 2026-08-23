@@ -230,9 +230,13 @@ check(
 );
 
 // ------------------------------------------------- 3. focus -> sleeping
+// The cat answers the start with a short spoken reaction pose first (petted /
+// playing, chosen by the talk system) and only then settles into the nap, so
+// this polls for the settle instead of reading whichever reaction a fixed
+// sleep happens to land on.
 await page.getByRole('button', { name: 'Start', exact: true }).click();
-await sleep(600);
-check('focus start puts cat to sleep', (await petState(page)) === 'sleeping', `state=${await petState(page)}`);
+const napState = await waitForPetState(page, 'sleeping', 10000);
+check('focus start puts cat to sleep', napState === 'sleeping', `state=${napState}`);
 check('title bar counts down', /\d\d:\d\d · Focus/.test(await page.title()), await page.title());
 
 // ------------------------------------- 4. mid-session refresh survives
@@ -357,8 +361,10 @@ await sleep(600);
 await page.locator('button[title="Give up on this session"]').click();
 check('abandon shows a confirm dialog', (await page.getByRole('alertdialog').count()) > 0);
 await page.getByRole('button', { name: 'Abandon', exact: true }).click();
-await sleep(700);
-check('abandoning a focus session -> sad', (await petState(page)) === 'sad', `state=${await petState(page)}`);
+// Same shape as the focus-start check: a talk reaction can hold the stage for
+// a few seconds before the sad settle, so poll rather than sleep.
+const sadState = await waitForPetState(page, 'sad', 10000);
+check('abandoning a focus session -> sad', sadState === 'sad', `state=${sadState}`);
 
 // feeding clears the sad hold without waiting out the 60s timer
 await dragFeed(page);
@@ -587,24 +593,27 @@ check(
   (await page.getAttribute('.pp-hud', 'data-layout')) === 'float' && (await page.locator('.pp-grip').count()) === 1,
 );
 
+// The card starts parked in the bottom-left corner, so the room to move is up
+// and to the right — dragging toward the old top-centre default would only
+// press it into the clamp.
 const clockBefore = await page.locator('.pp-hud').boundingBox();
 const grip = await page.locator('.pp-grip').boundingBox();
 await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
 await page.mouse.down();
-await page.mouse.move(grip.x + grip.width / 2 + 260, grip.y + grip.height / 2 + 190, { steps: 20 });
+await page.mouse.move(grip.x + grip.width / 2 + 260, grip.y + grip.height / 2 - 190, { steps: 20 });
 await page.mouse.up();
 await sleep(300);
 const clockAfter = await page.locator('.pp-hud').boundingBox();
 check(
   'dragging the handle moves the clock',
-  clockAfter.x > clockBefore.x + 200 && clockAfter.y > clockBefore.y + 150,
+  clockAfter.x > clockBefore.x + 200 && clockAfter.y < clockBefore.y - 150,
   `moved ${Math.round(clockAfter.x - clockBefore.x)},${Math.round(clockAfter.y - clockBefore.y)}`,
 );
 
 const parked = await page.evaluate(() => JSON.parse(localStorage.getItem('petpomo.save.v1')).settings);
 check(
   'the parked position is stored as a fraction of the travel',
-  parked.clockX > 0.5 && parked.clockX <= 1 && parked.clockY > 0.04 && parked.clockY <= 1,
+  parked.clockX > 0.05 && parked.clockX <= 1 && parked.clockY >= 0 && parked.clockY < 0.95,
   `x=${parked.clockX.toFixed(3)} y=${parked.clockY.toFixed(3)}`,
 );
 
@@ -694,8 +703,12 @@ const typeSet = await page.evaluate(() => {
   return { font: getComputedStyle(c).fontFamily.split(',')[0].trim(), px: parseFloat(getComputedStyle(c).fontSize) };
 });
 check(
+  // The floor is calibrated to the compact square card: `lg` is 1.38× a base
+  // that lands around 33px at this viewport, so anything past 40px proves the
+  // size setting was applied — the old 60px floor belonged to the wide strip's
+  // read-across-the-room clock.
   'the countdown typeface and size are applied from the save',
-  /mono/i.test(typeSet.font) && typeSet.px > 60,
+  /mono/i.test(typeSet.font) && typeSet.px > 40,
   `${typeSet.font} at ${Math.round(typeSet.px)}px`,
 );
 
@@ -803,18 +816,21 @@ await page.unroute('**/api/weather');
 // where a position has to scale or it ends up off the edge.
 await page.goto(BASE + '/', { waitUntil: 'networkidle' });
 await stageReady(page);
+// The natural width of the square card sits at (or near) the minimum, so the
+// direction with room in it is outward — shrinking would only press the
+// handle into the floor and prove nothing.
 const widthBefore = (await page.locator('.pp-hud').boundingBox()).width;
 const handle = await page.locator('.pp-resize').boundingBox();
 await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
 await page.mouse.down();
-await page.mouse.move(handle.x + handle.width / 2 - 200, handle.y + handle.height / 2, { steps: 14 });
+await page.mouse.move(handle.x + handle.width / 2 + 200, handle.y + handle.height / 2, { steps: 14 });
 await page.mouse.up();
 await sleep(400);
 const widthAfter = (await page.locator('.pp-hud').boundingBox()).width;
 const storedW = await page.evaluate(() => JSON.parse(localStorage.getItem('petpomo.save.v1')).settings.clockW);
 check(
   'dragging the corner resizes the clock and the size is kept',
-  widthAfter < widthBefore - 100 && Math.abs(storedW - widthAfter) < 4,
+  widthAfter > widthBefore + 100 && Math.abs(storedW - widthAfter) < 4,
   `${Math.round(widthBefore)} -> ${Math.round(widthAfter)}, stored ${storedW}`,
 );
 

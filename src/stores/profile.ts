@@ -230,9 +230,12 @@ export const DEFAULT_SETTINGS: Settings = {
   // there in Settings for anyone who wants the stage kept clear.
   clockMode: 'float',
   clockDock: 'top',
-  // Centred near the top: clear of the cat, which stands on the ground line.
-  clockX: 0.5,
-  clockY: 0.04,
+  // Parked in the bottom-left corner, a hair off flush — the fraction is of
+  // the card's travel, so 0.005 reads as a couple of pixels of breathing room
+  // at any window size. Bottom-left keeps the square off the cat's ground
+  // line centre-stage and clear of the nav along the top.
+  clockX: 0.005,
+  clockY: 0.995,
   clockFont: 'rounded',
   clockSize: 'md',
   clockW: 0,
@@ -268,8 +271,13 @@ export const DEFAULT_SETTINGS: Settings = {
  * docked" apart from "this save predates the question being asked".
  *
  * 2 — the timer moved off the page chrome into a floating card.
+ *
+ * 3 — the floating card became a compact square parked at the bottom-left.
+ *     Positions and widths in older saves were chosen against the old wide
+ *     strip and can leave the new square huge or somewhere that made sense
+ *     for a different shape, so they are reset once.
  */
-export const PROFILE_VERSION = 2;
+export const PROFILE_VERSION = 3;
 
 export function defaultProfile(): Profile {
   return {
@@ -451,6 +459,17 @@ export function hydrate(raw: Partial<Profile> | null): Profile {
   // v2 onward is a real choice and is left alone.
   if (savedVersion < 2) merged.settings.clockMode = DEFAULT_SETTINGS.clockMode;
 
+  // A save from before v3 positioned and sized a wide strip. The same numbers
+  // applied to the square card leave it enormous (widths were clamped to
+  // ≥260px when the strip was short) or parked where a strip fit and a square
+  // does not, so all three go back to the defaults once. Anything saved from
+  // v3 onward is a choice made about the square and is left alone.
+  if (savedVersion < 3) {
+    merged.settings.clockX = DEFAULT_SETTINGS.clockX;
+    merged.settings.clockY = DEFAULT_SETTINGS.clockY;
+    merged.settings.clockW = DEFAULT_SETTINGS.clockW;
+  }
+
   return merged;
 }
 
@@ -513,8 +532,10 @@ export function clampSettings(s: Settings): Settings {
 export const PET_MIN_W = 96;
 export const PET_MAX_W = 420;
 
-/** The floating card cannot be narrower than its controls or wider than useful. */
-export const CLOCK_MIN_W = 260;
+/** The floating card cannot be narrower than its controls or wider than useful.
+ * The floor dropped from 260 when the card became a stacked square — the
+ * controls sit in a column now, so far less width is needed for them to fit. */
+export const CLOCK_MIN_W = 170;
 export const CLOCK_MAX_W = 760;
 
 // --- store -----------------------------------------------------------------

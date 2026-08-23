@@ -584,9 +584,9 @@ export default function Game() {
   // --- resize ---------------------------------------------------------------
   //
   // A window you can move but not size is half a window. The handle drags the
-  // right edge; the height follows from the contents, which is what you want
-  // here — nobody wants to choose how tall a clock is, they want to choose how
-  // much room its row of controls gets before it wraps.
+  // right edge; the height follows the width through the card's square ratio,
+  // so one axis is the whole gesture — nobody wants to choose a width and a
+  // height for a clock separately.
   const resizing = useRef<{ startX: number; startW: number } | null>(null);
 
   const onResizeDown = (e: PointerEvent) => {
