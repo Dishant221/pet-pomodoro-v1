@@ -568,10 +568,24 @@ body {
   padding-top: 1.15rem;
   background: color-mix(in srgb, var(--bg-elev) 94%, transparent);
   box-shadow: 0 12px 32px rgb(0 0 0 / 0.22);
+  /* A square card, not a strip. The controls stack in a column (see
+     .pp-hud-inner below) and the ratio squares the box off; `min-height:
+     max-content` lets the content win over the ratio, so a cramped font or
+     an extra row can never be clipped by `overflow: hidden` above — the box
+     goes slightly tall instead. The resize handle only sets a width, so a
+     resized card stays square through this same ratio. */
+  aspect-ratio: 1 / 1;
+  min-height: max-content;
+  display: flex;
+  flex-direction: column;
 }
 .pp-hud[data-layout='float'] .pp-hud-inner {
   padding: 0.5rem 0.7rem 0.6rem;
+  flex: 1;
+  flex-direction: column;
+  flex-wrap: nowrap;
   justify-content: center;
+  gap: 0.65rem;
 }
 /* The card carries every control now, and the right-hand cluster is a nowrap
    row — wider than the card, and `overflow: hidden` was quietly cutting the
