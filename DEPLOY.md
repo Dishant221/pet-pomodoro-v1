@@ -227,6 +227,28 @@ disallow-all robots.txt, so nothing there can leak into search.
 
 ### The cutover checklist, in order
 
+**Status as of 2026-08-22:** the production Worker `petpomo` now exists —
+deployed manually (`npm run deploy`), migrations 0001–0004 applied to the
+production D1 `petpomo`, `BETTER_AUTH_SECRET` set as a Worker secret (never
+committed; generated with `openssl rand -base64 32` and piped straight into
+`wrangler secret put`, so its value was never printed or logged). Verified
+healthy: `https://petpomo.totadedishant.workers.dev/api/health` → `{"ok":true}`,
+and the homepage response carries HSTS, CSP `frame-ancestors 'none'`,
+`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, a locked-down
+`Permissions-Policy`, and `Cross-Origin-Opener-Policy`/`Cross-Origin-Resource-Policy:
+same-origin` — all from `public/_headers` + `astro.config.mjs`'s CSP, applied
+correctly by the asset store. GOOGLE_CLIENT_ID/SECRET and TURNSTILE_SECRET are
+still unset (Google login / captcha stay hidden client-side until those are
+added — not a blocker, everything degrades cleanly).
+
+**Domain is registered but NOT yet pointed at Cloudflare** — `pomodoropet.com`
+still resolves via Hostinger's own parking nameservers
+(`athena.dns-parking.com` / `apollo.dns-parking.com`), not the Cloudflare
+nameservers. `www.pomodoropet.com` currently serves Hostinger's parked-domain
+page, not this Worker. **Step 2 below (attach custom domain) cannot succeed
+until the nameserver change at Hostinger is verified done and propagated** —
+re-check Hostinger's nameserver settings before proceeding.
+
 1. **Register the domain** (if not already done) — `pomodoropet.com`, any
    registrar, ideally Cloudflare Registrar since the account is already there.
 2. **Attach it to the production Worker** (NOT the old Pages project):
@@ -236,6 +258,14 @@ disallow-all robots.txt, so nothing there can leak into search.
    domain's DNS is on Cloudflare. Add the apex `pomodoropet.com` as a second
    custom domain (or a redirect rule) so the bare name works too.
    Rollback, if ever needed, is re-pointing the domain at the Pages project.
+   **Then enable "Always Use HTTPS"**: dashboard → the `pomodoropet.com`
+   zone → SSL/TLS → Edge Certificates → *Always Use HTTPS* → On. Without it,
+   plain `http://pomodoropet.com/` and `http://www.pomodoropet.com/` serve
+   the full site over HTTP with a 200 — the apex→www redirect rule only
+   matches the `https://` scheme, and the HSTS header the site already sends
+   (`preload`) is meaningless while HTTP responds 200. Verify with
+   `curl -sI http://pomodoropet.com/` — you want `301` with a
+   `Location: https://...` header, not `200`.
 3. **Verify it resolves** before touching git. From any machine:
    ```bash
    curl -sI https://www.pomodoropet.com/ | head -3

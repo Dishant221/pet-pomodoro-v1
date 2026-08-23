@@ -72,8 +72,9 @@ function jsonForScript(value: unknown): string {
  */
 threadPage.get('/forum/thread/*', async (c) => {
   const match = new URL(c.req.url).pathname.match(/^\/forum\/thread\/(\d+)(?:\/|$)/);
-  // No id at all (someone trimmed the URL): the forum index is the answer.
-  if (!match) return c.redirect('/forum/', 302);
+  // No id at all (someone trimmed the URL): the forum index is the answer,
+  // permanently — a 302 here makes crawlers keep re-checking the bare URL.
+  if (!match) return c.redirect('/forum/', 301);
   const id = Number(match[1]);
   if (!Number.isInteger(id) || !c.env.ASSETS) return c.notFound();
 

@@ -153,9 +153,13 @@ export default defineConfig({
       // app's stateful panels do not — they render nothing without a save.
       // On a preview build nothing does: submitting a sitemap for a deploy
       // that is entirely noindex would only waste crawl budget.
+      // admin/login/profile answer noindex, and the bare /forum/thread/
+      // shell answers a redirect — advertising either contradicts what the
+      // URL serves, which Search Console reports as a sitemap error.
       filter: (page) =>
         isProduction &&
-        !/\/(settings|stats|shop)\/?$/.test(page) &&
+        !/\/(settings|stats|shop|admin|login|profile)\/?$/.test(page) &&
+        !/\/forum\/thread\/?$/.test(page) &&
         // Articles whose frontmatter says searchIndex: false stay live but
         // out of the sitemap (their pages also carry noindex).
         !unindexedSlugs.some((slug) => page.endsWith(`/${slug}/`)) &&
