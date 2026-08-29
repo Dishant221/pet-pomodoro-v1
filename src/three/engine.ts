@@ -53,6 +53,14 @@ type Behaviour = 'roam' | 'sleep' | 'beg' | 'eat' | 'play' | 'gift' | 'sad' | 'p
 const UP = new THREE.Vector3(0, 1, 0);
 const GROUND = new THREE.Plane(UP, 0);
 
+/**
+ * Height of the sofa's seat surface, in world units — has to match
+ * `buildSofa()`'s `seat` box in `props.ts` (0.22 tall, sitting on the floor).
+ * Nothing else on the stage needs the cat to stand *on top of* an object, so
+ * there is no shared constant; this is the one place that cares.
+ */
+const SOFA_SEAT_H = 0.22;
+
 /** Camera framing for the painted stage. See the constructor for the why. */
 const FOV = 26;
 const CAM_DIST = 4.6;
@@ -123,6 +131,10 @@ export class Engine {
   private wantRun = false;
   private airT = -1;
   private airDur = 0.7;
+  /** Height the jump arc starts from / lands at — 0 for an in-place hop,
+   * `SOFA_SEAT_H` when the jump is onto (or off) the sofa. */
+  private airStartY = 0;
+  private airRestY = 0;
 
   // --- behaviour ---
   private behaviour: Behaviour = 'roam';
@@ -861,19 +873,32 @@ export class Engine {
     }
   }
 
-  /** Walk to the sofa, jump onto it, roll around, then curl up and nap there. */
+  /**
+   * Walk up to the sofa, jump onto the seat, roll around, then curl up and
+   * nap there — three animated phases (see `sofaPhase`), each timer-driven
+   * since `tickBehaviour`'s `'sofa'` case is a deliberate no-op.
+   */
   private sofaErrand(): void {
     this.behaviour = 'sofa';
     this.sofaPhase = 0;
-    this.goTo(this.world.sofa, 0.22, false, () => this.sofaJump());
+    // Walk all the way to the foot of the sofa and stop completely — the same
+    // "arrive at speed 0, then play a stationary one-shot" shape every other
+    // arrival action here uses. The jump that follows is a pure vertical hop
+    // from that same spot onto the seat above it, deliberately with no
+    // horizontal target of its own: `tickPose` forces any action back to
+    // walk/run for as long as the cat is still moving, which would tear the
+    // jump pose apart if it had to share the frame with actual locomotion.
+    this.goTo(this.world.sofa, 0.2, false, () => this.sofaJump());
   }
 
   private sofaJump(): void {
     if (this.behaviour !== 'sofa') return;
     this.sofaPhase = 1;
     this.faceTowards(this.world.sofa);
+    this.airStartY = 0;
+    this.airRestY = SOFA_SEAT_H;
     this.playAction('jump', 0.8);
-    this.fx.burst('sparkle', new THREE.Vector3(this.pos.x, 0.15, this.pos.z), { count: 4, size: 0.13, rise: 0.4 });
+    this.fx.burst('sparkle', new THREE.Vector3(this.pos.x, SOFA_SEAT_H, this.pos.z), { count: 4, size: 0.13, rise: 0.4 });
     window.setTimeout(() => {
       if (this.behaviour === 'sofa' && this.sofaPhase === 1) this.sofaRoll();
     }, 800);
@@ -892,12 +917,20 @@ export class Engine {
     this.sofaPhase = 3;
     this.playAction('sleep', 3.0);
     window.setTimeout(() => {
-      if (this.behaviour === 'sofa' && this.sofaPhase === 3) {
-        this.sofaPhase = 0;
-        this.behaviour = 'roam';
-        this.nextIdleAt = this.now + 1;
-      }
+      if (this.behaviour === 'sofa' && this.sofaPhase === 3) this.sofaLeave();
     }, 3000);
+  }
+
+  /** Hop back down to the floor before rejoining the normal idle roam. */
+  private sofaLeave(): void {
+    this.sofaPhase = 0;
+    this.airStartY = SOFA_SEAT_H;
+    this.airRestY = 0;
+    // lockFor slightly exceeds the jump's own 0.7s air time (see playAction)
+    // so tickRoam can't pick a new move while the cat is still mid-descent.
+    this.playAction('jump', 0.75);
+    this.behaviour = 'roam';
+    this.nextIdleAt = this.now + 1;
   }
 
   private tickBeg(dt: number): void {
@@ -1165,15 +1198,18 @@ export class Engine {
   }
 
   private tickLocomotion(dt: number): void {
-    // Jump arc, applied on top of whatever the pose does.
+    // Jump arc, applied on top of whatever the pose does. Interpolated from
+    // `airStartY` to `airRestY` rather than a flat 0->0->0 hop, so a jump onto
+    // (or off) the sofa lands the cat on its seat height instead of snapping
+    // back to the floor underneath the cushion the instant the arc finishes.
     if (this.airT >= 0) {
       this.airT += dt;
       const k = this.airT / this.airDur;
       if (k >= 1) {
         this.airT = -1;
-        this.pet.root.position.y = 0;
+        this.pet.root.position.y = this.airRestY;
       } else {
-        this.pet.root.position.y = Math.sin(k * Math.PI) * 0.42;
+        this.pet.root.position.y = THREE.MathUtils.lerp(this.airStartY, this.airRestY, k) + Math.sin(k * Math.PI) * 0.42;
       }
     }
 

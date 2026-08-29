@@ -254,33 +254,37 @@ export function buildBowl(color: THREE.ColorRepresentation = '#e08a6a'): THREE.G
  * A cushioned sofa the cat can jump on, roll around on, and nap in.
  *
  * Sized and shaped to read clearly as furniture against the painted backdrop
- * — a seat, a backrest, and two armrests, at roughly the bed cushion's
- * footprint times 1.6 so it doesn't disappear next to it.
+ * — a seat, a backrest, and two armrests, wide enough to anchor a corner of
+ * the stage on its own rather than disappear next to the bed cushion.
+ *
+ * `SOFA_SEAT_H` in `engine.ts` (the seat's top surface height, 0.22) has to
+ * track `seat`'s height/position here — there is no shared constant because
+ * nothing else on the stage needs the cat to stand *on top of* an object.
  */
 export function buildSofa(color: THREE.ColorRepresentation = '#c9a884'): THREE.Group {
   const g = new THREE.Group();
   const dark = toon(color, { steps: 2 });
 
-  const seat = m(new THREE.BoxGeometry(0.62, 0.22, 0.4), color, 1.1);
+  const seat = m(new THREE.BoxGeometry(0.9, 0.22, 0.5), color, 1.1);
   seat.position.y = 0.11;
   seat.castShadow = true;
   seat.receiveShadow = true;
   g.add(seat);
 
-  const backrest = m(new THREE.BoxGeometry(0.62, 0.3, 0.1), color, 1.0);
-  backrest.position.set(0, 0.34, -0.15);
+  const backrest = m(new THREE.BoxGeometry(0.9, 0.3, 0.1), color, 1.0);
+  backrest.position.set(0, 0.34, -0.2);
   backrest.castShadow = true;
   g.add(backrest);
 
   for (const side of [-1, 1]) {
-    const arm = m(new THREE.BoxGeometry(0.1, 0.26, 0.4), color, 1.0);
-    arm.position.set(side * 0.26, 0.24, 0);
+    const arm = m(new THREE.BoxGeometry(0.1, 0.26, 0.5), color, 1.0);
+    arm.position.set(side * 0.4, 0.24, 0);
     arm.castShadow = true;
     g.add(arm);
   }
 
   // A seam line across the seat cushion, so it doesn't read as a plain block.
-  const seam = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.01, 0.01), dark);
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.01, 0.01), dark);
   seam.position.set(0, 0.225, 0.05);
   g.add(seam);
 
