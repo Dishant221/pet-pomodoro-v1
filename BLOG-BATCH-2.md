@@ -14,6 +14,32 @@ Cluster letters match the Growth Playbook's keyword clusters (§03) — **A**
 core Pomodoro/timer, **B** ADHD/executive function, **C** virtual pet/gamified
 focus, **D** remote work/loneliness/body doubling, **E** motivation/retention.
 
+## Published (2026-08-29)
+
+10 of the 18 briefs below were written in full (research, table, real
+CC-licensed photo, interlinks) and shipped the same day, plus 2 brand-new
+topics (a new cluster — **F**, office/workplace — requested directly, not
+in the original 18). All 12 are live now:
+
+| Brief | URL |
+| --- | --- |
+| #1 Pomodoro Timer With a Pet | /pomodoro-timer-with-a-pet/ |
+| #4 ADHD and the 25-Minute Timer | /adhd-pomodoro-timer-length/ |
+| #5 Rejection-Sensitive Dysphoria | /rejection-sensitive-dysphoria-productivity-apps/ |
+| #7 Forest vs. Finch vs. PetPomo | /forest-finch-petpomo-comparison/ |
+| #8 What the Science Says (virtual pet) | /virtual-pet-psychology-focus/ |
+| #9 Why No Login and No Subscription | /why-no-login-no-subscription/ |
+| #10 Body Doubling Without a Camera | /body-doubling-without-a-camera/ |
+| #13 Streaks Are Stressful | /streaks-are-stressful/ |
+| #15 The Two-Minute Rule | /two-minute-rule-before-pomodoro/ |
+| #17 Is the Pomodoro Technique Backed by Science? | /is-pomodoro-technique-science-backed/ |
+| **F1** (new) Office Hours, Virtual Pet | /office-hours-virtual-pet-breaks/ |
+| **F2** (new) Five-Minute Office Fun | /five-minute-office-fun-resets/ |
+
+Briefs #2, #3, #6, #11, #12, #14, #16, #18 below are still just briefs —
+8 remain, in case the queue behind the original 32 needs topping up sooner
+than expected.
+
 ---
 
 ## 1. Pomodoro Timer With a Pet: Does Gamifying Focus Actually Work?
