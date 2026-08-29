@@ -69,3 +69,8 @@ None of this requires believing anything false. You can know completely that
 a cat rendered in a browser isn't sentient and still, provably, form the kind
 of bond that changes your behavior — that's not a contradiction, it's just
 how the circuitry in question actually works.
+
+PetPomo is a timer, not a treatment. Nothing here is medical advice, and the
+therapeutic uses of virtual pets mentioned above are cited as research
+context, not a claim about what this app does — if wellbeing is genuinely
+weighing on you, a doctor or a specialist is the right person to talk to.

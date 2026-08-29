@@ -63,3 +63,7 @@ person genuinely works for you, that's a stronger form of the same effect
 than any app can offer. But if the camera has been the reason you never
 actually book the session, an ambient companion removes the one part of the
 setup that was stopping you before the work began.
+
+PetPomo is a timer, not a treatment. Nothing here is medical advice — if
+social anxiety or focus problems are weighing on you, a doctor or a
+specialist is the right person to talk to, and this page is no substitute.
