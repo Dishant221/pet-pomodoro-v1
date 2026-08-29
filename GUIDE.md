@@ -128,6 +128,7 @@ visitor's saved progress.
 | Sounds | `src/game/audio.ts` |
 | Timer rules | `src/stores/timer.ts` |
 | Blog posts | `src/content/blog/` — add a `.md` file, it appears by itself |
+| Deals, coupons, sponsorships | `src/game/gifts.ts` — see §9 below |
 
 ---
 
@@ -174,7 +175,116 @@ this in public, and it must stay true.
 
 ---
 
-## 9. What is not finished
+## 9. Adding a deal, coupon, or sponsorship
+
+The `/gifts` page shows "letters from Mochi" — some are just free in-game
+coins, others are real deals, coupons, offers, or paid sponsorships from pet
+merchants. All of it lives in one file: `src/game/gifts.ts`. There is no admin
+panel — adding one means editing that file directly and shipping a normal
+deploy.
+
+**This is also the site's money ledger**, so before you add a real (non-sample)
+one, read **AFFILIATES.md** — it has the non-negotiable rules (nothing gets
+deleted, every real link needs a tracking id, disclosure ships with the link)
+and the account signup order for the affiliate networks themselves. This
+section is only about the mechanics of adding an entry; AFFILIATES.md is about
+the money and the law around it.
+
+### The four kinds
+
+| Kind | What it is |
+|---|---|
+| `treat` | Free in-game coins — no merchant, nothing to disclose |
+| `deal` | A discount at a merchant (e.g. "35% off your first order") |
+| `coupon` | Same, but with a code the visitor copies and pastes |
+| `offer` | A non-discount perk (e.g. "3 months free") |
+| `sponsorship` | A merchant paying to have their name in a letter, plain and labelled |
+
+### Vendor (merchant) info
+
+Every non-`treat` entry names its vendor twice, for two different reasons:
+
+- **`merchant`** — a plain string, e.g. `'Chewy'`. This is just the display
+  name shown to the visitor in the letter. It carries no money information and
+  needs nothing beyond the name itself.
+- **`network`** — which affiliate account the link's money flows through
+  (`'awin'`, `'flexoffers'`, `'direct'`, etc.). This is the account-level
+  relationship, tracked in **AFFILIATES.md**'s "Account registry" table —
+  one row per broker account, not per vendor, since one network account
+  (e.g. FlexOffers) carries links from many different merchants at once.
+
+For a **direct sponsorship** (`network: 'direct'`) there is no broker in the
+middle — you invoiced the vendor yourself — so the vendor's own contact info
+and deal terms (who you spoke to, the agreed price, the renewal date) live
+nowhere in the code. Keep that in whatever you already use for invoicing
+(the `campaignId` field is only the invoice number, for matching payments to
+entries), and note the renewal date as the entry's `endsAt` so the letter
+disappears on its own when the deal ends instead of relying on someone
+remembering to remove it.
+
+### Making one show only in certain countries — how location targeting works
+
+Cloudflare already knows roughly where a visitor is (from their IP address) on
+every request that reaches the site, the same way the weather feature does. A
+tiny endpoint, `GET /api/geo`, hands that country back as a two-letter code
+(`US`, `DE`, `IN`, ...) with no signup, no permission prompt, and nothing
+stored about the visitor. The Gifts page asks it once per visit and remembers
+the answer for that visit only.
+
+To limit a gift to specific countries, add a `regions` list of
+[ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country
+codes to its entry:
+
+```ts
+regions: ['US', 'CA'],   // only shown to visitors Cloudflare places in the US or Canada
+```
+
+Leave `regions` off entirely and the gift shows to everyone, everywhere —
+that's the right choice for anything that ships internationally or isn't
+merchant-specific (like the in-game coin treats). This also matters for money:
+a US-only Chewy link showing to an EU visitor who clicks it earns nothing, so
+set `regions` to wherever the merchant actually ships or pays commission —
+check the network dashboard, not guesswork.
+
+A visitor whose country can't be determined (a VPN, a corporate proxy, testing
+on your own machine) sees **every** gift, region-limited or not. Hiding
+everything from someone the system can't place would just look like a broken,
+empty page — showing too much is the safer failure than showing nothing.
+
+### Adding one, step by step
+
+1. Open `src/game/gifts.ts` and find the `GIFTS` array.
+2. Copy the closest existing entry of the same `kind` as a starting point —
+   there's a real `treat` and a `sample` version of each external kind
+   already in the file.
+3. Fill in a **new, never-used** `id` (short, kebab-case, e.g.
+   `black-friday-chewy-2026`), the `title`, and a short first-person letter
+   from Mochi in `letter`. Keep it warm and short — read the existing ones for
+   the voice.
+4. For anything except a `treat`, also fill in: `merchant`, `url` (the real
+   tracking link from the network dashboard, not the merchant's plain
+   homepage), `code` if it's a coupon, `network` (which affiliate account the
+   link is monetized through — see AFFILIATES.md; use `'none'` for an honest
+   unmonetized courtesy link), and `campaignId` once you know it.
+5. Add `regions` if it should only show in specific countries (see above).
+6. Add `endsAt` (an ISO date) if the deal expires. Leave it off for something
+   evergreen. **Never delete an old entry** — expired ones just stop showing
+   automatically; deleting them destroys the record of what ran and when.
+7. **Testing a new idea before it's real?** Add `sample: true`. Sample entries
+   only render on preview deploys (`npm run deploy:preview`), never on the
+   live production site (`npm run deploy`) or a plain local `npm run build` —
+   so you can see and click-test the exact UI before any real merchant link
+   goes out. Remove the flag when the entry is real.
+8. Run the checks in §3, then ship it the normal way (§4).
+
+That's the whole mechanism — the page, the region filter, the disclosure text,
+and the `sponsored nofollow` link attributes are all generic and already
+handle whatever you put in the array. You are never writing code to add a
+gift, only data.
+
+---
+
+## 10. What is not finished
 
 See **BACKLOG.md**. Every outstanding item is numbered there with what is done,
 what is missing, and a suggested order.
