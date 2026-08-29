@@ -3,7 +3,7 @@
 A running ledger so work can stop and restart without anything being lost or
 done twice. **Ask for "the pending list" and this file is the answer.**
 
-Last updated: 22 August 2026. Branch: `testing`.
+Last updated: 30 August 2026. Branch: `testing`.
 
 Numbering runs to 61 and is append-only: an item keeps its number for life, so
 "#33" means the same thing in a conversation three months from now.
@@ -71,6 +71,7 @@ Items are numbered so they can be referred to by number. Status is one of:
 | 62 | Pages → Workers migration | Site now served by Cloudflare Workers Static Assets: Worker `petpomo` (production) / `petpomo-preview` (testing, petpomo-preview.totadedishant.workers.dev), same Hono app via `worker/src/entry.ts`, `run_worker_first=["/api/*"]`, cron stub wired. Same D1 databases; `_headers`/`_redirects` carried over. Old Pages project kept intact as rollback — do not delete. Unlocks Cron Triggers, rate-limit binding, Email Workers, Durable Objects for the accounts work (#39). Verified: 118/120 acceptance (2 known flaky, #45), 10/10 sync, talk pass, budget 103.5 KB. |
 | 57 | Contact emails + support widget | `enquire@pomodoropet.com` on `/contact` with a validated form (name/email/subject/message, honeypot + time-gate against bots, mailto composed with full URL-encoding); `support@pomodoropet.com` behind the animated 💬 (own island, every page, every mode — not just where the talk bar renders). No mail backend by design. Addresses live in `src/site.ts`. **Delivery depends on #58.** |
 | 68 | URL status audit (2026-08-22) | Every route checked live against **https://www.pomodoropet.com** (custom domain confirmed live, apex 301→www). All 25 pages + 7 machine endpoints return 200; 1 of 32 blog posts released so far under drip publishing (rest 404 by design until their release day). Full table in the "URL status audit" section below. |
+| 63 | CI deploy token fixed | Was #63 (Pending) — resolved between 2026-08-22 and 2026-08-23, no code or docs change recorded it. Verified 2026-08-30: every scheduled `Deploy` run against `main` since (23, 24, 25, 26, 27, 28, 29 Aug) has `conclusion: success`. The daily 05:30 UTC drip-publish cron is deploying production correctly; no manual `npm run deploy` workaround needed. |
 
 ---
 
@@ -86,8 +87,36 @@ needs either a larger overscan (costs raster area) or moving the artwork's own
 horizon, which re-composes all six scenes.
 
 **31. Ad slot** — The markup and CSS exist and are tested; the slot claims its
-space the moment it is marked `data-filled`. **Gap:** no ad network, no
-consent flow, no ads.txt.
+space the moment it is marked `data-filled`. **Gap:** no ad network — see #42
+for the rest of the policy pass.
+
+**42. Google Ads policy pass.** Partial as of 2026-08-30. Three of the four
+sub-items:
+
+- **Ad-density review — done.** Audited every `AdSlot`/`.pp-adslot`
+  placement: homepage 1 (footer, below the game and landing copy), blog
+  index 1 (top), topic archives 1 (bottom), individual posts 3 (top banner,
+  bottom rectangle, sidebar rectangle), `/about` 1 (via the reused sidebar,
+  on a long content-rich page). No page exceeds 3 units, none sit mid-content
+  in the reading flow, all are labelled "Advertisement" and height-reserved
+  against CLS. This is a reasonable ceiling — don't add more slots without
+  re-running this check.
+- **Consent Mode v2 categories already exist for ads.** `public/analytics.js`
+  defaults `ad_storage` / `ad_user_data` / `ad_personalization` to `denied`
+  before anything loads (Consent Mode v2), which is the mechanism Google
+  Ads itself reads. The banner text, though, only mentions "Google
+  Analytics" — **once an ad account exists**, update the banner copy in
+  `analytics.js` to also disclose advertising cookies, and wire the
+  `accept()`/`decline()` handlers to grant/deny the ad categories the same
+  way they already do for `analytics_storage`.
+- **`ads.txt` — cannot be created yet.** The file's one required line
+  (`google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`) needs a
+  real AdSense publisher id; publishing a placeholder would be actively
+  wrong, not just incomplete. Once approved: add `public/ads.txt` with that
+  line — it ships as a static file at `/ads.txt` automatically, no other
+  code changes needed.
+- **Apply for AdSense itself** — still blocked on real traffic (see the
+  Growth Playbook, §06) and is the one sub-item needing the user, not code.
 
 **32. Documentation** — README covers the design decisions, DEPLOY.md the
 infrastructure, GUIDE.md the plain-language walkthrough. **Gap:** the full
@@ -158,18 +187,6 @@ gifts with real entries.
 programmatically (FlexOffers Promotions API is free with the account;
 Strackr €10/mo or CouponAPI.org ~$44/mo as aggregators) and generate catalog
 entries instead of hand-writing them. Needs #60 first.
-
-**63. Replace the CI deploy token (user action).** Since #62 the deploy
-workflow runs `wrangler deploy`, but the `CLOUDFLARE_API_TOKEN` repo secret
-was created with only *Cloudflare Pages: Edit* — the deploy step fails with a
-permission error (check/build/budget all pass). Fix: Cloudflare dashboard →
-My Profile → API Tokens → create a token with **Account · Workers Scripts ·
-Edit** (keep Pages Edit on it too, for the rollback path), then replace
-`CLOUDFLARE_API_TOKEN` in GitHub → Settings → Secrets → Actions. Until then,
-deploy manually with `npm run deploy` / `npm run deploy:preview`.
-
-**42. Google Ads policy pass.** Cannot be completed until ads exist. Needs:
-ads.txt, a consent banner for EU/UK traffic, and an ad-density review.
 
 **67. Verify the site in Google Search Console + submit the sitemap (user
 action).** Deferred 2026-08-22 — the verification TXT token was mislaid. To do:
