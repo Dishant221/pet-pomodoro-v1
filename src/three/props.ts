@@ -250,16 +250,39 @@ export function buildBowl(color: THREE.ColorRepresentation = '#e08a6a'): THREE.G
   return g;
 }
 
-/** A low cushioned sofa the cat can jump on and nap in. */
+/**
+ * A cushioned sofa the cat can jump on, roll around on, and nap in.
+ *
+ * Sized and shaped to read clearly as furniture against the painted backdrop
+ * — a seat, a backrest, and two armrests, at roughly the bed cushion's
+ * footprint times 1.6 so it doesn't disappear next to it.
+ */
 export function buildSofa(color: THREE.ColorRepresentation = '#c9a884'): THREE.Group {
   const g = new THREE.Group();
-  const base = m(new THREE.BoxGeometry(0.42, 0.18, 0.28), color);
-  base.position.y = 0.09;
-  base.castShadow = true;
-  g.add(base);
-  const backrest = m(new THREE.BoxGeometry(0.42, 0.2, 0.08), color);
-  backrest.position.set(0, 0.23, -0.12);
+  const dark = toon(color, { steps: 2 });
+
+  const seat = m(new THREE.BoxGeometry(0.62, 0.22, 0.4), color, 1.1);
+  seat.position.y = 0.11;
+  seat.castShadow = true;
+  seat.receiveShadow = true;
+  g.add(seat);
+
+  const backrest = m(new THREE.BoxGeometry(0.62, 0.3, 0.1), color, 1.0);
+  backrest.position.set(0, 0.34, -0.15);
   backrest.castShadow = true;
   g.add(backrest);
+
+  for (const side of [-1, 1]) {
+    const arm = m(new THREE.BoxGeometry(0.1, 0.26, 0.4), color, 1.0);
+    arm.position.set(side * 0.26, 0.24, 0);
+    arm.castShadow = true;
+    g.add(arm);
+  }
+
+  // A seam line across the seat cushion, so it doesn't read as a plain block.
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.01, 0.01), dark);
+  seam.position.set(0, 0.225, 0.05);
+  g.add(seam);
+
   return g;
 }

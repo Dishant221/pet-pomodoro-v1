@@ -130,6 +130,10 @@ export class Engine {
   private nextIdleAt = 0;
   private nextMeowAt = 0;
   private begT = 0;
+  /** 0 = not on the sofa; 1 = jumping up; 2 = rolling; 3 = asleep. Its own
+   * field, deliberately — sharing `begT` across two unrelated errands is how
+   * the sofa sequence silently deadlocked the first time a beg had happened. */
+  private sofaPhase = 0;
   private giftPhase = 0;
   private giftProp: THREE.Group | null = null;
   private giftSpec: PropSpec | null = null;
@@ -835,19 +839,21 @@ export class Engine {
       return;
     }
 
-    // Pick something cat-like to do next, weighted by mood.
+    // Pick something cat-like to do next, weighted by mood. The sofa gets the
+    // largest slice on purpose — it's the newest, most visible thing the cat
+    // does, and a rare 12%-of-the-time roll made it nearly impossible to spot.
     const roll = Math.random();
     this.nextIdleAt = this.now + 5 + Math.random() * 7;
-    if (roll < 0.35) {
+    if (roll < 0.12) {
       this.goTo(this.randomSpot(), 0.14, this.mood > 0.6 && Math.random() < 0.25);
-    } else if (roll < 0.5) {
+    } else if (roll < 0.2) {
       this.playAction('groom', 4);
-    } else if (roll < 0.6) {
+    } else if (roll < 0.28) {
       this.playAction('stretch', 2.4);
-    } else if (roll < 0.7 && this.mood > 0.45) {
+    } else if (roll < 0.35 && this.mood > 0.45) {
       this.playAction('jump', 0.75);
       this.fx.burst('sparkle', new THREE.Vector3(this.pos.x, 0.15, this.pos.z), { count: 4, size: 0.13, rise: 0.4 });
-    } else if (roll < 0.82 && this.mood > 0.5) {
+    } else if (this.mood > 0.15) {
       this.sofaErrand();
     } else {
       this.playAction('idle');
@@ -855,29 +861,43 @@ export class Engine {
     }
   }
 
+  /** Walk to the sofa, jump onto it, roll around, then curl up and nap there. */
   private sofaErrand(): void {
     this.behaviour = 'sofa';
-    this.goTo(this.world.sofa, 0.22, false, () => this.sofaArrive());
+    this.sofaPhase = 0;
+    this.goTo(this.world.sofa, 0.22, false, () => this.sofaJump());
   }
 
-  private sofaArrive(): void {
-    if (!this.begT) {
-      this.begT = 1; // Use begT as phase tracker
-      this.playAction('roll', 2.4);
-      this.fx.burst('sparkle', this.pet.headWorld, { count: 5, size: 0.14, rise: 0.3 });
-      window.setTimeout(() => {
-        if (this.behaviour === 'sofa' && this.begT === 1) {
-          this.begT = 2;
-          this.playAction('sleep', 3.0);
-          window.setTimeout(() => {
-            this.behaviour = 'roam';
-            this.nextIdleAt = this.now + 1;
-            this.begT = 0;
-          }, 3000);
-        }
-      }, 2400);
-      return;
-    }
+  private sofaJump(): void {
+    if (this.behaviour !== 'sofa') return;
+    this.sofaPhase = 1;
+    this.faceTowards(this.world.sofa);
+    this.playAction('jump', 0.8);
+    this.fx.burst('sparkle', new THREE.Vector3(this.pos.x, 0.15, this.pos.z), { count: 4, size: 0.13, rise: 0.4 });
+    window.setTimeout(() => {
+      if (this.behaviour === 'sofa' && this.sofaPhase === 1) this.sofaRoll();
+    }, 800);
+  }
+
+  private sofaRoll(): void {
+    this.sofaPhase = 2;
+    this.playAction('roll', 2.4);
+    this.fx.burst('sparkle', this.pet.headWorld, { count: 5, size: 0.14, rise: 0.3 });
+    window.setTimeout(() => {
+      if (this.behaviour === 'sofa' && this.sofaPhase === 2) this.sofaNap();
+    }, 2400);
+  }
+
+  private sofaNap(): void {
+    this.sofaPhase = 3;
+    this.playAction('sleep', 3.0);
+    window.setTimeout(() => {
+      if (this.behaviour === 'sofa' && this.sofaPhase === 3) {
+        this.sofaPhase = 0;
+        this.behaviour = 'roam';
+        this.nextIdleAt = this.now + 1;
+      }
+    }, 3000);
   }
 
   private tickBeg(dt: number): void {
