@@ -48,7 +48,7 @@ export interface EngineOptions {
   callbacks: EngineCallbacks;
 }
 
-type Behaviour = 'roam' | 'sleep' | 'beg' | 'eat' | 'play' | 'gift' | 'sad' | 'petted' | 'celebrate' | 'wake';
+type Behaviour = 'roam' | 'sleep' | 'beg' | 'eat' | 'play' | 'gift' | 'sad' | 'petted' | 'celebrate' | 'wake' | 'sofa';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const GROUND = new THREE.Plane(UP, 0);
@@ -794,6 +794,8 @@ export class Engine {
         break;
       case 'gift':
         break; // driven entirely by arrival callbacks
+      case 'sofa':
+        break; // driven entirely by arrival callbacks
       case 'sad':
         if (!this.locked && !this.target) this.playAction('sad');
         break;
@@ -836,18 +838,45 @@ export class Engine {
     // Pick something cat-like to do next, weighted by mood.
     const roll = Math.random();
     this.nextIdleAt = this.now + 5 + Math.random() * 7;
-    if (roll < 0.42) {
+    if (roll < 0.35) {
       this.goTo(this.randomSpot(), 0.14, this.mood > 0.6 && Math.random() < 0.25);
-    } else if (roll < 0.6) {
+    } else if (roll < 0.5) {
       this.playAction('groom', 4);
-    } else if (roll < 0.72) {
+    } else if (roll < 0.6) {
       this.playAction('stretch', 2.4);
-    } else if (roll < 0.82 && this.mood > 0.45) {
+    } else if (roll < 0.7 && this.mood > 0.45) {
       this.playAction('jump', 0.75);
       this.fx.burst('sparkle', new THREE.Vector3(this.pos.x, 0.15, this.pos.z), { count: 4, size: 0.13, rise: 0.4 });
+    } else if (roll < 0.82 && this.mood > 0.5) {
+      this.sofaErrand();
     } else {
       this.playAction('idle');
       this.nextIdleAt = this.now + 3 + Math.random() * 4;
+    }
+  }
+
+  private sofaErrand(): void {
+    this.behaviour = 'sofa';
+    this.goTo(this.world.sofa, 0.22, false, () => this.sofaArrive());
+  }
+
+  private sofaArrive(): void {
+    if (!this.begT) {
+      this.begT = 1; // Use begT as phase tracker
+      this.playAction('roll', 2.4);
+      this.fx.burst('sparkle', this.pet.headWorld, { count: 5, size: 0.14, rise: 0.3 });
+      window.setTimeout(() => {
+        if (this.behaviour === 'sofa' && this.begT === 1) {
+          this.begT = 2;
+          this.playAction('sleep', 3.0);
+          window.setTimeout(() => {
+            this.behaviour = 'roam';
+            this.nextIdleAt = this.now + 1;
+            this.begT = 0;
+          }, 3000);
+        }
+      }, 2400);
+      return;
     }
   }
 

@@ -249,3 +249,17 @@ export function buildBowl(color: THREE.ColorRepresentation = '#e08a6a'): THREE.G
   g.add(inner);
   return g;
 }
+
+/** A low cushioned sofa the cat can jump on and nap in. */
+export function buildSofa(color: THREE.ColorRepresentation = '#c9a884'): THREE.Group {
+  const g = new THREE.Group();
+  const base = m(new THREE.BoxGeometry(0.42, 0.18, 0.28), color);
+  base.position.y = 0.09;
+  base.castShadow = true;
+  g.add(base);
+  const backrest = m(new THREE.BoxGeometry(0.42, 0.2, 0.08), color);
+  backrest.position.set(0, 0.23, -0.12);
+  backrest.castShadow = true;
+  g.add(backrest);
+  return g;
+}

@@ -21,7 +21,8 @@ export type Action =
   | 'celebrate'
   | 'sad'
   | 'petted'
-  | 'groom';
+  | 'groom'
+  | 'roll';
 
 export interface AnimCtx {
   /** Seconds since this action started. */
@@ -534,6 +535,27 @@ function groom(o: Pose, ctx: AnimCtx): void {
   o.squint = 0.4;
 }
 
+function roll(o: Pose, ctx: AnimCtx): void {
+  // Lie on side, rolling playfully. Roll progress from 0 to 1 over the duration.
+  const rollPhase = Math.min(1, ctx.t / 2.4);
+  // Tip the body to one side.
+  o.roll = Math.sin(rollPhase * Math.PI) * 1.2;
+  o.lift = -rollPhase * 0.2; // belly gets lower
+  o.spine = rollPhase * 0.8;
+  o.neck = rollPhase * 0.4;
+  o.headPitch = rollPhase * 0.35;
+  // Legs floppy and relaxed.
+  for (const leg of [FL, FR, BL, BR]) {
+    o.hip[leg] = rollPhase * 0.8;
+    o.knee[leg] = -rollPhase * 1.2;
+  }
+  for (let i = 0; i < o.tail.length; i++) {
+    o.tail[i] = 0.3 + Math.sin(ctx.now * 4 + i * 0.4) * 0.2;
+  }
+  o.mouth = 0.3;
+  o.eye = 0.4;
+}
+
 // --- dispatch ---------------------------------------------------------------
 
 const TABLE: Record<Action, (o: Pose, ctx: AnimCtx) => void> = {
@@ -552,6 +574,7 @@ const TABLE: Record<Action, (o: Pose, ctx: AnimCtx) => void> = {
   sad,
   petted,
   groom,
+  roll,
 };
 
 export function evaluate(action: Action, ctx: AnimCtx, out: Pose): void {
@@ -564,6 +587,7 @@ export const ACTION_LENGTH: Partial<Record<Action, number>> = {
   celebrate: 3.0,
   eat: 3.2,
   play: 3.2,
+  roll: 2.4,
   petted: 2.4,
   groom: 4.0,
   jump: 0.75,

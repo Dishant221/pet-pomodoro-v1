@@ -1,3 +1,11 @@
+## Editing game content
+
+Before touching themes, pet skins/species, scenes, furniture/objects, sounds,
+weather, or the cat's behaviours/animations, read **HOW-TO-EDIT.md** at the
+repo root first. It maps each of those to its exact file, type, and pattern —
+almost every content change is one more entry in an existing catalog (data),
+not new logic.
+
 ## Development
 
 When starting the dev server, use background mode:

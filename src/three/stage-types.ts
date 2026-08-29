@@ -34,6 +34,8 @@ export interface World {
   bed: THREE.Vector3;
   /** Where the food bowl stands — the cat walks here to eat. */
   bowl: THREE.Vector3;
+  /** Where the sofa sits — the cat jumps on it to play/rest. */
+  sofa: THREE.Vector3;
   /** Off-stage spots the cat runs to when fetching a gift. */
   stash: THREE.Vector3[];
   /** Front-of-stage spot where gifts are presented to the player. */

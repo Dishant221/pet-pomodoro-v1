@@ -20,7 +20,7 @@
  */
 import * as THREE from 'three';
 import type { SceneId } from '../game/manifest';
-import { buildBowl } from './props';
+import { buildBowl, buildSofa } from './props';
 import { disposeTree, inked } from './toon';
 import type { LightRecipe, World } from './stage-types';
 import { PHASES } from '../world/palette';
@@ -38,12 +38,14 @@ interface PaintedSpec {
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   bed: THREE.Vector3;
   bowl: THREE.Vector3;
+  sofa: THREE.Vector3;
   stash: THREE.Vector3[];
   gift: THREE.Vector3;
   /** Cushion colours, so the bed belongs to its scene. */
   bedColor: string;
   bedTrim: string;
   bowlColor: string;
+  sofaColor: string;
   /** True for interiors, which get a smaller roaming area. */
   indoor: boolean;
 }
@@ -53,22 +55,26 @@ const SPECS: Record<SceneId, PaintedSpec> = {
     bounds: { minX: -1.5, maxX: 1.5, minZ: -1.0, maxZ: 0.9 },
     bed: new THREE.Vector3(-1.35, 0, -0.5),
     bowl: new THREE.Vector3(1.4, 0, -0.1),
+    sofa: new THREE.Vector3(0.2, 0, 0.3),
     stash: [new THREE.Vector3(2.9, 0, -1.3), new THREE.Vector3(-2.9, 0, -1.5)],
     gift: new THREE.Vector3(0, 0, 0.75),
     bedColor: '#d98fa4',
     bedTrim: '#b56b81',
     bowlColor: '#e08a6a',
+    sofaColor: '#d98fa4',
     indoor: false,
   },
   jungle: {
     bounds: { minX: -1.4, maxX: 1.4, minZ: -0.9, maxZ: 0.85 },
     bed: new THREE.Vector3(-1.2, 0, -0.45),
     bowl: new THREE.Vector3(1.25, 0, -0.05),
+    sofa: new THREE.Vector3(0.15, 0, 0.25),
     stash: [new THREE.Vector3(2.7, 0, -1.2), new THREE.Vector3(-2.7, 0, -1.4)],
     gift: new THREE.Vector3(0, 0, 0.72),
     bedColor: '#8fae6a',
     bedTrim: '#6b8a4c',
     bowlColor: '#b6764f',
+    sofaColor: '#8fae6a',
     indoor: false,
   },
   treehouse: {
@@ -76,11 +82,13 @@ const SPECS: Record<SceneId, PaintedSpec> = {
     bounds: { minX: -1.25, maxX: 1.25, minZ: -0.7, maxZ: 0.8 },
     bed: new THREE.Vector3(-1.0, 0, -0.4),
     bowl: new THREE.Vector3(1.05, 0, -0.05),
+    sofa: new THREE.Vector3(0.1, 0, 0.2),
     stash: [new THREE.Vector3(2.2, 0, -1.0), new THREE.Vector3(-2.2, 0, -1.1)],
     gift: new THREE.Vector3(0, 0, 0.68),
     bedColor: '#c9a06b',
     bedTrim: '#a67c4d',
     bowlColor: '#7f9c6d',
+    sofaColor: '#c9a06b',
     indoor: false,
   },
   mountain: {
@@ -88,18 +96,21 @@ const SPECS: Record<SceneId, PaintedSpec> = {
     bounds: { minX: -1.6, maxX: 1.6, minZ: -1.05, maxZ: 0.95 },
     bed: new THREE.Vector3(-1.4, 0, -0.5),
     bowl: new THREE.Vector3(1.45, 0, -0.1),
+    sofa: new THREE.Vector3(0.25, 0, 0.35),
     stash: [new THREE.Vector3(3.0, 0, -1.35), new THREE.Vector3(-3.0, 0, -1.5)],
     gift: new THREE.Vector3(0, 0, 0.78),
     // Alpine wool and weathered stoneware, rather than the garden's pinks.
     bedColor: '#a8b8c9',
     bedTrim: '#7f92a6',
     bowlColor: '#8c7f6e',
+    sofaColor: '#a8b8c9',
     indoor: false,
   },
   snow: {
     bounds: { minX: -1.55, maxX: 1.55, minZ: -1.0, maxZ: 0.9 },
     bed: new THREE.Vector3(-1.35, 0, -0.48),
     bowl: new THREE.Vector3(1.4, 0, -0.08),
+    sofa: new THREE.Vector3(0.2, 0, 0.3),
     stash: [new THREE.Vector3(2.9, 0, -1.3), new THREE.Vector3(-2.9, 0, -1.45)],
     gift: new THREE.Vector3(0, 0, 0.76),
     // A warm bed reads as shelter against all that blue — the one spot of heat
@@ -107,17 +118,20 @@ const SPECS: Record<SceneId, PaintedSpec> = {
     bedColor: '#c86f5c',
     bedTrim: '#9d5142',
     bowlColor: '#6f7f92',
+    sofaColor: '#c86f5c',
     indoor: false,
   },
   livingroom: {
     bounds: { minX: -1.4, maxX: 1.4, minZ: -1.0, maxZ: 0.85 },
     bed: new THREE.Vector3(-1.05, 0, -0.55),
     bowl: new THREE.Vector3(1.15, 0, -0.05),
+    sofa: new THREE.Vector3(0.1, 0, 0.25),
     stash: [new THREE.Vector3(2.2, 0, -1.2), new THREE.Vector3(-2.2, 0, -1.6)],
     gift: new THREE.Vector3(0, 0, 0.72),
     bedColor: '#d3728c',
     bedTrim: '#a9536b',
     bowlColor: '#c0603f',
+    sofaColor: '#d3728c',
     indoor: true,
   },
 };
@@ -146,6 +160,7 @@ for (const spec of Object.values(SPECS)) {
   spec.bounds.maxZ -= DEPTH_SHIFT;
   spec.bed.z -= DEPTH_SHIFT;
   spec.bowl.z -= DEPTH_SHIFT;
+  spec.sofa.z -= DEPTH_SHIFT;
   spec.gift.z -= DEPTH_SHIFT;
   for (const s of spec.stash) s.z -= DEPTH_SHIFT;
 }
@@ -243,6 +258,11 @@ export function buildPaintedWorld(scene: SceneId): World {
   bowl.position.copy(spec.bowl);
   group.add(bowl);
 
+  // --- the sofa -------------------------------------------------------------
+  const sofa = buildSofa(spec.sofaColor);
+  sofa.position.copy(spec.sofa);
+  group.add(sofa);
+
   const lights = baseLights(scene);
 
   return {
@@ -251,6 +271,7 @@ export function buildPaintedWorld(scene: SceneId): World {
     bounds: spec.bounds,
     bed: spec.bed.clone(),
     bowl: spec.bowl.clone(),
+    sofa: spec.sofa.clone(),
     stash: spec.stash.map((v) => v.clone()),
     gift: spec.gift.clone(),
     contact: blob,
