@@ -3,7 +3,7 @@ import { useStore } from '@nanostores/preact';
 import { $profile, updateSettings, clamp, PET_MAX_W, PET_MIN_W } from '../stores/profile';
 import { speciesOf } from '../game/economy';
 import { paletteFor } from '../three/palette';
-import { webglAvailable } from '../three/webgl';
+import { webglAvailable, whenIdle } from '../three/webgl';
 import { blockedBy, groundAt, measureTerrain, typingRect, type Ledge } from '../game/terrain';
 import { moodFor, MOODS } from '../game/mood';
 import * as audio from '../game/audio';
@@ -127,7 +127,7 @@ export default function Companion() {
 
       engineRef.current = engine;
       engine.setMood($profile.get().vitals.happiness / 100);
-      engine.start();
+      whenIdle(() => engine?.start());
 
       onVisibility = () => {
         if (document.hidden) engine?.stop();

@@ -167,6 +167,22 @@ export class Engine {
   private blinkAt = 0;
   private blinkT = -1;
   private disposed = false;
+  /**
+   * Steady-state frame budget, in ms. This is a decorative companion, not a
+   * twitch game — capping it well under a 60/90/120Hz display's native rate
+   * caps the render cost too, instead of letting a high-refresh monitor pay
+   * for three or four times the redraws for no visible benefit.
+   */
+  private static readonly FRAME_BUDGET_MS = 1000 / 40;
+  private lastFrameAt = 0;
+  /** Once a frame blows past Lighthouse's own long-task line, three times in a
+   * row, the renderer is too expensive for whatever is running it — software
+   * rendering, an old GPU, a throttled CPU. Drop shadows and pixel density
+   * once and stay dropped; a plainer cat beats a tab stuck rendering. */
+  private static readonly LONG_TASK_MS = 50;
+  private static readonly DEGRADE_AFTER = 3;
+  private slowFrames = 0;
+  private degraded = false;
 
   constructor(opts: EngineOptions) {
     this.canvas = opts.canvas;
@@ -371,12 +387,29 @@ export class Engine {
     if (this.running || this.disposed) return;
     this.running = true;
     this.lastT = performance.now() / 1000;
-    const tick = () => {
+    this.lastFrameAt = 0;
+    const tick = (t: number) => {
       if (!this.running) return;
       this.raf = requestAnimationFrame(tick);
+      if (t - this.lastFrameAt < Engine.FRAME_BUDGET_MS) return;
+      this.lastFrameAt = t;
+      const before = performance.now();
       this.frame();
+      this.trackFrameCost(performance.now() - before);
     };
     this.raf = requestAnimationFrame(tick);
+  }
+
+  private trackFrameCost(ms: number): void {
+    if (this.degraded) return;
+    if (ms <= Engine.LONG_TASK_MS) {
+      this.slowFrames = 0;
+      return;
+    }
+    if (++this.slowFrames < Engine.DEGRADE_AFTER) return;
+    this.degraded = true;
+    this.renderer.shadowMap.enabled = false;
+    this.renderer.setPixelRatio(1);
   }
 
   stop(): void {

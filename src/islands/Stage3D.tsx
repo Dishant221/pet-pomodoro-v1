@@ -11,7 +11,7 @@ import type { PetSkinId, SnackId } from '../game/economy';
  * loaded with `import()` below instead, after the page is up.
  */
 import type { Engine } from '../three/engine';
-import { webglAvailable } from '../three/webgl';
+import { webglAvailable, whenIdle } from '../three/webgl';
 import { paletteFor } from '../three/palette';
 import { speciesOf } from '../game/economy';
 import { SPECIES } from '../three/species';
@@ -154,7 +154,7 @@ export default function Stage3D(props: Stage3DProps) {
       // lighting on a night visit.
       const w = $view.get();
       engine.setDaylight(w.fraction, w.weather);
-      engine.start();
+      whenIdle(() => engine?.start());
 
       const api: StageApi = {
         deliverGift: () => engineRef.current?.deliverGift(),
