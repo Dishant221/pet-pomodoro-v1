@@ -27,16 +27,16 @@
     "deploy:preview": "cross-env PUBLIC_SITE_URL=https://petpomo-preview.totadedishant.workers.dev PUBLIC_GOOGLE_LOGIN=1 astro build && wrangler deploy --env preview"
   },
   "dependencies": {
-    "@astrojs/preact": "^6.0.2",
+    "@astrojs/preact": "^6.0.5",
     "@astrojs/rss": "4.0.19",
-    "@astrojs/sitemap": "3.7.3",
+    "@astrojs/sitemap": "3.7.4",
     "@nanostores/preact": "^1.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.2",
-    "better-auth": "^1.7.1",
+    "better-auth": "^1.7.3",
     "gsap": "^3.15.0",
     "hono": "^4.13.7",
-    "nanostores": "^1.4.2",
+    "nanostores": "^1.5.3",
     "preact": "^10.29.8",
     "tailwindcss": "^4.3.3",
     "three": "^0.185.1",
@@ -49,7 +49,7 @@
     "@types/three": "^0.185.4",
     "better-sqlite3": "^12.11.1",
     "cross-env": "10.1.0",
-    "playwright": "^1.62.1",
+    "playwright": "^1.63.0",
     "typescript": "^6.0.3",
     "wrangler": "^4.131.1"
   }
