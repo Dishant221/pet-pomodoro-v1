@@ -25,7 +25,7 @@ const isExpected = (text) =>
   expected && /Failed to load resource/.test(text) && expected.test(text);
 
 const email = `t${Date.now()}@example.com`;
-const password = 'horse-correct-battery-9';
+const password = process.env.PETPOMO_TEST_PASSWORD || 'horse-correct-battery-9'; // fixture only; override to avoid a public password on preview accounts
 
 /**
  * Sign in on `p`, tolerating better-auth's own limiter: /sign-in/email allows

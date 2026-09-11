@@ -16,11 +16,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# environment variables
+# environment variables - every variant, never committed
 .env
-.env.production
-# wrangler local secrets (BETTER_AUTH_SECRET etc.) — never committed
+.env.*
+*.local
+# wrangler local secrets (BETTER_AUTH_SECRET etc.), incl. per-env .dev.vars.preview
 .dev.vars
+.dev.vars.*
 
 # macOS-specific files
 .DS_Store

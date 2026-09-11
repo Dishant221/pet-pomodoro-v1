@@ -80,7 +80,7 @@ async function makeAccount(email, password) {
 const stamp = Date.now();
 const adminEmail = `mod-admin-${stamp}@example.com`;
 const userEmail = `mod-user-${stamp}@example.com`;
-const password = 'horse-correct-battery-9';
+const password = process.env.PETPOMO_TEST_PASSWORD || 'horse-correct-battery-9'; // fixture only; override to avoid a public password on preview accounts
 
 // --- sanitizer rejections -----------------------------------------------------
 const reject = async (name, body) => {

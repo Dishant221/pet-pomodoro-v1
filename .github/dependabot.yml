@@ -1,0 +1,17 @@
+# Surfaces new advisories for npm packages and the GitHub Actions used by
+# deploy.yml. Added 2026-09-12 after an audit found astro/hono/wrangler
+# advisories that nothing was reporting.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

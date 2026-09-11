@@ -23,9 +23,14 @@ static assets included. Create the database first.
 ```bash
 cd pet-pomodoro
 npx wrangler login                 # interactive browser flow
+npx wrangler whoami                # MUST show the PetPomo account id — see CLOUDFLARE-OPS.md
 npm run deploy:preview             # build + deploy the preview Worker
 npm run deploy                     # build + deploy the production Worker
 ```
+
+> The owner has a second Cloudflare account on the same machine and wrangler
+> has drifted to it before (2026-09-11). Always check `whoami` first.
+> Metrics, billing, the WAF rules and the account map are in **CLOUDFLARE-OPS.md**.
 
 Production serves at `https://petpomo.totadedishant.workers.dev` (and at
 `https://www.pomodoropet.com` once the custom domain is attached to the
@@ -365,12 +370,13 @@ Worker is invoked and costs nothing when it fires:
 > Expression: `http.request.uri.path eq "/api/save"`
 > Rate: 60 requests per 1 minute, per IP · Action: Block, 1 minute
 
-**That is not available to this project today, and it is worth knowing why
-before you go looking for it.** WAF rules are configured per *zone*, and this
-account has none: the site is served from `*.pages.dev`, which is Cloudflare's
-domain, not ours. There is nothing to attach a rule to. It becomes possible the
-day a custom domain is added, and until then the Worker's own limits are the
-only ones there are.
+**Update 2026-09-11: the zone now exists** (`pomodoropet.com` is on
+Cloudflare DNS since 2026-08-22) and the first custom WAF rule — blocking
+WordPress/PHP scanner probes — was created via the rulesets API. The
+`/api/save` rate-limit rule above is therefore possible but has *not* been
+created yet. Rule ids, the API shape and the token that manages them are in
+**CLOUDFLARE-OPS.md**. Until it is added, the Worker's own limits are the only
+ones there are.
 
 That is also why `/api/ask` — the one endpoint that spends money per call —
 does not rely on the edge-cache counter. Its burst and daily limits are atomic
@@ -406,9 +412,10 @@ true before the bill does.
 > **Manage Account → Billing → Notifications**
 
 **3. Scope the deploy token.** `CLOUDFLARE_API_TOKEN` in GitHub Actions needs
-exactly *Cloudflare Pages: Edit* on this one account. If it currently has more,
-replace it — that token is one leaked workflow log away from being someone
-else's.
+*Workers Scripts: Edit* (plus *Cloudflare Pages: Edit* while the Pages project
+is kept as the rollback path) on this one account, and nothing more — that
+token is one leaked workflow log away from being someone else's. The separate
+read-only analytics token is documented in CLOUDFLARE-OPS.md.
 
 ## Security headers
 

@@ -109,7 +109,10 @@ export default defineConfig({
         // Same-origin, plus Google Analytics (loaded only after consent — see
         // public/analytics.js). The weather Worker talks to Open-Meteo
         // server-side, so that is the only other third-party origin involved.
-        "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+        // cloudflareinsights.com is the Cloudflare Web Analytics beacon's
+        // reporting endpoint (the zone auto-injects the script; cookieless,
+        // bot-filtered, and the best free "real humans" count we have).
+        "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cloudflareinsights.com",
         "worker-src 'self'",
         "manifest-src 'self'",
         // Turnstile renders its challenge in an iframe on this origin. The
@@ -125,7 +128,11 @@ export default defineConfig({
         // sync. challenges.cloudflare.com is Turnstile's widget script (see
         // frame-src above). googletagmanager.com is gtag.js, injected by
         // /analytics.js only after the visitor consents.
-        resources: ["'self'", 'https://challenges.cloudflare.com', 'https://www.googletagmanager.com'],
+        // static.cloudflareinsights.com is the Cloudflare Web Analytics beacon
+        // that the zone injects into every HTML response (Analytics & Logs ->
+        // Web Analytics). Without this entry the browser blocks it and Web
+        // Analytics silently records nothing (found 2026-09-12).
+        resources: ["'self'", 'https://challenges.cloudflare.com', 'https://www.googletagmanager.com', 'https://static.cloudflareinsights.com'],
       },
       styleDirective: {
         resources: [
