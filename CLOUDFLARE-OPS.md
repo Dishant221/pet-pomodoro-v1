@@ -247,6 +247,11 @@ Dependabot will surface the next ones.
 
 ### 2026-09-12 (security audit)
 
+- **Shipped to production** (main fast-forwarded to testing at `054bfe3`, CI run
+  green, smoke-tested on www.pomodoropet.com: health, pages, CSP entry, WAF
+  403 on probes, HSTS, apex redirect). Backup branches:
+  `main-backup-pre-security-audit-merge`, `testing-copy-security-audit-merge`.
+
 - Full client / Cloudflare / GitHub security audit — see "Security posture"
   above. Fixed: CSP for the Web Analytics beacon, SHA-pinned actions, least-
   privilege workflow permissions, Dependabot, `.gitignore` coverage,
