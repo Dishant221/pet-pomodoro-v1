@@ -39,6 +39,7 @@ transaction exports is what an accountant gets.
 
 | Network / broker | Account email | Account id | Status | Payout terms | Report source |
 | ---------------- | ------------- | ---------- | ------ | ------------ | ------------- |
+| FlexOffers | | | **Declined** (2026-08-30) — app rejected, no reason given | | |
 | _none yet_ | | | | | |
 
 When an account is created: add the row, then set the matching `network` value
@@ -61,14 +62,13 @@ click happens.
 
 ## Where the money comes from — signup order (researched 2026-08-22)
 
-The "single broker" you asked for, in practice: **FlexOffers first**. It has
-no traffic minimum, approves small new sites in 24–48 h, gives sub-affiliate
-access to 10k+ programs (including Chewy US) under one account, and has a
-Promotions API whose coupon data arrives already carrying our tracking id —
-one account, one report, many merchants. Sign up: https://publisherpro.flexoffers.com/signup
-Payouts: net-60, $25 minimum.
+The "single broker" you asked for, in practice: ~~FlexOffers first~~ —
+**declined 2026-08-30** despite the advertised no-traffic-minimum (no reason
+given; site is likely too new/low-traffic for their fraud screen). Do not
+reapply immediately; retry after the site has real visitors, if at all.
+Payouts would have been net-60, $25 minimum.
 
-Join now (all approve small/new sites):
+**Awin is now the active next step** (all approve small/new sites):
 
 - **Awin** — https://www.awin.com/us/publishers — $5 refundable deposit,
   strongest for EU/UK merchants (matters because Gifts is geo-filtered:
