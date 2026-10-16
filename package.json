@@ -50,7 +50,7 @@
     "better-sqlite3": "^12.11.1",
     "cross-env": "10.1.0",
     "playwright": "^1.62.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "wrangler": "^4.131.1"
   }
 }
