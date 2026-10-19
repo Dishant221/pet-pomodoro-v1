@@ -84,6 +84,10 @@ const pageTitle =
 /** Numbered links, always including first and last. */
 const pageNumbers = Array.from({ length: page.lastPage }, (_, i) => i + 1);
 const pageHref = (n: number) => (n === 1 ? '/blog/' : `/blog/${n}/`);
+// Astro's paginate() emits `/blog` (no slash) for page 1; the static build
+// serves `/blog/`, so the bare form costs a 307 on every click.
+const slash = (u: string) => (u.endsWith('/') ? u : `${u}/`);
+
 ---
 
 <Layout
@@ -137,7 +141,7 @@ const pageHref = (n: number) => (n === 1 ? '/blog/' : `/blog/${n}/`);
     page.lastPage > 1 && (
       <nav id="pp-pagination" aria-label="Blog pages" class="pp-pagination mt-8">
         {page.url.prev ? (
-          <a href={page.url.prev} class="pp-focus-ring pp-page-link" rel="prev">
+          <a href={slash(page.url.prev)} class="pp-focus-ring pp-page-link" rel="prev">
             ← Newer
           </a>
         ) : null}
@@ -151,7 +155,7 @@ const pageHref = (n: number) => (n === 1 ? '/blog/' : `/blog/${n}/`);
           </a>
         ))}
         {page.url.next ? (
-          <a href={page.url.next} class="pp-focus-ring pp-page-link" rel="next">
+          <a href={slash(page.url.next)} class="pp-focus-ring pp-page-link" rel="next">
             Older →
           </a>
         ) : null}

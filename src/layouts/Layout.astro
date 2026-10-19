@@ -54,27 +54,27 @@ const hideFromSearch = noindex || !isProductionBuild(Astro.site);
 
 const NAV = [
   { href: '/', label: 'Focus', icon: '🐱' },
-  { href: '/stats', label: 'Stats', icon: '📊' },
-  { href: '/shop', label: 'Shop', icon: '🛍️' },
-  { href: '/gifts', label: 'Gifts', icon: '🎁' },
-  { href: '/settings', label: 'Settings', icon: '⚙️' },
-  { href: '/blog', label: 'Blog', icon: '📖' },
-  { href: '/forum', label: 'Forum', icon: '🗨️' },
-  { href: '/about', label: 'About', icon: '💡' },
+  { href: '/stats/', label: 'Stats', icon: '📊' },
+  { href: '/shop/', label: 'Shop', icon: '🛍️' },
+  { href: '/gifts/', label: 'Gifts', icon: '🎁' },
+  { href: '/settings/', label: 'Settings', icon: '⚙️' },
+  { href: '/blog/', label: 'Blog', icon: '📖' },
+  { href: '/forum/', label: 'Forum', icon: '🗨️' },
+  { href: '/about/', label: 'About', icon: '💡' },
 ];
 
 const FOOTER = [
-  { href: '/about', label: 'About' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
-  { href: '/cookies', label: 'Cookies' },
-  { href: '/copyright', label: 'Copyright' },
-  { href: '/disclosure', label: 'Disclosure' },
+  { href: '/about/', label: 'About' },
+  { href: '/blog/', label: 'Blog' },
+  { href: '/contact/', label: 'Contact' },
+  { href: '/privacy/', label: 'Privacy' },
+  { href: '/terms/', label: 'Terms' },
+  { href: '/cookies/', label: 'Cookies' },
+  { href: '/copyright/', label: 'Copyright' },
+  { href: '/disclosure/', label: 'Disclosure' },
 ];
 
-const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href.replace(/\/$/, '')));
 
 const year = new Date().getFullYear();
 ---
@@ -101,6 +101,9 @@ const year = new Date().getFullYear();
     <meta name="fo-verify" content="cf96faf2-774d-4f6f-9f75-609659c380fc" />
     <meta name="theme-color" content="#fff7ed" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* ICO fallback: browsers, crawlers and bookmark tools request /favicon.ico
+        by convention regardless of the link above (scripts/make-favicon-ico.mjs). */}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="manifest" href="/manifest.webmanifest" />
     {/* The display face (headings/buttons). Preloaded because it paints the
         largest text on every page; font-display swap keeps text unblocked. */}

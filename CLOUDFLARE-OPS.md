@@ -63,6 +63,7 @@ prefix.
 npm run metrics          # last 30 days, human-readable summary
 npm run metrics -- 7     # last 7 days
 node scripts/cf-metrics.mjs 30 --json > out.json   # raw data
+npm run metrics -- --save  # also snapshot to metrics/YYYY-MM-DD.json
 ```
 
 `scripts/cf-metrics.mjs` calls the Cloudflare GraphQL Analytics API directly
@@ -71,7 +72,14 @@ invocations per day (requests, errors, CPU p50/p99), zone traffic per day
 (requests, page views, unique IPs, cache ratio, countries, status codes,
 browser families), a last-24h detail block (top paths, 404s, 403s, device
 split, user agents, and `/api/auth/get-session` calls by country), and D1
-query counts.
+query counts. Since 2026-10-19 the last-24h block also prints the host split
+(`petpomo.internal` and upstream hosts are the Worker's own fetches, not
+visitors), the 307 trailing-slash redirects by path, the cache-status split,
+and a **HUMAN SIGNAL** funnel: zone requests → HTML pages served → app loads
+(`/api/auth/get-session` minus headless UAs) → saves (`/api/me/save`), plus
+`/api/events` play events. Read the funnel, not the request total. `--save`
+writes the raw JSON to `metrics/<date>.json`; per-path detail is only
+available for 24h on the free plan, so a daily snapshot is the only history.
 
 **Loading the token in a fresh shell.** It is a Windows *user* environment
 variable, so an already-open terminal or a tool-spawned shell may not see it:
@@ -177,6 +185,59 @@ To change rules, `PUT` the same URL with `{ "description": ..., "rules": [...] }
 
 The rate-limit rule for `/api/save` suggested in DEPLOY.md § Infrastructure
 hardening is now *possible* (the zone exists) but has **not** been created.
+The free plan has exactly one rate-limit slot and it holds the leaked-
+credential rule, so adding an API limit means swapping or upgrading.
+
+### Proposed rules, not yet created (2026-10-19)
+
+Drafted during the traffic review in `cloudflare_summary.md`; the agent's
+automated PUT was blocked by its permission policy, so these are applied by
+hand (dashboard → Security → WAF → Custom rules, or PUT the full rule list as
+described above). Record the rule ids in the table once created.
+
+**Rule 2 — block config/secret-file and admin-tool probes.** Action: Block.
+Nothing legitimate lives at these paths (`/.well-known/` is not matched).
+
+```
+(starts_with(http.request.uri.path, "/.git")) or
+(starts_with(http.request.uri.path, "/.env")) or
+(starts_with(http.request.uri.path, "/.vscode")) or
+(starts_with(http.request.uri.path, "/.aws")) or
+(starts_with(http.request.uri.path, "/.ssh")) or
+(starts_with(http.request.uri.path, "/.svn")) or
+(http.request.uri.path contains "sftp-config.json") or
+(http.request.uri.path contains "/.DS_Store") or
+(starts_with(http.request.uri.path, "/phpmyadmin")) or
+(starts_with(http.request.uri.path, "/phpMyAdmin")) or
+(starts_with(http.request.uri.path, "/cgi-bin/")) or
+(ends_with(http.request.uri.path, ".sql")) or
+(ends_with(http.request.uri.path, ".bak")) or
+(http.request.uri.path eq "/config.json") or
+(http.request.uri.path eq "/.htaccess")
+```
+
+**Rule 3 — challenge tool/headless user agents on the API.** Action: Managed
+Challenge (not Block: a mistake costs a click, not a user). `/api/health` is
+excluded so uptime checks and CI smoke tests keep working. Real players
+always arrive with a browser UA; the Worker's own subrequests never pass
+through the zone WAF.
+
+```
+(starts_with(http.request.uri.path, "/api/")) and
+not (http.request.uri.path eq "/api/health") and (
+  (http.user_agent contains "HeadlessChrome") or
+  (http.user_agent contains "Go-http-client") or
+  (http.user_agent contains "python-requests") or
+  (starts_with(http.user_agent, "curl/")) or
+  (http.user_agent eq "Mozilla/5.0") or
+  (http.user_agent eq "")
+)
+```
+
+Verify after creating: `/.git/config`, `/sftp-config.json` → 403;
+`/.well-known/assetlinks.json`, `/about/`, `/api/health` → 200;
+`curl -A "Go-http-client/1.1" https://www.pomodoropet.com/api/weather` → 403
+challenge page while a browser still gets JSON.
 
 ---
 
@@ -244,6 +305,38 @@ Dependabot will surface the next ones.
 ---
 
 ## Change log
+
+### 2026-10-19 (traffic review, pushed to `testing`)
+
+- Review of 30 days of zone and Worker traffic written up in
+  `cloudflare_summary.md` (what the 36k requests/month are, who is human, a
+  prioritised checklist split into agent-doable vs owner-only items).
+  Headline: Worker is fine (3.7k invocations, 0 errors); the zone number is
+  mostly crawlers, redirects and scanners; realistic humans 30-60 page
+  loads/day.
+- **Found** `ai_bots_protection: disabled` on the zone — ClaudeBot and other
+  training crawlers get 200. Only the managed robots.txt is in place; nothing
+  is enforced at the edge. Owner action: Security → Bots → block AI training
+  bots (keep AI search/retrieval allowed).
+- **Found** the minimum-TLS 1.0 item from 2026-09-12 is still open. No TLS
+  1.0/1.1 clients seen in 24h; raising to 1.2 breaks nobody.
+- **Code (this branch):** internal links now carry the trailing slash
+  (`/shop/` not `/shop`) in the nav/footer arrays of `Layout.astro`,
+  `Base.astro`, the blog pagination links and ~44 inline links across the
+  legal/about pages; `isActive` normalises the slash. Removes ~2,000 307
+  redirects/month. Added `public/favicon.ico` (generated by
+  `scripts/make-favicon-ico.mjs` from `favicon.svg`, linked in
+  `Layout.astro`) and `public/.well-known/assetlinks.json` (`[]`) to end
+  the daily 404s; both cached 1 day via `_headers`. `npm audit fix` cleared
+  9 undici advisories (miniflare dev dependency, lock-file only).
+  `/api/weather` was checked and is already edge-cached (900s) — no change.
+- **Metrics script:** host split, 307 paths, cache status, HUMAN SIGNAL
+  funnel and `--save` snapshots (see § Reading metrics).
+- **WAF:** two rules drafted (§ Proposed rules). Not created — the agent's
+  automated PUT was blocked by its permission policy; owner applies them.
+- Still open from 2026-09-12: branch protection on `main`, repo visibility,
+  backup-branch pruning. New: DMARC `p=none` → `p=reject` (SPF is `-all`,
+  domain sends no mail), Early Hints on.
 
 ### 2026-09-12 (security audit)
 

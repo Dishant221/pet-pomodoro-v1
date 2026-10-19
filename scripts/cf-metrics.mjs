@@ -4,6 +4,9 @@
 //   npm run metrics            # last 30 days
 //   npm run metrics -- 7       # last 7 days
 //   node scripts/cf-metrics.mjs 30 --json > out.json   # raw data instead of the summary
+//   npm run metrics -- --save  # also write metrics/YYYY-MM-DD.json (per-path detail
+//                              # is only available for 24h on the free plan, so a
+//                              # daily snapshot is the only way to keep history)
 //
 // Auth: a READ-ONLY API token in the env var `dt_claude_api_cloudflare_token`
 // (stored as a Windows *user* environment variable — see CLOUDFLARE-OPS.md).
@@ -27,6 +30,7 @@ const WORKERS = ["petpomo", "petpomo-preview"];
 const args = process.argv.slice(2);
 const days = Number(args.find((a) => /^\d+$/.test(a)) || 30);
 const rawJson = args.includes("--json");
+const save = args.includes("--save");
 
 const end = new Date();
 const start = new Date(end.getTime() - days * 86400000);
@@ -88,6 +92,14 @@ out.lastDay = await gql(
     ua:httpRequestsAdaptiveGroups(limit:25,filter:{datetime_geq:$s,datetime_leq:$e,requestSource:"eyeball"},orderBy:[count_DESC]){count dimensions{userAgent}}
     dev:httpRequestsAdaptiveGroups(limit:5,filter:{datetime_geq:$s,datetime_leq:$e,requestSource:"eyeball"},orderBy:[count_DESC]){count dimensions{clientDeviceType}}
     sess:httpRequestsAdaptiveGroups(limit:10,filter:{datetime_geq:$s,datetime_leq:$e,clientRequestPath:"/api/auth/get-session"},orderBy:[count_DESC]){count dimensions{clientCountryName}}
+    hosts:httpRequestsAdaptiveGroups(limit:8,filter:{datetime_geq:$s,datetime_leq:$e},orderBy:[count_DESC]){count dimensions{clientRequestHTTPHost}}
+    r307:httpRequestsAdaptiveGroups(limit:10,filter:{datetime_geq:$s,datetime_leq:$e,edgeResponseStatus:307},orderBy:[count_DESC]){count dimensions{clientRequestPath}}
+    cache:httpRequestsAdaptiveGroups(limit:6,filter:{datetime_geq:$s,datetime_leq:$e},orderBy:[count_DESC]){count dimensions{cacheStatus}}
+    sessHeadless:httpRequestsAdaptiveGroups(limit:1,filter:{datetime_geq:$s,datetime_leq:$e,clientRequestPath:"/api/auth/get-session",userAgent_like:"%Headless%"}){count}
+    saves:httpRequestsAdaptiveGroups(limit:1,filter:{datetime_geq:$s,datetime_leq:$e,clientRequestPath:"/api/me/save"}){count}
+    events:httpRequestsAdaptiveGroups(limit:1,filter:{datetime_geq:$s,datetime_leq:$e,clientRequestPath:"/api/events"}){count}
+    total:httpRequestsAdaptiveGroups(limit:1,filter:{datetime_geq:$s,datetime_leq:$e}){count}
+    pages:httpRequestsAdaptiveGroups(limit:1,filter:{datetime_geq:$s,datetime_leq:$e,requestSource:"eyeball",edgeResponseStatus:200,edgeResponseContentTypeName:"html"}){count}
   } } }`,
   { z: ZONE, s: iso(dayAgo), e: iso(end) },
 );
@@ -103,6 +115,13 @@ out.d1 = await gql(
 const dbs = await rest(`/accounts/${ACCOUNT}/d1/database`);
 out.d1Databases = dbs.success ? dbs.result.map((d) => ({ name: d.name, uuid: d.uuid })) : dbs.errors;
 
+if (save) {
+  const { mkdirSync, writeFileSync } = await import("node:fs");
+  mkdirSync("metrics", { recursive: true });
+  const file = `metrics/${day(end)}.json`;
+  writeFileSync(file, JSON.stringify(out, null, 1));
+  console.error(`saved ${file}`);
+}
 if (rawJson) {
   console.log(JSON.stringify(out, null, 1));
   process.exit(0);
@@ -170,8 +189,20 @@ console.log(`  404 paths:               ${list(ld.notfound, "clientRequestPath")
 console.log(`  403 blocked paths:       ${list(ld.blocked, "clientRequestPath")}`);
 console.log(`  device:                  ${list(ld.dev, "clientDeviceType")}`);
 console.log(`  /api/auth/get-session by country (best human signal): ${list(ld.sess, "clientCountryName")}`);
+console.log(`  hosts (petpomo.internal + upstreams = the Worker's own fetches, not visitors): ${list(ld.hosts, "clientRequestHTTPHost")}`);
+console.log(`  307 trailing-slash redirects by path: ${list(ld.r307, "clientRequestPath") || "none"}`);
+console.log(`  cache status:            ${list(ld.cache, "cacheStatus")}`);
 console.log("  user agents:");
 for (const x of ld.ua || []) console.log(`    ${String(x.count).padStart(5)}  ${x.dimensions.userAgent}`);
+
+// Human signal. Bots do not run the bundle, so they never call these.
+const one = (arr) => arr?.[0]?.count ?? 0;
+const sessTotal = (ld.sess || []).reduce((n, x) => n + x.count, 0);
+const sessHuman = sessTotal - one(ld.sessHeadless);
+console.log("\nHUMAN SIGNAL, last 24h (read these, not the request total)");
+console.log(`  zone requests ${one(ld.total)}  ->  html pages served ${one(ld.pages)}  ->  app loads (/api/auth/get-session, minus headless) ${sessHuman}  ->  saves (/api/me/save) ${one(ld.saves)}`);
+console.log(`  play events (/api/events): ${one(ld.events)}`);
+console.log("  cross-check: Cloudflare Web Analytics (dashboard) counts JS-executing, non-bot visitors.");
 
 // D1
 const names = Object.fromEntries((out.d1Databases || []).map((x) => [x.uuid, x.name]));

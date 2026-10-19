@@ -61,6 +61,15 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
+# Convention files fetched by every browser and crawler; rarely change.
+/favicon.ico
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/.well-known/*
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
 # The service worker must never be served stale, or a deploy cannot roll out.
 /sw.js
   Cache-Control: no-cache

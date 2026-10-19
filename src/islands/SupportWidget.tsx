@@ -96,7 +96,7 @@ export default function SupportWidget() {
             </button>
           </div>
           <p class="pp-support-note">
-            Opens in your email app. For general enquiries see the <a href="/contact">contact page</a>.
+            Opens in your email app. For general enquiries see the <a href="/contact/">contact page</a>.
           </p>
         </form>
       ) : (
